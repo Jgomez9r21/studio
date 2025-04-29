@@ -89,14 +89,21 @@ import {
 } from "@/components/ui/sidebar"
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
 import { usePathname } from 'next/navigation';
+import { BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image } from "lucide-react";
 
 const categorias = [
-  'Todos',
-  'Deportes',
-  'Educación',
-  'Tecnología',
-  'Mantenimiento del Hogar',
-  'Diseño',
+  { name: 'Todos', icon: null },
+  { name: 'Marketing Digital', icon: BarChart },
+  { name: 'Video & Animación', icon: Camera },
+  { name: 'Redacción & Traducción', icon: Edit },
+  { name: 'Música & Audio', icon: Music },
+  { name: 'Negocios', icon: Briefcase },
+  { name: 'Finanzas', icon: DollarSign },
+  { name: 'Servicios de IA', icon: Bot },
+  { name: 'Crecimiento Personal', icon: Leaf },
+  { name: 'Consultoría', icon: Lightbulb },
+  { name: 'Datos', icon: Database },
+  { name: 'Fotografía', icon: Image },
 ];
 
 const navegacion = [
@@ -136,7 +143,7 @@ function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const pathname = usePathname();
   const { isMobile } = useSidebar();
 
@@ -179,17 +186,25 @@ function LandingPageContent() {
 
       {/* Category Tabs */}
       <Tabs defaultValue="todos" className="w-full">
-        <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,1fr))] overflow-x-auto">
-          {categorias.map(category => (
-            <TabsTrigger value={category.toLowerCase()} key={category} onClick={() => setSelectedCategory(category)}>
-              {category}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <ScrollArea className="w-full whitespace-nowrap">
+          <TabsList className="inline-flex gap-1 p-1 bg-muted rounded-md shadow-sm">
+            {categorias.map(category => (
+              <TabsTrigger
+                key={category.name}
+                value={category.name.toLowerCase()}
+                onClick={() => setSelectedCategory(category.name)}
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground"
+              >
+                {category.icon && <category.icon className="w-4 h-4 mr-2" />}
+                {category.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </ScrollArea>
 
         {/* Service Listings */}
         {categorias.map(category => (
-          <TabsContent value={category.toLowerCase()} key={category} className="mt-8">
+          <TabsContent value={category.name.toLowerCase()} key={category.name} className="mt-8">
             <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
@@ -317,3 +332,4 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
+
