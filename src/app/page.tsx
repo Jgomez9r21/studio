@@ -7,7 +7,7 @@ import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
-import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
 import {Textarea} from "@/components/ui/textarea"
 import {Label} from "@/components/ui/label"
 import {toast} from "@/hooks/use-toast"
@@ -90,14 +90,13 @@ import {
 import {Home, Users, Settings, CreditCard, UserPlus, Briefcase} from "lucide-react";
 import {usePathname} from 'next/navigation';
 import {BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2} from "lucide-react";
-import {Toaster} from "@/components/ui/toaster";
 
 const categorias = [
   {name: 'Todos', icon: null},
   {name: 'Deporte', icon: Leaf},
   {name: 'Tecnología', icon: Code},
   {name: 'Entrenador Personal', icon: User},
-  {name: 'Construcción', icon: Construction},
+  {name: 'Contratista', icon: Construction},
   {name: 'Profesores', icon: School2},
   {name: 'Marketing Digital', icon: BarChart},
   {name: 'Video & Animación', icon: Camera},
@@ -201,14 +200,11 @@ function LandingPageContent() {
       </section>
 
       {/* Rappi-like Categories */}
-      <section className="mb-8">
+      <section>
         <h2 className="mb-4 text-2xl font-semibold">¿Necesitas algo más?</h2>
         <div className="flex items-center justify-start space-x-4 overflow-x-auto">
           {rappiCategories.map((category) => (
-            <div
-              key={category.name}
-              className="relative min-w-[150px] rounded-xl shadow-md overflow-hidden"
-            >
+            <div key={category.name} className="relative w-48 h-48 rounded-md shadow-md overflow-hidden flex-shrink-0">
               <div
                 className="absolute inset-0"
                 style={{backgroundColor: category.color, opacity: 0.7}}
@@ -218,7 +214,7 @@ function LandingPageContent() {
                 alt={category.name}
                 className="w-full h-32 object-cover relative z-10"
               />
-              <div className="relative z-20 p-4 text-center text-white font-semibold">
+              <div className="absolute bottom-0 left-0 right-0 p-2 text-white text-center relative z-10">
                 {category.name}
               </div>
             </div>
@@ -250,28 +246,30 @@ function LandingPageContent() {
             <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
-                  <Card key={listing.id}
-                        className="border-none shadow-md transition-colors hover:shadow-lg">
+                  <Card key={listing.id}>
                     <CardHeader>
-                      <CardTitle className="text-xl font-semibold">{listing.title}</CardTitle>
-                      <CardDescription className="text-muted-foreground">{listing.category}</CardDescription>
+                      <CardTitle>
+                        {listing.title}
+                      </CardTitle>
+                      <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p>{listing.description}</p>
+                    <CardContent>
                       <p>
-                        <span className="font-medium">Tarifa:</span> ${listing.rate}/hr
+                        {listing.description}
                       </p>
                       <p>
-                        <span className="font-medium">Disponibilidad:</span> {listing.availability.join(', ')}
+                        Tarifa: ${listing.rate}/hr
+                      </p>
+                      <p>
+                        Disponibilidad: {listing.availability.join(', ')}
                       </p>
 
                       {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="w-full rounded-md shadow-sm">Reservar
-                            Servicio</Button>
+                          <Button variant="outline">Reservar Servicio</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px] rounded-md shadow-lg">
+                        <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
                             <DialogTitle>Reservar {listing.title}</DialogTitle>
                             <DialogDescription>
@@ -285,28 +283,27 @@ function LandingPageContent() {
                                      className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"/>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="username">Seleccionar Fecha</Label>
+                              <Label htmlFor="date">Seleccionar Fecha</Label>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
                                     variant={"outline"}
                                     className={cn(
-                                      "w-[240px] justify-start text-left font-normal rounded-md shadow-sm",
+                                      "w-[240px] justify-start text-left font-normal",
                                       !date && "text-muted-foreground"
                                     )}
                                   >
-                                    <Menu className="mr-2 h-4 w-4"/>
+                                    <Calendar className="mr-2 h-4 w-4"/>
                                     {date ? format(date, "PPP") : <span>Elige una fecha</span>}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 rounded-md shadow-md" align="start"
-                                                side="bottom">
+                                <PopoverContent className="w-auto p-0" align="start">
                                   <Calendar
                                     mode="single"
                                     selected={date}
                                     onSelect={setDate}
                                     disabled={(date) =>
-                                      date &lt; new Date()
+                                      date < new Date()
                                     }
                                     initialFocus
                                   />
@@ -319,11 +316,12 @@ function LandingPageContent() {
                                         className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"/>
                             </div>
                           </div>
-                          <Button onClick={() => toast({
-                            title: "¡Éxito!",
-                            description: "Su solicitud de reserva ha sido enviada.",
-                          })} type="submit" className="w-full rounded-md shadow-sm">Realizar
-                            solicitud de reserva</Button>
+                          <DialogFooter>
+                            <Button type="submit">
+                              Realizar
+                              solicitud de reserva
+                            </Button>
+                          </DialogFooter>
                         </DialogContent>
                       </Dialog>
                     </CardContent>
@@ -339,28 +337,23 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
-  const {isMobile} = useSidebar();
   return (
     <SidebarProvider>
-      <div className="flex h-screen antialiased text-foreground">
+      <div className="flex h-screen">
         <Sidebar className="w-60">
           <SidebarHeader>
             <Avatar className="ml-2">
-              <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect"/>
-              <AvatarFallback>SH</AvatarFallback>
+              <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
+              <AvatarFallback>CN</AvatarFallback>
             </Avatar>
-            <h2 className="text-lg font-bold">SkillHub Connect</h2>
-            <p className="text-sm text-muted-foreground">
-              Encuentra talentos locales y servicios
-            </p>
+            <h3 className="ml-3 font-bold">SkillHub Connect</h3>
           </SidebarHeader>
-          <SidebarSeparator/>
           <SidebarContent>
             <SidebarMenu>
               {navegacion.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton href={item.href} isActive={item.href === '/'} >
-                    <item.icon className="mr-2 h-4 w-4"/>
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton href={item.href}>
+                    <item.icon className="h-4 w-4"/>
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -368,16 +361,12 @@ export default function LandingPage() {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <SidebarSeparator/>
-            <p className="text-xs text-muted-foreground px-2">
-              © {new Date().getFullYear()} SkillHub Connect
-            </p>
+            © {new Date().getFullYear()} SkillHub Connect
           </SidebarFooter>
         </Sidebar>
-        <SidebarInset>
+        <SidebarInset className="flex-1 overflow-auto p-4">
           <LandingPageContent />
         </SidebarInset>
-        <Toaster />
       </div>
     </SidebarProvider>
   );
