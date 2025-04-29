@@ -375,10 +375,11 @@ export default function LandingPage() {
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <LandingPageContent/>
+          <LandingPageContent />
         </SidebarInset>
-        <Toaster/>
+        <Toaster />
       </div>
     </SidebarProvider>
   );
 }
+
