@@ -90,6 +90,7 @@ import {
 import {Home, Users, Settings, CreditCard, UserPlus, Briefcase} from "lucide-react";
 import {usePathname} from 'next/navigation';
 import {BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2} from "lucide-react";
+import {Toaster} from "@/components/ui/toaster";
 
 const categorias = [
   {name: 'Todos', icon: null},
@@ -337,38 +338,43 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
+  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const {isMobile} = useSidebar();
+
   return (
     
-      
-        
-          
-            
-              <Avatar className="ml-2">
-                <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <h3 className="ml-3 font-bold">SkillHub Connect</h3>
-            
-            
+      <SidebarProvider>
+        <div className="flex">
+          <Sidebar className="w-60">
+            <SidebarHeader>
+              <>
+                <Avatar className="ml-2">
+                  <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <h3 className="ml-3 font-bold">SkillHub Connect</h3>
+              </>
+            </SidebarHeader>
+            <SidebarContent>
               {navegacion.map((item) => (
-                
-                  
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton href={item.href}>
                     <item.icon className="h-4 w-4"/>
                     <span>{item.title}</span>
-                  
-                
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
-            
+            </SidebarContent>
+            <SidebarFooter>© {new Date().getFullYear()} SkillHub Connect</SidebarFooter>
+          </Sidebar>
           
-          © {new Date().getFullYear()} SkillHub Connect
-        
-        
-          <LandingPageContent />
-        
-      
+            <SidebarInset>
+              <LandingPageContent/>
+            </SidebarInset>
+          
+        </div>
+      </SidebarProvider>
+      <Toaster/>
     
   );
 }
-
-
-
