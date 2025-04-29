@@ -7,7 +7,7 @@ import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog"
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
 import {Textarea} from "@/components/ui/textarea"
 import {Label} from "@/components/ui/label"
 import {toast} from "@/hooks/use-toast"
@@ -338,37 +338,37 @@ function LandingPageContent() {
 
 export default function LandingPage() {
   return (
-    <SidebarProvider>
-      <div className="flex h-screen">
-        <Sidebar className="w-60">
-          <SidebarHeader>
-            <Avatar className="ml-2">
-              <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <h3 className="ml-3 font-bold">SkillHub Connect</h3>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
+    
+      
+        
+          
+            
+              <Avatar className="ml-2">
+                <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <h3 className="ml-3 font-bold">SkillHub Connect</h3>
+            
+            
               {navegacion.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton href={item.href}>
+                
+                  
                     <item.icon className="h-4 w-4"/>
                     <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                  
+                
               ))}
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            © {new Date().getFullYear()} SkillHub Connect
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="flex-1 overflow-auto p-4">
+            
+          
+          © {new Date().getFullYear()} SkillHub Connect
+        
+        
           <LandingPageContent />
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+        
+      
+    
   );
 }
+
+
 
