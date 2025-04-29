@@ -215,7 +215,7 @@ export default function LandingPage() {
 
           {/* Category Tabs */}
           <Tabs defaultValue="todos" className="w-full">
-            <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,1fr))]">
+            <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,1fr))] overflow-x-auto">
               {categorias.map(category => (
                 <TabsTrigger value={category.toLowerCase()} key={category} onClick={() => setSelectedCategory(category)}>
                   {category}
@@ -312,3 +312,4 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
+
