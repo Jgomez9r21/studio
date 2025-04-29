@@ -44,36 +44,40 @@ export default function Home() {
   );
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-6">
        <Toaster />
-      <header className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">SkillHub Connect</h1>
+      <header className="mb-8 flex justify-between items-center">
+        <h1 className="text-3xl font-semibold tracking-tight">SkillHub Connect</h1>
           <Input
             type="search"
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
           />
       </header>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        <ScrollArea className="h-[500px] w-full rounded-md border">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
         {filteredListings.map(listing => (
-          <Card key={listing.id}>
+          <Card key={listing.id} className="border-none shadow-md transition-colors hover:shadow-lg">
             <CardHeader>
-              <CardTitle>{listing.title}</CardTitle>
-              <CardDescription>{listing.category}</CardDescription>
+              <CardTitle className="text-xl font-semibold">{listing.title}</CardTitle>
+              <CardDescription className="text-muted-foreground">{listing.category}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <p>{listing.description}</p>
-              <p>Rate: ${listing.rate}/hr</p>
-              <p>Availability: {listing.availability.join(', ')}</p>
+              <p>
+                <span className="font-medium">Rate:</span> ${listing.rate}/hr
+              </p>
+              <p>
+                <span className="font-medium">Availability:</span> {listing.availability.join(', ')}
+              </p>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Book Service</Button>
+                  <Button variant="outline" className="w-full rounded-md shadow-sm">Book Service</Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] rounded-md shadow-lg">
                   <DialogHeader>
                     <DialogTitle>Book {listing.title}</DialogTitle>
                     <DialogDescription>
@@ -83,7 +87,7 @@ export default function Home() {
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="name">Name</Label>
-                      <Input id="name" value="John Doe" className="col-span-3" />
+                      <Input id="name" value="John Doe" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="username">Select Date</Label>
@@ -92,7 +96,7 @@ export default function Home() {
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-[240px] justify-start text-left font-normal",
+                              "w-[240px] justify-start text-left font-normal rounded-md shadow-sm",
                               !date && "text-muted-foreground"
                             )}
                           >
@@ -100,7 +104,7 @@ export default function Home() {
                             {date ? format(date, "PPP") : <span>Pick a date</span>}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start" side="bottom">
+                        <PopoverContent className="w-auto p-0 rounded-md shadow-md" align="start" side="bottom">
                           <Calendar
                             mode="single"
                             selected={date}
@@ -115,13 +119,13 @@ export default function Home() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="comment">Comment</Label>
-                      <Textarea id="comment" className="col-span-3" />
+                      <Textarea id="comment" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
                     </div>
                   </div>
                   <Button onClick={() => toast({
                     title: "Success!",
                     description: "Your booking request has been sent.",
-                  })} type="submit">Make booking request</Button>
+                  })} type="submit" className="w-full rounded-md shadow-sm">Make booking request</Button>
                 </DialogContent>
               </Dialog>
             </CardContent>
