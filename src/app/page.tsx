@@ -137,6 +137,8 @@ function LandingPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedCategory, setSelectedCategory] = useState('Todos');
+  const pathname = usePathname();
+  const { isMobile } = useSidebar();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -274,9 +276,6 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
-  const pathname = usePathname();
-  const { isMobile } = useSidebar();
-
   return (
     <SidebarProvider>
       <div className="flex h-screen antialiased text-foreground">
@@ -296,7 +295,7 @@ export default function LandingPage() {
             <SidebarMenu>
               {navegacion.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton href={item.href} isActive={pathname === item.href}>
+                  <SidebarMenuButton href={item.href} isActive={item.href === '/'} >
                     <item.icon className="mr-2 h-4 w-4" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
@@ -318,4 +317,3 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
-
