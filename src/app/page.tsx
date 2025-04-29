@@ -89,10 +89,15 @@ import {
 } from "@/components/ui/sidebar"
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
 import { usePathname } from 'next/navigation';
-import { BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image } from "lucide-react";
+import { BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2 } from "lucide-react";
 
 const categorias = [
   { name: 'Todos', icon: null },
+  { name: 'Deporte', icon: Leaf },
+  { name: 'Tecnología', icon: Code },
+  { name: 'Entrenador Personal', icon: User },
+  { name: 'Contratista', icon: Construction },
+  { name: 'Profesores', icon: School2 },
   { name: 'Marketing Digital', icon: BarChart },
   { name: 'Video & Animación', icon: Camera },
   { name: 'Redacción & Traducción', icon: Edit },
@@ -100,8 +105,7 @@ const categorias = [
   { name: 'Negocios', icon: Briefcase },
   { name: 'Finanzas', icon: DollarSign },
   { name: 'Servicios de IA', icon: Bot },
-  { name: 'Crecimiento Personal', icon: Leaf },
-  { name: 'Consultoría', icon: Lightbulb },
+  { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: Image },
 ];
@@ -332,5 +336,4 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
-
 
