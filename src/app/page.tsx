@@ -279,40 +279,43 @@ export default function LandingPage() {
 
   return (
     <SidebarProvider>
-      <Sidebar className="w-60">
-        <SidebarHeader>
-          <Avatar className="ml-2">
-            <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect" />
-            <AvatarFallback>SH</AvatarFallback>
-          </Avatar>
-          <h2 className="text-lg font-bold">SkillHub Connect</h2>
-          <p className="text-sm text-muted-foreground">
-            Encuentra talentos locales y servicios
-          </p>
-        </SidebarHeader>
-        <SidebarSeparator />
-        <SidebarContent>
-          <SidebarMenu>
-            {navegacion.map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton href={item.href} isActive={pathname === item.href}>
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
+      <div className="flex h-screen antialiased text-foreground">
+        <Sidebar className="w-60">
+          <SidebarHeader>
+            <Avatar className="ml-2">
+              <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect" />
+              <AvatarFallback>SH</AvatarFallback>
+            </Avatar>
+            <h2 className="text-lg font-bold">SkillHub Connect</h2>
+            <p className="text-sm text-muted-foreground">
+              Encuentra talentos locales y servicios
+            </p>
+          </SidebarHeader>
           <SidebarSeparator />
-          <p className="text-xs text-muted-foreground px-2">
-            © {new Date().getFullYear()} SkillHub Connect
-          </p>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <LandingPageContent />
-      </SidebarInset>
+          <SidebarContent>
+            <SidebarMenu>
+              {navegacion.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton href={item.href} isActive={pathname === item.href}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            <SidebarSeparator />
+            <p className="text-xs text-muted-foreground px-2">
+              © {new Date().getFullYear()} SkillHub Connect
+            </p>
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <LandingPageContent />
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }
+
