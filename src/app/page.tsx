@@ -53,7 +53,6 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   Menubar,
@@ -90,6 +89,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
+import { usePathname } from 'next/navigation';
 
 const categorias = [
   'Todos',
@@ -154,6 +154,8 @@ export default function LandingPage() {
       listing.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const pathname = usePathname();
+
   return (
     <SidebarProvider>
       <Sidebar className="w-60">
@@ -172,7 +174,7 @@ export default function LandingPage() {
           <SidebarMenu>
             {navegacion.map((item) => (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton href={item.href}>
+                <SidebarMenuButton href={item.href} isActive={pathname === item.href}>
                   <item.icon className="mr-2 h-4 w-4" />
                   <span>{item.title}</span>
                 </SidebarMenuButton>
@@ -310,5 +312,3 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
-
-
