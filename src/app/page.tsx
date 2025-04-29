@@ -1,28 +1,28 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { getServiceListings, ServiceListing } from '@/services/service-listings';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { toast } from "@/hooks/use-toast"
+import {useEffect, useState} from 'react';
+import {getServiceListings, ServiceListing} from '@/services/service-listings';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+import {ScrollArea} from "@/components/ui/scroll-area"
+import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
+import {Textarea} from "@/components/ui/textarea"
+import {Label} from "@/components/ui/label"
+import {toast} from "@/hooks/use-toast"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Calendar } from "@/components/ui/calendar"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Search, Menu } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {Calendar} from "@/components/ui/calendar"
+import {cn} from "@/lib/utils"
+import {format} from "date-fns"
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Search, Menu} from "lucide-react"
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {
   Accordion,
   AccordionContent,
@@ -39,7 +39,7 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
-import { Checkbox } from "@/components/ui/checkbox"
+import {Checkbox} from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -87,39 +87,39 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
-import { usePathname } from 'next/navigation';
-import { BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2 } from "lucide-react";
-import { Toaster } from "@/components/ui/toaster";
+import {Home, Users, Settings, CreditCard, UserPlus, Briefcase} from "lucide-react";
+import {usePathname} from 'next/navigation';
+import {BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2} from "lucide-react";
+import {Toaster} from "@/components/ui/toaster";
 
 const categorias = [
-  { name: 'Todos', icon: null },
-  { name: 'Deporte', icon: Leaf },
-  { name: 'Tecnología', icon: Code },
-  { name: 'Entrenador Personal', icon: User },
-  { name: 'Construcción', icon: Construction },
-  { name: 'Profesores', icon: School2 },
-  { name: 'Marketing Digital', icon: BarChart },
-  { name: 'Video & Animación', icon: Camera },
-  { name: 'Redacción & Traducción', icon: Edit },
-  { name: 'Música & Audio', icon: Music },
-  { name: 'Negocios', icon: Briefcase },
-  { name: 'Finanzas', icon: DollarSign },
-  { name: 'Servicios de IA', icon: Bot },
-  { name: 'Crecimiento Personal', icon: Lightbulb },
-  { name: 'Datos', icon: Database },
-  { name: 'Fotografía', icon: Image },
+  {name: 'Todos', icon: null},
+  {name: 'Deporte', icon: Leaf},
+  {name: 'Tecnología', icon: Code},
+  {name: 'Entrenador Personal', icon: User},
+  {name: 'Construcción', icon: Construction},
+  {name: 'Profesores', icon: School2},
+  {name: 'Marketing Digital', icon: BarChart},
+  {name: 'Video & Animación', icon: Camera},
+  {name: 'Redacción & Traducción', icon: Edit},
+  {name: 'Música & Audio', icon: Music},
+  {name: 'Negocios', icon: Briefcase},
+  {name: 'Finanzas', icon: DollarSign},
+  {name: 'Servicios de IA', icon: Bot},
+  {name: 'Crecimiento Personal', icon: Lightbulb},
+  {name: 'Datos', icon: Database},
+  {name: 'Fotografía', icon: Image},
 ];
 
 const rappiCategories = [
-  { name: 'Restaurantes', imageUrl: 'https://picsum.photos/200/150', color: '#FF5733' },
-  { name: 'Mercados', imageUrl: 'https://picsum.photos/200/150', color: '#33FF57' },
-  { name: 'Farmacia', imageUrl: 'https://picsum.photos/200/150', color: '#3390FF' },
-  { name: 'Tiendas', imageUrl: 'https://picsum.photos/200/150', color: '#FF33E9' },
-  { name: 'Turbo', imageUrl: 'https://picsum.photos/200/150', color: '#33FFBD' },
-  { name: 'Licores', imageUrl: 'https://picsum.photos/200/150', color: '#FFBD33' },
-  { name: 'Rappi Travel', imageUrl: 'https://picsum.photos/200/150', color: '#33A2FF' },
-  { name: 'SOAT', imageUrl: 'https://picsum.photos/200/150', color: '#FFDD33' },
+  {name: 'Restaurantes', imageUrl: 'https://picsum.photos/200/150', color: '#FF5733'},
+  {name: 'Mercados', imageUrl: 'https://picsum.photos/200/150', color: '#33FF57'},
+  {name: 'Farmacia', imageUrl: 'https://picsum.photos/200/150', color: '#3390FF'},
+  {name: 'Tiendas', imageUrl: 'https://picsum.photos/200/150', color: '#FF33E9'},
+  {name: 'Turbo', imageUrl: 'https://picsum.photos/200/150', color: '#33FFBD'},
+  {name: 'Licores', imageUrl: 'https://picsum.photos/200/150', color: '#FFBD33'},
+  {name: 'Rappi Travel', imageUrl: 'https://picsum.photos/200/150', color: '#33A2FF'},
+  {name: 'SOAT', imageUrl: 'https://picsum.photos/200/150', color: '#FFDD33'},
 ];
 
 const navegacion = [
@@ -161,7 +161,7 @@ function LandingPageContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const pathname = usePathname();
-  const { isMobile } = useSidebar();
+  const {isMobile} = useSidebar();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -196,11 +196,11 @@ function LandingPageContent() {
             onChange={(e) => setSearchQuery(e.target.value)}
             className="rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary pr-10"
           />
-          <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground"/>
         </div>
       </section>
 
-       {/* Rappi-like Categories */}
+      {/* Rappi-like Categories */}
       <section className="mb-8">
         <h2 className="mb-4 text-2xl font-semibold">¿Necesitas algo más?</h2>
         <div className="flex items-center justify-start space-x-4 overflow-x-auto">
@@ -211,7 +211,7 @@ function LandingPageContent() {
             >
               <div
                 className="absolute inset-0"
-                style={{ backgroundColor: category.color, opacity: 0.7 }}
+                style={{backgroundColor: category.color, opacity: 0.7}}
               ></div>
               <img
                 src={category.imageUrl}
@@ -237,7 +237,7 @@ function LandingPageContent() {
                 onClick={() => setSelectedCategory(category.name)}
                 className="data-[state=active]:bg-background data-[state=active]:text-foreground"
               >
-                {category.icon && <category.icon className="w-4 h-4 mr-2" />}
+                {category.icon && <category.icon className="w-4 h-4 mr-2"/>}
                 {category.name}
               </TabsTrigger>
             ))}
@@ -250,7 +250,8 @@ function LandingPageContent() {
             <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
-                  <Card key={listing.id} className="border-none shadow-md transition-colors hover:shadow-lg">
+                  <Card key={listing.id}
+                        className="border-none shadow-md transition-colors hover:shadow-lg">
                     <CardHeader>
                       <CardTitle className="text-xl font-semibold">{listing.title}</CardTitle>
                       <CardDescription className="text-muted-foreground">{listing.category}</CardDescription>
@@ -267,7 +268,8 @@ function LandingPageContent() {
                       {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="w-full rounded-md shadow-sm">Reservar Servicio</Button>
+                          <Button variant="outline" className="w-full rounded-md shadow-sm">Reservar
+                            Servicio</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px] rounded-md shadow-lg">
                           <DialogHeader>
@@ -279,7 +281,8 @@ function LandingPageContent() {
                           <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="name">Nombre</Label>
-                              <Input id="name" value="John Doe" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
+                              <Input id="name" value="John Doe"
+                                     className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"/>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="username">Seleccionar Fecha</Label>
@@ -292,17 +295,18 @@ function LandingPageContent() {
                                       !date && "text-muted-foreground"
                                     )}
                                   >
-                                    <Menu className="mr-2 h-4 w-4" />
+                                    <Menu className="mr-2 h-4 w-4"/>
                                     {date ? format(date, "PPP") : <span>Elige una fecha</span>}
                                   </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0 rounded-md shadow-md" align="start" side="bottom">
+                                <PopoverContent className="w-auto p-0 rounded-md shadow-md" align="start"
+                                                side="bottom">
                                   <Calendar
                                     mode="single"
                                     selected={date}
                                     onSelect={setDate}
                                     disabled={(date) =>
-                                      date < new Date()
+                                      date &lt; new Date()
                                     }
                                     initialFocus
                                   />
@@ -311,13 +315,15 @@ function LandingPageContent() {
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="comment">Comentario</Label>
-                              <Textarea id="comment" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
+                              <Textarea id="comment"
+                                        className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"/>
                             </div>
                           </div>
                           <Button onClick={() => toast({
                             title: "¡Éxito!",
                             description: "Su solicitud de reserva ha sido enviada.",
-                          })} type="submit" className="w-full rounded-md shadow-sm">Realizar solicitud de reserva</Button>
+                          })} type="submit" className="w-full rounded-md shadow-sm">Realizar
+                            solicitud de reserva</Button>
                         </DialogContent>
                       </Dialog>
                     </CardContent>
@@ -333,13 +339,14 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
+  const {isMobile} = useSidebar();
   return (
     <SidebarProvider>
       <div className="flex h-screen antialiased text-foreground">
         <Sidebar className="w-60">
           <SidebarHeader>
             <Avatar className="ml-2">
-              <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect" />
+              <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect"/>
               <AvatarFallback>SH</AvatarFallback>
             </Avatar>
             <h2 className="text-lg font-bold">SkillHub Connect</h2>
@@ -347,13 +354,13 @@ export default function LandingPage() {
               Encuentra talentos locales y servicios
             </p>
           </SidebarHeader>
-          <SidebarSeparator />
+          <SidebarSeparator/>
           <SidebarContent>
             <SidebarMenu>
               {navegacion.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton href={item.href} isActive={item.href === '/'} >
-                    <item.icon className="mr-2 h-4 w-4" />
+                    <item.icon className="mr-2 h-4 w-4"/>
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -361,18 +368,17 @@ export default function LandingPage() {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
-            <SidebarSeparator />
+            <SidebarSeparator/>
             <p className="text-xs text-muted-foreground px-2">
               © {new Date().getFullYear()} SkillHub Connect
             </p>
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <LandingPageContent />
+          <LandingPageContent/>
         </SidebarInset>
-        <Toaster />
+        <Toaster/>
       </div>
     </SidebarProvider>
   );
 }
-
