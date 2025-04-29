@@ -8,7 +8,7 @@ body {
 
 @layer base {
   :root {
-    --background: 240 4.9% 89.8%;
+    --background: 220 5.3% 89.8%;
     --foreground: 220 5.3% 26.1%;
     --muted: 220 5.3% 94.1%;
     --muted-foreground: 220 5.3% 46.1%;
@@ -78,4 +78,5 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
 
