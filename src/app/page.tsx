@@ -24,6 +24,52 @@ import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon, Search } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Menubar,
+  MenubarCheckboxItem,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarRadioGroup,
+  MenubarRadioItem,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger,
+  MenubarTrigger,
+} from "@/components/ui/menubar"
 
 const categories = [
   'All',
@@ -58,21 +104,28 @@ export default function Home() {
   return (
     <div className="container mx-auto p-6">
       <Toaster />
-      <header className="mb-8 flex flex-col items-center justify-center">
-        <h1 className="text-3xl font-semibold tracking-tight">SkillHub Connect</h1>
-        <p className="text-muted-foreground">Find local service providers and book with ease.</p>
-        <div className="relative w-full max-w-md mt-4">
+
+      {/* Hero Section */}
+      <section className="mb-12 flex flex-col items-center justify-center text-center">
+        <h1 className="text-4xl font-bold tracking-tight">
+          Find the Perfect Service Provider
+        </h1>
+        <p className="mt-2 text-lg text-muted-foreground">
+          Book local services with ease.
+        </p>
+        <div className="relative mt-6 w-full max-w-md">
           <Input
             type="search"
             placeholder="Search services..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary"
+            className="rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary pr-10"
           />
           <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
         </div>
-      </header>
+      </section>
 
+      {/* Category Tabs */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,1fr))]">
           {categories.map(category => (
@@ -81,8 +134,10 @@ export default function Home() {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        {/* Service Listings */}
         {categories.map(category => (
-          <TabsContent value={category.toLowerCase()} key={category} className="mt-4">
+          <TabsContent value={category.toLowerCase()} key={category} className="mt-8">
             <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
@@ -99,6 +154,8 @@ export default function Home() {
                       <p>
                         <span className="font-medium">Availability:</span> {listing.availability.join(', ')}
                       </p>
+
+                      {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline" className="w-full rounded-md shadow-sm">Book Service</Button>
