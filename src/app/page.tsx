@@ -20,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog"
 import {Textarea} from "@/components/ui/textarea"
 import {Label} from "@/components/ui/label"
@@ -138,6 +138,7 @@ function LandingPageContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const pathname = usePathname();
+  const { isMobile } = useSidebar();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -314,35 +315,40 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
+  const { isMobile } = useSidebar();
+
   return (
     <SidebarProvider>
       <div className="flex">
         <Sidebar className="w-60">
           <SidebarHeader>
-            <>
+            
               <Avatar className="ml-2">
                 <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
               <h3 className="ml-3 font-bold">SkillHub Connect</h3>
-            </>
+            
           </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
+          
+            
             {navegacion.map((item) => (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.title} href={item.href}>
                 <SidebarMenuButton href={item.href}>
                   <item.icon className="h-4 w-4"/>
                   <span>{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            </SidebarMenu>
-          </SidebarContent>
+            
+          
           <SidebarFooter>© {new Date().getFullYear()} SkillHub Connect</SidebarFooter>
         </Sidebar>
         <SidebarInset>
-          <LandingPageContent/>
+          {isMobile && (
+            <SidebarTrigger className="md:hidden"/>
+          )}
+          <LandingPageContent />
         </SidebarInset>
       </div>
       <Toaster/>
