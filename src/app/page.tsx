@@ -91,53 +91,53 @@ import {
 } from "@/components/ui/sidebar"
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
 
-const categories = [
-  'All',
-  'Sports',
-  'Education',
-  'Technology',
-  'Home Maintenance',
-  'Design',
+const categorias = [
+  'Todos',
+  'Deportes',
+  'Educación',
+  'Tecnología',
+  'Mantenimiento del Hogar',
+  'Diseño',
 ];
 
-const navigation = [
+const navegacion = [
   {
-    title: "Home",
+    title: "Inicio",
     href: "/",
     icon: Home,
   },
   {
-    title: "Find Talents",
+    title: "Buscar Talento",
     href: "/find-talents",
     icon: Users,
   },
   {
-    title: "Post a Job",
+    title: "Publicar un Trabajo",
     href: "/post-job",
     icon: UserPlus,
   },
   {
-    title: "Book a Service",
+    title: "Reservar un Servicio",
     href: "/book-service",
     icon: Briefcase,
   },
   {
-    title: "Billing",
+    title: "Facturación",
     href: "/billing",
     icon: CreditCard,
   },
   {
-    title: "Settings",
+    title: "Configuración",
     href: "/settings",
     icon: Settings,
   },
 ];
 
-export default function HomePage() {
+export default function LandingPage() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -149,7 +149,7 @@ export default function HomePage() {
   }, []);
 
   const filteredListings = listings.filter(listing =>
-    (selectedCategory === 'All' || listing.category === selectedCategory) &&
+    (selectedCategory === 'Todos' || listing.category === selectedCategory) &&
     (listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listing.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -164,13 +164,13 @@ export default function HomePage() {
           </Avatar>
           <h2 className="text-lg font-bold">SkillHub Connect</h2>
           <p className="text-sm text-muted-foreground">
-            Find local talents and services
+            Encuentra talentos locales y servicios
           </p>
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
           <SidebarMenu>
-            {navigation.map((item) => (
+            {navegacion.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton href={item.href}>
                   <item.icon className="mr-2 h-4 w-4" />
@@ -194,15 +194,15 @@ export default function HomePage() {
           {/* Hero Section */}
           <section className="mb-12 flex flex-col items-center justify-center text-center">
             <h1 className="text-4xl font-bold tracking-tight">
-              Find the Perfect Service Provider
+              Encuentra el proveedor de servicios perfecto
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Book local services with ease.
+              Reserva servicios locales con facilidad.
             </p>
             <div className="relative mt-6 w-full max-w-md">
               <Input
                 type="search"
-                placeholder="Search services..."
+                placeholder="Buscar servicios..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary pr-10"
@@ -212,9 +212,9 @@ export default function HomePage() {
           </section>
 
           {/* Category Tabs */}
-          <Tabs defaultValue="all" className="w-full">
+          <Tabs defaultValue="todos" className="w-full">
             <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,1fr))]">
-              {categories.map(category => (
+              {categorias.map(category => (
                 <TabsTrigger value={category.toLowerCase()} key={category} onClick={() => setSelectedCategory(category)}>
                   {category}
                 </TabsTrigger>
@@ -222,7 +222,7 @@ export default function HomePage() {
             </TabsList>
 
             {/* Service Listings */}
-            {categories.map(category => (
+            {categorias.map(category => (
               <TabsContent value={category.toLowerCase()} key={category} className="mt-8">
                 <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm">
                   <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -235,31 +235,31 @@ export default function HomePage() {
                         <CardContent className="space-y-4">
                           <p>{listing.description}</p>
                           <p>
-                            <span className="font-medium">Rate:</span> ${listing.rate}/hr
+                            <span className="font-medium">Tarifa:</span> ${listing.rate}/hr
                           </p>
                           <p>
-                            <span className="font-medium">Availability:</span> {listing.availability.join(', ')}
+                            <span className="font-medium">Disponibilidad:</span> {listing.availability.join(', ')}
                           </p>
 
                           {/* Booking Dialog */}
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button variant="outline" className="w-full rounded-md shadow-sm">Book Service</Button>
+                              <Button variant="outline" className="w-full rounded-md shadow-sm">Reservar Servicio</Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[425px] rounded-md shadow-lg">
                               <DialogHeader>
-                                <DialogTitle>Book {listing.title}</DialogTitle>
+                                <DialogTitle>Reservar {listing.title}</DialogTitle>
                                 <DialogDescription>
-                                  Make a booking request to schedule this service.
+                                  Realiza una solicitud de reserva para programar este servicio.
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="name">Name</Label>
+                                  <Label htmlFor="name">Nombre</Label>
                                   <Input id="name" value="John Doe" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="username">Select Date</Label>
+                                  <Label htmlFor="username">Seleccionar Fecha</Label>
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <Button
@@ -270,7 +270,7 @@ export default function HomePage() {
                                         )}
                                       >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                        {date ? format(date, "PPP") : <span>Elige una fecha</span>}
                                       </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0 rounded-md shadow-md" align="start" side="bottom">
@@ -287,14 +287,14 @@ export default function HomePage() {
                                   </Popover>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                  <Label htmlFor="comment">Comment</Label>
+                                  <Label htmlFor="comment">Comentario</Label>
                                   <Textarea id="comment" className="col-span-3 rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary" />
                                 </div>
                               </div>
                               <Button onClick={() => toast({
-                                title: "Success!",
-                                description: "Your booking request has been sent.",
-                              })} type="submit" className="w-full rounded-md shadow-sm">Make booking request</Button>
+                                title: "¡Éxito!",
+                                description: "Su solicitud de reserva ha sido enviada.",
+                              })} type="submit" className="w-full rounded-md shadow-sm">Realizar solicitud de reserva</Button>
                             </DialogContent>
                           </Dialog>
                         </CardContent>
