@@ -90,13 +90,14 @@ import {
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
 
 const categorias = [
   { name: 'Todos', icon: null },
   { name: 'Deporte', icon: Leaf },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
-  { name: 'Contratista', icon: Construction },
+  { name: 'Construcción', icon: Construction },
   { name: 'Profesores', icon: School2 },
   { name: 'Marketing Digital', icon: BarChart },
   { name: 'Video & Animación', icon: Camera },
@@ -108,6 +109,17 @@ const categorias = [
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: Image },
+];
+
+const rappiCategories = [
+  { name: 'Restaurantes', imageUrl: 'https://picsum.photos/200/150', color: '#FF5733' },
+  { name: 'Mercados', imageUrl: 'https://picsum.photos/200/150', color: '#33FF57' },
+  { name: 'Farmacia', imageUrl: 'https://picsum.photos/200/150', color: '#3390FF' },
+  { name: 'Tiendas', imageUrl: 'https://picsum.photos/200/150', color: '#FF33E9' },
+  { name: 'Turbo', imageUrl: 'https://picsum.photos/200/150', color: '#33FFBD' },
+  { name: 'Licores', imageUrl: 'https://picsum.photos/200/150', color: '#FFBD33' },
+  { name: 'Rappi Travel', imageUrl: 'https://picsum.photos/200/150', color: '#33A2FF' },
+  { name: 'SOAT', imageUrl: 'https://picsum.photos/200/150', color: '#FFDD33' },
 ];
 
 const navegacion = [
@@ -169,14 +181,14 @@ function LandingPageContent() {
   return (
     <>
       {/* Hero Section */}
-      <section className="mb-12 flex flex-col items-center justify-center text-center">
+      <section className="mb-6 flex flex-col items-center justify-center text-center">
         <h1 className="text-4xl font-bold tracking-tight">
           Encuentra el proveedor de servicios perfecto
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
           Reserva servicios locales con facilidad.
         </p>
-        <div className="relative mt-6 w-full max-w-md">
+        <div className="relative mt-4 w-full max-w-md">
           <Input
             type="search"
             placeholder="Buscar servicios..."
@@ -185,6 +197,32 @@ function LandingPageContent() {
             className="rounded-md shadow-sm focus-visible:ring-2 focus-visible:ring-primary pr-10"
           />
           <Search className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
+        </div>
+      </section>
+
+       {/* Rappi-like Categories */}
+      <section className="mb-8">
+        <h2 className="mb-4 text-2xl font-semibold">¿Necesitas algo más?</h2>
+        <div className="flex items-center justify-start space-x-4 overflow-x-auto">
+          {rappiCategories.map((category) => (
+            <div
+              key={category.name}
+              className="relative min-w-[150px] rounded-xl shadow-md overflow-hidden"
+            >
+              <div
+                className="absolute inset-0"
+                style={{ backgroundColor: category.color, opacity: 0.7 }}
+              ></div>
+              <img
+                src={category.imageUrl}
+                alt={category.name}
+                className="w-full h-32 object-cover relative z-10"
+              />
+              <div className="relative z-20 p-4 text-center text-white font-semibold">
+                {category.name}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -332,6 +370,7 @@ export default function LandingPage() {
         <SidebarInset>
           <LandingPageContent />
         </SidebarInset>
+        <Toaster />
       </div>
     </SidebarProvider>
   );
