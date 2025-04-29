@@ -2,12 +2,26 @@
 
 import {useEffect, useState} from 'react';
 import {getServiceListings, ServiceListing} from '@/services/service-listings';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
 import {ScrollArea} from "@/components/ui/scroll-area"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
-import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog"
 import {Textarea} from "@/components/ui/textarea"
 import {Label} from "@/components/ui/label"
 import {toast} from "@/hooks/use-toast"
@@ -15,7 +29,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "@/components/ui/tooltip"
 import {Calendar} from "@/components/ui/calendar"
 import {cn} from "@/lib/utils"
@@ -23,51 +37,24 @@ import {format} from "date-fns"
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
 import {Search, Menu} from "lucide-react"
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import {Home, Users, Settings, CreditCard, UserPlus, Briefcase} from "lucide-react";
+import {usePathname} from 'next/navigation';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@/components/ui/command"
-import {Checkbox} from "@/components/ui/checkbox"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Menubar,
-  MenubarCheckboxItem,
-  MenubarContent,
-  MenubarItem,
-  MenubarMenu,
-  MenubarRadioGroup,
-  MenubarRadioItem,
-  MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger,
-  MenubarTrigger,
-} from "@/components/ui/menubar"
+  BarChart,
+  Camera,
+  Edit,
+  Music,
+  DollarSign,
+  Bot,
+  Leaf,
+  Lightbulb,
+  Database,
+  Image,
+  User,
+  Code,
+  Construction,
+  School2
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -79,17 +66,14 @@ import {
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
   SidebarMenuSkeleton,
   SidebarProvider,
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import {Home, Users, Settings, CreditCard, UserPlus, Briefcase} from "lucide-react";
-import {usePathname} from 'next/navigation';
-import {BarChart, Camera, Edit, Music, DollarSign, Bot, Leaf, Lightbulb, Database, Image, User, Code, Construction, School2} from "lucide-react";
 import {Toaster} from "@/components/ui/toaster";
 
 const categorias = [
@@ -160,8 +144,6 @@ function LandingPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const pathname = usePathname();
-  const {isMobile} = useSidebar();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -338,43 +320,37 @@ function LandingPageContent() {
 }
 
 export default function LandingPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const {isMobile} = useSidebar();
-
   return (
-    
-      <SidebarProvider>
-        <div className="flex">
-          <Sidebar className="w-60">
-            <SidebarHeader>
-              <>
-                <Avatar className="ml-2">
-                  <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <h3 className="ml-3 font-bold">SkillHub Connect</h3>
-              </>
-            </SidebarHeader>
-            <SidebarContent>
-              {navegacion.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton href={item.href}>
-                    <item.icon className="h-4 w-4"/>
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarContent>
-            <SidebarFooter>© {new Date().getFullYear()} SkillHub Connect</SidebarFooter>
-          </Sidebar>
-          
-            <SidebarInset>
-              <LandingPageContent/>
-            </SidebarInset>
-          
-        </div>
-      </SidebarProvider>
+    <SidebarProvider>
+      <div className="flex">
+        <Sidebar className="w-60">
+          <SidebarHeader>
+            <>
+              <Avatar className="ml-2">
+                <AvatarImage src="https://picsum.photos/50/50" alt="Avatar"/>
+                <AvatarFallback>CN</AvatarFallback>
+              </Avatar>
+              <h3 className="ml-3 font-bold">SkillHub Connect</h3>
+            </>
+          </SidebarHeader>
+          <SidebarContent>
+            {navegacion.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton href={item.href}>
+                  <item.icon className="h-4 w-4"/>
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarContent>
+          <SidebarFooter>© {new Date().getFullYear()} SkillHub Connect</SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <LandingPageContent/>
+        </SidebarInset>
+      </div>
       <Toaster/>
-    
+    </SidebarProvider>
   );
 }
+
