@@ -22,7 +22,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, Search } from "lucide-react"
+import { Search, Menu } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Accordion,
@@ -269,7 +269,7 @@ export default function LandingPage() {
                                           !date && "text-muted-foreground"
                                         )}
                                       >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        <Menu className="mr-2 h-4 w-4" />
                                         {date ? format(date, "PPP") : <span>Elige una fecha</span>}
                                       </Button>
                                     </PopoverTrigger>
@@ -310,3 +310,4 @@ export default function LandingPage() {
     </SidebarProvider>
   );
 }
+
