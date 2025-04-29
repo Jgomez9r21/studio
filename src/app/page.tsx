@@ -154,10 +154,9 @@ function LandingPageContent() {
   );
 
   return (
-    
-      
+    <>
       {/* Hero Section */}
-      <section className={`mb-12 flex flex-col items-center justify-center text-center`}>
+      <section className="mb-12 flex flex-col items-center justify-center text-center">
         <h1 className="text-4xl font-bold tracking-tight">
           Encuentra el proveedor de servicios perfecto
         </h1>
@@ -270,7 +269,7 @@ function LandingPageContent() {
           </TabsContent>
         ))}
       </Tabs>
-    
+    </>
   );
 }
 
