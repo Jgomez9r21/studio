@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Added ScrollBar
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -23,13 +23,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger // Added DialogTrigger import
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Search, Menu } from "lucide-react"; // Renamed Calendar to CalendarIcon
+import { Calendar as CalendarIcon, Search, Menu } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +45,7 @@ import {
   Leaf,
   Lightbulb,
   Database,
-  Image,
+  Image as ImageIcon, // Renamed to avoid conflict with Image component
   User,
   Code,
   Construction,
@@ -61,20 +61,25 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuItem, // Ensure SidebarMenuItem is imported
+  SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Toaster } from "@/components/ui/toaster";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel" // Added Carousel imports
 
 // Define Category types with explicit icon typing
 interface Category {
   name: string;
-  icon?: React.ComponentType<{ className?: string }>; // Use LucideIcon type if specific
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 // Service Categories
@@ -96,9 +101,8 @@ const categorias: Category[] = [
   { name: 'Servicios de IA', icon: Bot },
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
-  { name: 'Fotografía', icon: Image },
+  { name: 'Fotografía', icon: ImageIcon },
 ];
-
 
 // Navigation Items
 const navegacion = [
@@ -134,6 +138,15 @@ const navegacion = [
   },
 ];
 
+// Featured Services for Carousel
+const featuredServices = [
+  { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1' },
+  { id: 'f2', title: 'Entrenamiento Funcional', description: 'Mejora tu fuerza y resistencia.', category: 'Deporte', image: 'https://picsum.photos/400/300?random=2' },
+  { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3' },
+  { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4' },
+  { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5' },
+];
+
 // Main Content Component
 function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
@@ -147,12 +160,10 @@ function LandingPageContent() {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        // Simulating fetching data
         const data = await getServiceListings();
-        // Map fetched data to ensure it matches categories
         const updatedData = data.map(listing => ({
           ...listing,
-          category: categorias.find(cat => cat.name === listing.category) ? listing.category : 'Otros' // Assign to 'Otros' if category not found
+          category: categorias.find(cat => cat.name === listing.category) ? listing.category : 'Otros'
         }));
         setListings(updatedData);
       } catch (error) {
@@ -172,7 +183,7 @@ function LandingPageContent() {
   return (
     <div className="p-4 md:p-6 lg:p-8">
       {/* Hero Section */}
-      <section className="mb-6 flex flex-col items-center justify-center text-center">
+      <section className="mb-8 flex flex-col items-center justify-center text-center">
         <h1 className="text-4xl font-bold tracking-tight">
           Encuentra el proveedor de servicios perfecto
         </h1>
@@ -191,6 +202,40 @@ function LandingPageContent() {
         </div>
       </section>
 
+      {/* Featured Services Carousel */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">Servicios Destacados</h2>
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {featuredServices.map((service) => (
+              <CarouselItem key={service.id} className="md:basis-1/2 lg:basis-1/3">
+                <div className="p-1">
+                  <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <CardContent className="flex aspect-video items-center justify-center p-0 relative">
+                       <img src={service.image} alt={service.title} className="object-cover w-full h-full" />
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                       <div className="absolute bottom-0 left-0 p-4">
+                         <CardTitle className="text-lg font-semibold text-white mb-1">{service.title}</CardTitle>
+                         <CardDescription className="text-sm text-primary-foreground/80">{service.description}</CardDescription>
+                       </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+        </Carousel>
+      </section>
+
+
       {/* Category Tabs & Service Listings */}
       <Tabs defaultValue="todos" className="w-full">
         <ScrollArea className="w-full whitespace-nowrap pb-4">
@@ -207,6 +252,7 @@ function LandingPageContent() {
               </TabsTrigger>
             ))}
           </TabsList>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
         {/* Render content for the selected category */}
@@ -222,8 +268,8 @@ function LandingPageContent() {
                       </CardTitle>
                       <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex flex-col"> {/* Use flex-col */}
-                      <p className="text-sm text-muted-foreground mb-2 flex-grow"> {/* Allow description to grow */}
+                    <CardContent className="flex-grow flex flex-col">
+                      <p className="text-sm text-muted-foreground mb-2 flex-grow">
                         {listing.description}
                       </p>
                       <p className="text-sm font-medium mb-1">
@@ -258,11 +304,11 @@ function LandingPageContent() {
                                   <Button
                                     variant={"outline"}
                                     className={cn(
-                                      "w-full justify-start text-left font-normal", // Adjusted width
+                                      "w-full justify-start text-left font-normal",
                                       !date && "text-muted-foreground"
                                     )}
                                   >
-                                    <CalendarIcon className="mr-2 h-4 w-4"/> {/* Use imported CalendarIcon */}
+                                    <CalendarIcon className="mr-2 h-4 w-4"/>
                                     {date ? format(date, "PPP") : <span>Elige una fecha</span>}
                                   </Button>
                                 </PopoverTrigger>
@@ -271,7 +317,7 @@ function LandingPageContent() {
                                     mode="single"
                                     selected={date}
                                     onSelect={setDate}
-                                    disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))} // Disable past dates
+                                    disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
                                     initialFocus
                                   />
                                 </PopoverContent>
@@ -279,7 +325,7 @@ function LandingPageContent() {
                             </div>
                              <div className="grid grid-cols-[1fr_3fr] items-center gap-4">
                                 <Label htmlFor={`time-${listing.id}`} className="text-right">
-                                    Seleccionar Hora
+                                    Seleccionar Hora (Cupo)
                                 </Label>
                                 <Select onValueChange={setSelectedTime} value={selectedTime}>
                                     <SelectTrigger className="w-full">
@@ -294,8 +340,8 @@ function LandingPageContent() {
                                     </SelectContent>
                                 </Select>
                              </div>
-                            <div className="grid grid-cols-[1fr_3fr] items-start gap-4"> {/* Changed items-center to items-start for textarea alignment */}
-                              <Label htmlFor={`comment-${listing.id}`} className="text-right pt-1.5">Comentario</Label> {/* Added padding-top for alignment */}
+                            <div className="grid grid-cols-[1fr_3fr] items-start gap-4">
+                              <Label htmlFor={`comment-${listing.id}`} className="text-right pt-1.5">Comentario</Label>
                               <Textarea id={`comment-${listing.id}`} placeholder="Añade detalles sobre tu solicitud..."
                                         className="rounded-md shadow-sm"/>
                             </div>
@@ -323,7 +369,7 @@ function LandingPageContent() {
   );
 }
 
-// Main Page Component
+// Main Page Component wrapping content with SidebarProvider
 export default function Page() {
   return (
      <SidebarProvider>
@@ -338,7 +384,7 @@ function LandingPage() {
     const { isMobile } = useSidebar(); // Correctly call useSidebar within SidebarProvider's descendant
 
     return (
-        <div className="flex min-h-screen">
+       <div className="flex min-h-screen">
          <Sidebar className="w-60 hidden md:flex"> {/* Hide sidebar on mobile initially */}
            <SidebarHeader className="p-4 border-b flex items-center">
              <Avatar className="h-8 w-8">
@@ -402,7 +448,6 @@ function LandingPage() {
              © {new Date().getFullYear()} SkillHub Connect
            </SidebarFooter>
          </Sidebar>
-         <Toaster />
        </div>
     );
 }
