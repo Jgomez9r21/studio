@@ -60,20 +60,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Toaster } from "@/components/ui/toaster";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar, // Keep if needed by Page component
-} from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster"; // Toaster is now provided by AppLayout
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -158,7 +145,7 @@ function LandingPageContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  // REMOVED: const { isMobile } = useSidebar(); as SidebarProvider context is handled by AppLayout
+
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -193,20 +180,20 @@ function LandingPageContent() {
         <p className="mt-2 text-md md:text-lg text-muted-foreground">
           Reserva servicios locales con facilidad.
         </p>
-        <div className="relative mt-4 w-full max-w-md">
+        <div className="relative mt-4 w-full max-w-xs sm:max-w-md">
           <Input
             type="search"
             placeholder="Buscar servicios..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-md shadow-sm pr-10 h-10"
+            className="rounded-md shadow-sm pr-10 h-10 w-full"
           />
           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         </div>
       </section>
 
       {/* Featured Services Carousel */}
-      <section className="mb-8 px-4">
+      <section className="mb-8 px-4 md:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold mb-4">Servicios Destacados</h2>
         <Carousel
           opts={{
@@ -215,9 +202,9 @@ function LandingPageContent() {
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-1">
+          <CarouselContent className="-ml-2 md:-ml-4">
             {featuredServices.map((service) => (
-              <CarouselItem key={service.id} className="pl-1 md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
                   <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
@@ -240,29 +227,30 @@ function LandingPageContent() {
 
 
       {/* Category Tabs & Service Listings */}
-      <Tabs defaultValue="todos" className="w-full px-4 pb-4">
-        <ScrollArea className="w-full whitespace-nowrap pb-4">
-          <TabsList className="inline-flex gap-1 p-1 bg-muted rounded-md shadow-sm">
-            {categorias.map(category => (
-              <TabsTrigger
-                key={category.name}
-                value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                onClick={() => setSelectedCategory(category.name)}
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-sm flex items-center"
-              >
-                {category.icon && <category.icon className="w-4 h-4 mr-2 flex-shrink-0" />}
-                {category.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+      <Tabs defaultValue="todos" className="w-full px-4 md:px-6 lg:px-8 pb-4">
+         <ScrollArea className="w-full whitespace-nowrap pb-4">
+           <TabsList className="inline-flex h-auto sm:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap sm:flex-nowrap">
+             {categorias.map(category => (
+               <TabsTrigger
+                 key={category.name}
+                 value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                 onClick={() => setSelectedCategory(category.name)}
+                 className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0"
+               >
+                 {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                 {category.name}
+               </TabsTrigger>
+             ))}
+           </TabsList>
+           <ScrollBar orientation="horizontal" />
+         </ScrollArea>
+
 
         {/* Render content for the selected category */}
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
           <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
                   <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
                     <CardHeader>
@@ -271,7 +259,7 @@ function LandingPageContent() {
                       </CardTitle>
                       <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex flex-col">
+                    <CardContent className="flex-grow flex flex-col p-4 pt-0">
                       <p className="text-sm text-muted-foreground mb-2 flex-grow">
                         {listing.description}
                       </p>
@@ -285,7 +273,7 @@ function LandingPageContent() {
                       {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline">Reservar Servicio</Button>
+                          <Button variant="outline" className="w-full sm:w-auto">Reservar Servicio</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
@@ -295,13 +283,13 @@ function LandingPageContent() {
                             </DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-[1fr_3fr] items-center gap-4">
-                              <Label htmlFor={`name-${listing.id}`} className="text-right">Nombre</Label>
-                              <Input id={`name-${listing.id}`} defaultValue="John Doe"
+                            <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
+                              <Label htmlFor={`name-${listing.id}`} className="text-left sm:text-right">Nombre</Label>
+                              <Input id={`name-${listing.id}`} defaultValue="Tu Nombre"
                                      className="rounded-md shadow-sm"/>
                             </div>
-                             <div className="grid grid-cols-[1fr_3fr] items-center gap-4">
-                              <Label htmlFor={`date-${listing.id}`} className="text-right">Seleccionar Fecha</Label>
+                             <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
+                              <Label htmlFor={`date-${listing.id}`} className="text-left sm:text-right">Seleccionar Fecha</Label>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
@@ -326,8 +314,8 @@ function LandingPageContent() {
                                 </PopoverContent>
                               </Popover>
                             </div>
-                             <div className="grid grid-cols-[1fr_3fr] items-center gap-4">
-                                <Label htmlFor={`time-${listing.id}`} className="text-right">
+                             <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
+                                <Label htmlFor={`time-${listing.id}`} className="text-left sm:text-right">
                                     Seleccionar Hora (Cupo)
                                 </Label>
                                 <Select onValueChange={setSelectedTime} value={selectedTime}>
@@ -343,8 +331,8 @@ function LandingPageContent() {
                                     </SelectContent>
                                 </Select>
                              </div>
-                            <div className="grid grid-cols-[1fr_3fr] items-start gap-4">
-                              <Label htmlFor={`comment-${listing.id}`} className="text-right pt-1.5">Comentario</Label>
+                            <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-start gap-4">
+                              <Label htmlFor={`comment-${listing.id}`} className="text-left sm:text-right pt-1.5">Comentario</Label>
                               <Textarea id={`comment-${listing.id}`} placeholder="Añade detalles sobre tu solicitud..."
                                         className="rounded-md shadow-sm"/>
                             </div>
@@ -382,5 +370,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
-    
