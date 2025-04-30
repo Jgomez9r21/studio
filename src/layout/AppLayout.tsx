@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type React from 'react';
@@ -66,7 +67,7 @@ export default function AppLayout({
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden"> {/* Changed min-h-screen to h-screen and added overflow-hidden */}
         {/* Desktop Sidebar */}
-        <Sidebar className="w-60 hidden md:flex flex-col" side="left" variant="sidebar" collapsible="icon"> {/* Added flex-col */}
+        <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon"> {/* Added flex-col and flex-shrink-0 */}
           <SidebarHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
             <Avatar className="h-8 w-8">
               <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect Logo" />
@@ -114,7 +115,6 @@ export default function AppLayout({
               <h3 className="font-semibold text-md sm:text-lg ml-2 sm:ml-0">SkillHub Connect</h3> {/* Adjusted text size and margin */}
                 {/* Placeholder for potential right-side icons like user profile */}
               <div>
-                  {/* Example: User Avatar for mobile */}
                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                      <AvatarImage src="https://picsum.photos/50/50?random=user" alt="User Avatar" />
                      <AvatarFallback>U</AvatarFallback>
@@ -137,8 +137,10 @@ export default function AppLayout({
                        <AvatarFallback>SC</AvatarFallback>
                     </Avatar>
                     <div className="ml-3">
+                         {/* Use SheetTitle for accessibility */}
                          <SheetTitle className="text-lg font-bold">SkillHub Connect</SheetTitle>
-                         {/* Removed SheetDescription as it's screen-reader only and header is visually clear */}
+                         {/* Optionally add a SheetDescription for screen readers if needed */}
+                         {/* <SheetDescription className="sr-only">Main navigation menu</SheetDescription> */}
                      </div>
                  </SheetHeader>
                 <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Ensured content scrolls */}
@@ -168,3 +170,4 @@ export default function AppLayout({
     </SidebarProvider>
   );
 }
+
