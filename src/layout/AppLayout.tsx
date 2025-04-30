@@ -69,13 +69,13 @@ export default function AppLayout({
         {/* Desktop Sidebar */}
         <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon"> {/* Added flex-col and flex-shrink-0 */}
           <SidebarHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect Logo" />
-              <AvatarFallback>SC</AvatarFallback>
-            </Avatar>
+             {/* Simple low-profile logo/icon */}
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
              {/* Title visible only when sidebar is expanded */}
             <div className="ml-3 overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
-                 <h3 className="font-bold text-lg whitespace-nowrap">SkillHub Connect</h3>
+                 <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
              </div>
           </SidebarHeader>
           <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Added overflow-y-auto */}
@@ -100,7 +100,7 @@ export default function AppLayout({
           </SidebarContent>
           <SidebarFooter className="p-4 border-t text-xs text-muted-foreground transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 flex-shrink-0"> {/* Added flex-shrink-0 */}
              <div className="overflow-hidden whitespace-nowrap">
-                © {new Date().getFullYear()} SkillHub Connect
+                © {new Date().getFullYear()} sportoffice
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -112,7 +112,7 @@ export default function AppLayout({
              <SidebarTrigger className="md:hidden -ml-2 sm:ml-0"> {/* Adjusted margin */}
                 <Menu className="h-5 w-5 sm:h-6 sm:w-6" /> {/* Adjusted icon size */}
              </SidebarTrigger>
-              <h3 className="font-semibold text-md sm:text-lg ml-2 sm:ml-0">SkillHub Connect</h3> {/* Adjusted text size and margin */}
+              <h3 className="font-semibold text-md sm:text-lg ml-2 sm:ml-0">sportoffice</h3> {/* Adjusted text size and margin */}
                 {/* Placeholder for potential right-side icons like user profile */}
               <div>
                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
@@ -132,15 +132,15 @@ export default function AppLayout({
          <Sheet>
             <SheetContent side="left" className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground md:hidden flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}> {/* Adjusted width, added flex flex-col */}
                  <SheetHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-                    <Avatar className="h-8 w-8">
-                       <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect Logo" />
-                       <AvatarFallback>SC</AvatarFallback>
-                    </Avatar>
+                    {/* Simple low-profile logo/icon */}
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
                     <div className="ml-3">
                          {/* Use SheetTitle for accessibility */}
-                         <SheetTitle className="text-lg font-bold">SkillHub Connect</SheetTitle>
+                         <SheetTitle className="text-lg font-bold">sportoffice</SheetTitle>
                          {/* Optionally add a SheetDescription for screen readers if needed */}
-                         {/* <SheetDescription className="sr-only">Main navigation menu</SheetDescription> */}
+                         <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
                      </div>
                  </SheetHeader>
                 <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Ensured content scrolls */}
@@ -161,7 +161,7 @@ export default function AppLayout({
                     </SidebarMenu>
                 </SidebarContent>
                  <SidebarFooter className="p-4 border-t text-xs text-muted-foreground flex-shrink-0"> {/* Added flex-shrink-0 */}
-                     © {new Date().getFullYear()} SkillHub Connect
+                     © {new Date().getFullYear()} sportoffice
                  </SidebarFooter>
             </SheetContent>
         </Sheet>
@@ -170,4 +170,3 @@ export default function AppLayout({
     </SidebarProvider>
   );
 }
-

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SkillHub Connect',
+  title: 'sportoffice', // Changed from SkillHub Connect
   description: 'Connect with local service providers and book services with ease.',
 };
 
@@ -33,4 +33,3 @@ export default function RootLayout({
     </html>
   );
 }
-

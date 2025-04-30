@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type React from "react";
@@ -24,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -60,7 +61,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Toaster } from "@/components/ui/toaster"; // Toaster is now provided by AppLayout
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -273,7 +273,7 @@ function LandingPageContent() {
                       {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" className="w-full sm:w-auto">Reservar Servicio</Button>
+                          <Button variant="outline">Reservar Servicio</Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
@@ -363,7 +363,6 @@ function LandingPageContent() {
 
 // Main Page Component wrapping content with AppLayout
 export default function Page() {
-  // SidebarProvider context is now handled by AppLayout
   return (
     <AppLayout>
       <LandingPageContent />
