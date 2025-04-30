@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { ComponentProps, ReactNode } from "react";
+import type React from "react";
 import { useEffect, useState } from 'react';
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
@@ -14,8 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"; // Added ScrollBar
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -29,12 +28,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Search, Menu } from "lucide-react";
+import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase } from "lucide-react";
-import { usePathname } from 'next/navigation';
 import {
   BarChart,
   Camera,
@@ -42,31 +39,17 @@ import {
   Music,
   DollarSign,
   Bot,
-  Leaf,
   Lightbulb,
   Database,
-  Image as ImageIcon, // Renamed to avoid conflict with Image component
+  ImageIcon,
   User,
   Code,
   Construction,
   School2,
   Dumbbell,
   Palette,
-  HomeIcon
+  HomeIcon as LucideHomeIcon // Renamed to avoid conflict
 } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Carousel,
@@ -74,7 +57,8 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "@/components/ui/carousel" // Added Carousel imports
+} from "@/components/ui/carousel"
+import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 
 // Define Category types with explicit icon typing
 interface Category {
@@ -89,53 +73,18 @@ const categorias: Category[] = [
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
-  { name: 'Mantenimiento Hogar', icon: HomeIcon },
+  { name: 'Mantenimiento Hogar', icon: LucideHomeIcon },
   { name: 'Profesores', icon: School2 },
   { name: 'Diseñadores', icon: Palette },
   { name: 'Marketing Digital', icon: BarChart },
   { name: 'Video & Animación', icon: Camera },
   { name: 'Redacción & Traducción', icon: Edit },
   { name: 'Música & Audio', icon: Music },
-  { name: 'Negocios', icon: Briefcase },
   { name: 'Finanzas', icon: DollarSign },
   { name: 'Servicios de IA', icon: Bot },
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
-];
-
-// Navigation Items
-const navegacion = [
-  {
-    title: "Inicio",
-    href: "/",
-    icon: Home,
-  },
-  {
-    title: "Buscar Talento",
-    href: "/find-talents",
-    icon: Users,
-  },
-  {
-    title: "Publicar un Trabajo",
-    href: "/post-job",
-    icon: UserPlus,
-  },
-  {
-    title: "Reservar un Servicio",
-    href: "/book-service",
-    icon: Briefcase,
-  },
-  {
-    title: "Facturación",
-    href: "/billing",
-    icon: CreditCard,
-  },
-  {
-    title: "Configuración",
-    href: "/settings",
-    icon: Settings,
-  },
 ];
 
 // Featured Services for Carousel
@@ -147,14 +96,13 @@ const featuredServices = [
   { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5' },
 ];
 
-// Main Content Component
+// Main Content Component for the Landing Page
 function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-  const pathname = usePathname();
 
 
   useEffect(() => {
@@ -369,87 +317,11 @@ function LandingPageContent() {
   );
 }
 
-// Main Page Component wrapping content with SidebarProvider
+// Main Page Component wrapping content with AppLayout
 export default function Page() {
   return (
-     <SidebarProvider>
-         <LandingPage/>
-     </SidebarProvider>
+    <AppLayout>
+      <LandingPageContent />
+    </AppLayout>
   );
 }
-
-
-// Layout Component that uses the sidebar context
-function LandingPage() {
-    const { isMobile } = useSidebar(); // Correctly call useSidebar within SidebarProvider's descendant
-
-    return (
-       <div className="flex min-h-screen">
-         <Sidebar className="w-60 hidden md:flex"> {/* Hide sidebar on mobile initially */}
-           <SidebarHeader className="p-4 border-b flex items-center">
-             <Avatar className="h-8 w-8">
-               <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect Logo" />
-               <AvatarFallback>SC</AvatarFallback>
-             </Avatar>
-             <h3 className="ml-3 font-bold text-lg">SkillHub Connect</h3>
-           </SidebarHeader>
-           <SidebarContent className="flex-grow p-2">
-             <SidebarMenu>
-               {navegacion.map((item) => (
-                 <SidebarMenuItem key={item.title}>
-                   <SidebarMenuButton href={item.href} className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium">
-                     <item.icon className="h-4 w-4"/>
-                     <span>{item.title}</span>
-                   </SidebarMenuButton>
-                 </SidebarMenuItem>
-               ))}
-             </SidebarMenu>
-           </SidebarContent>
-           <SidebarFooter className="p-4 border-t text-xs text-muted-foreground">
-             © {new Date().getFullYear()} SkillHub Connect
-           </SidebarFooter>
-         </Sidebar>
-
-         <SidebarInset className="flex-1 overflow-y-auto">
-           {/* Mobile Header with Sidebar Trigger */}
-           <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
-             <h3 className="font-semibold text-lg">SkillHub Connect</h3>
-             <SidebarTrigger>
-               <Menu className="h-6 w-6" />
-             </SidebarTrigger>
-           </header>
-           <main>
-             <LandingPageContent />
-           </main>
-         </SidebarInset>
-
-         {/* Mobile Sidebar (Sheet) */}
-         <Sidebar className="md:hidden"> {/* Only renders Sheet on mobile */}
-           <SidebarHeader className="p-4 border-b flex items-center">
-             <Avatar className="h-8 w-8">
-               <AvatarImage src="https://picsum.photos/50/50" alt="SkillHub Connect Logo" />
-               <AvatarFallback>SC</AvatarFallback>
-             </Avatar>
-             <h3 className="ml-3 font-bold text-lg">SkillHub Connect</h3>
-           </SidebarHeader>
-           <SidebarContent className="flex-grow p-2">
-             <SidebarMenu>
-               {navegacion.map((item) => (
-                 <SidebarMenuItem key={item.title}>
-                   <SidebarMenuButton href={item.href} className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium">
-                     <item.icon className="h-4 w-4"/>
-                     <span>{item.title}</span>
-                   </SidebarMenuButton>
-                 </SidebarMenuItem>
-               ))}
-             </SidebarMenu>
-           </SidebarContent>
-           <SidebarFooter className="p-4 border-t text-xs text-muted-foreground">
-             © {new Date().getFullYear()} SkillHub Connect
-           </SidebarFooter>
-         </Sidebar>
-       </div>
-    );
-}
-
-    
