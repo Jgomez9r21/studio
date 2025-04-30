@@ -23,7 +23,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger // Added DialogTrigger import
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -61,13 +61,14 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuItem,
+  SidebarMenuItem, // Ensure SidebarMenuItem is imported
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select imports
 
 
 // Define Category types with explicit icon typing
@@ -138,6 +139,7 @@ function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const pathname = usePathname();
 
@@ -275,6 +277,23 @@ function LandingPageContent() {
                                 </PopoverContent>
                               </Popover>
                             </div>
+                             <div className="grid grid-cols-[1fr_3fr] items-center gap-4">
+                                <Label htmlFor={`time-${listing.id}`} className="text-right">
+                                    Seleccionar Hora
+                                </Label>
+                                <Select onValueChange={setSelectedTime} value={selectedTime}>
+                                    <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Seleccionar Cupo" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                    {listing.availability.map((timeSlot) => (
+                                        <SelectItem key={timeSlot} value={timeSlot}>
+                                        {timeSlot}
+                                        </SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                             </div>
                             <div className="grid grid-cols-[1fr_3fr] items-start gap-4"> {/* Changed items-center to items-start for textarea alignment */}
                               <Label htmlFor={`comment-${listing.id}`} className="text-right pt-1.5">Comentario</Label> {/* Added padding-top for alignment */}
                               <Textarea id={`comment-${listing.id}`} placeholder="Añade detalles sobre tu solicitud..."
@@ -304,22 +323,22 @@ function LandingPageContent() {
   );
 }
 
-
-// Main Page Component Wrapper with SidebarProvider moved here
+// Main Page Component
 export default function Page() {
   return (
-      <SidebarProvider>
+     <SidebarProvider>
          <LandingPage/>
-      </SidebarProvider>
+     </SidebarProvider>
   );
 }
 
+
 // Layout Component that uses the sidebar context
 function LandingPage() {
-     const { isMobile } = useSidebar(); // Correctly call useSidebar within SidebarProvider's descendant
+    const { isMobile } = useSidebar(); // Correctly call useSidebar within SidebarProvider's descendant
 
     return (
-       <div className="flex min-h-screen">
+        <div className="flex min-h-screen">
          <Sidebar className="w-60 hidden md:flex"> {/* Hide sidebar on mobile initially */}
            <SidebarHeader className="p-4 border-b flex items-center">
              <Avatar className="h-8 w-8">
@@ -383,7 +402,7 @@ function LandingPage() {
              © {new Date().getFullYear()} SkillHub Connect
            </SidebarFooter>
          </Sidebar>
-         <Toaster /> {/* Ensure Toaster is within a component that is rendered */}
+         <Toaster />
        </div>
     );
 }
