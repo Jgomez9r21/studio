@@ -3,8 +3,10 @@
 
 import type React from "react";
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
+import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 import {
   Card,
   CardContent,
@@ -58,7 +60,24 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
+import { Toaster } from "@/components/ui/toaster";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar, // Keep if needed by Page component
+} from "@/components/ui/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
+import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
+
 
 // Define Category types with explicit icon typing
 interface Category {
@@ -87,6 +106,7 @@ const categorias: Category[] = [
   { name: 'Fotografía', icon: ImageIcon },
 ];
 
+
 // Featured Services for Carousel
 const featuredServices = [
   { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1' },
@@ -96,6 +116,41 @@ const featuredServices = [
   { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5' },
 ];
 
+// Navigation Items (centralized) - Also used in LandingPage for mobile sidebar
+const navegacion = [
+  {
+    title: "Inicio",
+    href: "/",
+    icon: Home,
+  },
+  {
+    title: "Buscar Talento",
+    href: "/find-talents",
+    icon: Users,
+  },
+  {
+    title: "Publicar un Trabajo",
+    href: "/post-job",
+    icon: UserPlus,
+  },
+  {
+    title: "Reservar un Servicio",
+    href: "/book-service",
+    icon: Briefcase,
+  },
+  {
+    title: "Facturación",
+    href: "/billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Configuración",
+    href: "/settings",
+    icon: Settings,
+  },
+];
+
+
 // Main Content Component for the Landing Page
 function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
@@ -103,7 +158,7 @@ function LandingPageContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
-
+  // REMOVED: const { isMobile } = useSidebar(); as SidebarProvider context is handled by AppLayout
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -129,13 +184,13 @@ function LandingPageContent() {
   );
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
+    <>
       {/* Hero Section */}
-      <section className="mb-8 flex flex-col items-center justify-center text-center">
-        <h1 className="text-4xl font-bold tracking-tight">
+      <section className="mb-6 flex flex-col items-center justify-center text-center px-4 pt-6 md:pt-8 lg:pt-12">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
           Encuentra el proveedor de servicios perfecto
         </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
+        <p className="mt-2 text-md md:text-lg text-muted-foreground">
           Reserva servicios locales con facilidad.
         </p>
         <div className="relative mt-4 w-full max-w-md">
@@ -151,7 +206,7 @@ function LandingPageContent() {
       </section>
 
       {/* Featured Services Carousel */}
-      <section className="mb-12">
+      <section className="mb-8 px-4">
         <h2 className="text-2xl font-semibold mb-4">Servicios Destacados</h2>
         <Carousel
           opts={{
@@ -160,9 +215,9 @@ function LandingPageContent() {
           }}
           className="w-full"
         >
-          <CarouselContent>
+          <CarouselContent className="-ml-1">
             {featuredServices.map((service) => (
-              <CarouselItem key={service.id} className="md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={service.id} className="pl-1 md:basis-1/2 lg:basis-1/3">
                 <div className="p-1">
                   <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
@@ -185,7 +240,7 @@ function LandingPageContent() {
 
 
       {/* Category Tabs & Service Listings */}
-      <Tabs defaultValue="todos" className="w-full">
+      <Tabs defaultValue="todos" className="w-full px-4 pb-4">
         <ScrollArea className="w-full whitespace-nowrap pb-4">
           <TabsList className="inline-flex gap-1 p-1 bg-muted rounded-md shadow-sm">
             {categorias.map(category => (
@@ -193,7 +248,7 @@ function LandingPageContent() {
                 key={category.name}
                 value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
                 onClick={() => setSelectedCategory(category.name)}
-                className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-sm"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-sm flex items-center"
               >
                 {category.icon && <category.icon className="w-4 h-4 mr-2 flex-shrink-0" />}
                 {category.name}
@@ -204,12 +259,12 @@ function LandingPageContent() {
         </ScrollArea>
 
         {/* Render content for the selected category */}
-        <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-8">
-          <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4">
+         <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
+          <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredListings.map(listing => (
-                  <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
                     <CardHeader>
                       <CardTitle className="text-lg font-semibold">
                         {listing.title}
@@ -313,15 +368,19 @@ function LandingPageContent() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }
 
+
 // Main Page Component wrapping content with AppLayout
 export default function Page() {
+  // SidebarProvider context is now handled by AppLayout
   return (
     <AppLayout>
       <LandingPageContent />
     </AppLayout>
   );
 }
+
+    
