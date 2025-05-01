@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -189,7 +190,7 @@ function ProfileForm() {
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>Elige una fecha</span>
+                          <span>Selecciona tu fecha</span> // Changed placeholder text
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -222,6 +223,9 @@ function ProfileForm() {
                 <FormControl>
                   <Input type="email" placeholder="tu@correo.com" {...field} />
                 </FormControl>
+                 <FormDescription>
+                    Este es el correo electrónico asociado a tu cuenta.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -229,7 +233,7 @@ function ProfileForm() {
         </div>
 
 
-        <Button type="submit">Guardar Cambios</Button>
+        <Button type="submit">Actualizar Perfil</Button>
       </form>
     </Form>
   );
