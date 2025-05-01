@@ -40,22 +40,22 @@ import { useToast } from "@/hooks/use-toast"; // Import useToast
 const profileFormSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(50, "El nombre no puede tener más de 50 caracteres."),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres.").max(50, "El apellido no puede tener más de 50 caracteres."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido."), // Basic phone validation
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Basic phone validation, allow empty
   country: z.string().min(2, "Selecciona un país."),
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }),
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
   email: z.string().email("Correo electrónico inválido."),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// Dummy data for demonstration - replace with actual user data fetching
+// Start with empty default values for the form
 const defaultValues: Partial<ProfileFormValues> = {
-  firstName: "Usuario",
-  lastName: "Ejemplo",
-  phone: "+1234567890",
-  country: "AR", // Default to Argentina
-  dob: new Date(1990, 0, 1),
-  email: "usuario@ejemplo.com",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  country: "", // Or a default country code if desired
+  dob: undefined,
+  email: "",
 };
 
 // Dummy country list
@@ -77,9 +77,11 @@ function ProfileForm() {
    const { toast } = useToast(); // Initialize toast hook
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues, // Use empty defaults
     mode: "onChange",
   });
+
+  // TODO: Add useEffect here to fetch user data and populate the form if the user is logged in
 
   function onSubmit(data: ProfileFormValues) {
      // TODO: Implement actual data saving logic here
