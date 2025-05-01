@@ -19,7 +19,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"; // Import Sheet components
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet"; // Removed SheetTitle, SheetDescription imports
 
 
 // Navigation Items (centralized)
@@ -70,11 +70,12 @@ export default function AppLayout({
         <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon"> {/* Added flex-col and flex-shrink-0 */}
           <SidebarHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
              {/* Simple low-profile logo/icon */}
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
+             </svg>
+
              {/* Title visible only when sidebar is expanded */}
-            <div className="ml-3 overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
+            <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                  <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
              </div>
           </SidebarHeader>
@@ -112,11 +113,17 @@ export default function AppLayout({
              <SidebarTrigger className="md:hidden -ml-2 sm:ml-0"> {/* Adjusted margin */}
                 <Menu className="h-5 w-5 sm:h-6 sm:w-6" /> {/* Adjusted icon size */}
              </SidebarTrigger>
-              <h3 className="font-semibold text-md sm:text-lg ml-2 sm:ml-0">sportoffice</h3> {/* Adjusted text size and margin */}
-                {/* Placeholder for potential right-side icons like user profile */}
-              <div>
+             {/* Centered Logo/Title */}
+             <div className="flex items-center flex-grow justify-center">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
+                 </svg>
+                 <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
+             </div>
+             {/* Right side Avatar */}
+              <div className="flex-shrink-0">
                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                     <AvatarImage src="https://picsum.photos/50/50?random=user" alt="User Avatar" />
+                     <AvatarImage src="https://picsum.photos/50/50?random=user" alt="User Avatar" data-ai-hint="user avatar placeholder" />
                      <AvatarFallback>U</AvatarFallback>
                   </Avatar>
               </div>
@@ -129,19 +136,16 @@ export default function AppLayout({
 
          {/* Mobile Sidebar (Sheet) */}
          {/* This Sheet component is controlled by SidebarProvider */}
+         {/* Ensure SheetContent has a DialogTitle for accessibility as required by Radix */}
          <Sheet>
             <SheetContent side="left" className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground md:hidden flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}> {/* Adjusted width, added flex flex-col */}
                  <SheetHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
                     {/* Simple low-profile logo/icon */}
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <div className="ml-3">
-                         {/* Use SheetTitle for accessibility */}
-                         <SheetTitle className="text-lg font-bold">sportoffice</SheetTitle>
-                         {/* Optionally add a SheetDescription for screen readers if needed */}
-                         <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
-                     </div>
+                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
+                     </svg>
+                     {/* Removed explicit SheetTitle and SheetDescription, ensure title is conveyed by header content if needed */}
+                    <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
                  </SheetHeader>
                 <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Ensured content scrolls */}
                     <SidebarMenu>
