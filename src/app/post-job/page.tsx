@@ -2,6 +2,7 @@
 "use client";
 
 import type React from 'react';
+import { useState } from 'react'; // Import useState
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -55,6 +56,9 @@ const categorias: Category[] = [
 ];
 
 // Define the form schema using Zod
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const serviceFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
   description: z.string().min(20, "La descripción debe tener al menos 20 caracteres.").max(500, "La descripción no puede tener más de 500 caracteres."),
@@ -62,6 +66,9 @@ const serviceFormSchema = z.object({
   rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
   availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
   location: z.string().min(2, "Ingresa la ubicación o área de servicio.").max(100, "La ubicación no puede tener más de 100 caracteres."),
+  image: z.instanceof(File).optional().nullable()
+    .refine(file => !file || file.size <= MAX_FILE_SIZE, `El tamaño máximo de la imagen es 5MB.`)
+    .refine(file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), "Solo se aceptan formatos .jpg, .jpeg, .png y .webp.")
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -74,11 +81,13 @@ const defaultValues: Partial<ServiceFormValues> = {
   // rate: undefined, // Use undefined for number inputs to allow placeholder
   availability: "",
   location: "",
+  image: null,
 };
 
 
 function ServicePublicationForm() {
    const { toast } = useToast(); // Initialize toast hook
+   const [previewImage, setPreviewImage] = useState<string | null>(null); // State for image preview
    const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
     defaultValues,
@@ -88,25 +97,34 @@ function ServicePublicationForm() {
   // Placeholder for actual submission logic
   async function onSubmit(data: ServiceFormValues) {
      // --- BACKEND INTEGRATION NEEDED ---
-     // 1. Send the 'data' object to your backend API endpoint.
+     // 1. Send the 'data' object (including data.image if present) to your backend API endpoint.
      // 2. Handle potential errors from the API call (e.g., network issues, validation errors).
      // 3. On success, show the toast and reset the form.
      // 4. On failure, show an error toast or message.
      // Example (conceptual):
+     // const formData = new FormData();
+     // Object.entries(data).forEach(([key, value]) => {
+     //   if (value instanceof File) {
+     //     formData.append(key, value);
+     //   } else if (value != null) { // Append other non-null values
+     //     formData.append(key, String(value));
+     //   }
+     // });
      // try {
-     //   const response = await fetch('/api/services', {
-     //     method: 'POST',
-     //     headers: { 'Content-Type': 'application/json' },
-     //     body: JSON.stringify(data),
-     //   });
+     //   const response = await fetch('/api/services', { method: 'POST', body: formData }); // Send as FormData
      //   if (!response.ok) throw new Error('Failed to publish service');
      //   toast({ title: "Servicio Publicado", description: "Tu servicio ha sido publicado correctamente." });
      //   form.reset();
+     //   setPreviewImage(null); // Reset preview
      // } catch (error) {
      //   console.error("Failed to publish service:", error);
      //   toast({ title: "Error", description: "No se pudo publicar el servicio. Inténtalo de nuevo.", variant: "destructive" });
      // }
-    console.log("Datos del servicio enviados (simulado):", data);
+
+    console.log("Datos del servicio enviados (simulado):", {
+        ...data,
+        image: data.image ? { name: data.image.name, size: data.image.size, type: data.image.type } : null, // Log image details
+    });
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     toast({
@@ -114,6 +132,7 @@ function ServicePublicationForm() {
         description: "Tu servicio ha sido publicado correctamente.",
       });
     form.reset(); // Reset form after successful submission
+    setPreviewImage(null); // Reset preview image
   }
 
   return (
@@ -159,7 +178,7 @@ function ServicePublicationForm() {
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* Category */}
             <FormField
                 control={form.control}
@@ -210,6 +229,47 @@ function ServicePublicationForm() {
                 )}
             />
         </div>
+
+         {/* Image Upload */}
+        <FormField
+            control={form.control}
+            name="image"
+            render={({ field: { onChange, value, ...rest } }) => (
+                <FormItem>
+                <FormLabel>Imagen del Servicio (Opcional)</FormLabel>
+                <FormControl>
+                    <Input
+                    type="file"
+                    accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        onChange(file ?? null); // Pass file or null to react-hook-form
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                setPreviewImage(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            setPreviewImage(null);
+                        }
+                    }}
+                    {...rest}
+                    />
+                </FormControl>
+                <FormDescription>
+                    Sube una imagen representativa de tu servicio (JPG, PNG, WEBP, máx 5MB).
+                </FormDescription>
+                 {previewImage && (
+                    <div className="mt-4">
+                       <img src={previewImage} alt="Vista previa" className="max-w-xs max-h-40 rounded-md object-cover shadow-sm" data-ai-hint="service image preview"/>
+                    </div>
+                 )}
+                <FormMessage />
+                </FormItem>
+            )}
+         />
+
 
         {/* Availability */}
         <FormField
@@ -282,6 +342,3 @@ const PostJob = () => {
 };
 
 export default PostJob;
-
-
-    
