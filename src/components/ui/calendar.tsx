@@ -13,6 +13,9 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  captionLayout = "buttons", // Default caption layout
+  fromYear,
+  toYear,
   ...props
 }: CalendarProps) {
   return (
@@ -23,7 +26,8 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: captionLayout === "dropdown-buttons" ? "hidden" : "text-sm font-medium", // Hide default label when dropdowns are used
+        caption_dropdowns: "flex gap-1", // Style for dropdown container
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -61,6 +65,9 @@ function Calendar({
           <ChevronRight className={cn("h-4 w-4", className)} {...props} />
         ),
       }}
+      captionLayout={captionLayout} // Pass captionLayout prop
+      fromYear={fromYear} // Pass fromYear prop
+      toYear={toYear} // Pass toYear prop
       {...props}
     />
   )

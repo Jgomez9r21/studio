@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, getYear } from "date-fns"; // Import getYear
 import {
   Select,
   SelectContent,
@@ -92,6 +91,8 @@ function ProfileForm() {
         description: "Tus datos han sido guardados correctamente.",
       });
   }
+
+  const currentYear = getYear(new Date()); // Get the current year
 
   return (
     <Form {...form}>
@@ -205,6 +206,9 @@ function ProfileForm() {
                         date > new Date() || date < new Date("1900-01-01")
                       }
                       initialFocus
+                      captionLayout="dropdown-buttons" // Enable dropdowns
+                      fromYear={1900} // Set the start year
+                      toYear={currentYear} // Set the end year to the current year
                     />
                   </PopoverContent>
                 </Popover>
