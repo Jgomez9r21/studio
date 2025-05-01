@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
+  SidebarInset,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
@@ -214,7 +215,7 @@ export default function AppLayout({
       setShowLoginDialog(false); // Close the dialog
       setCurrentView('login'); // Reset view
       loginForm.reset();
-      toast({ title: "Ingreso exitoso", description: `Bienvenido/a!` });
+      toast({ title: "Ingreso exitoso", description: `Bienvenido/a ${data.email}!` }); // Use email in toast
   };
 
    const handleSignupSubmit = (data: SignupValues) => {
@@ -224,7 +225,7 @@ export default function AppLayout({
       setShowLoginDialog(false); // Close the dialog
       setCurrentView('login'); // Reset view
       signupForm.reset();
-      toast({ title: "Cuenta Creada", description: "¡Bienvenido/a! Tu cuenta ha sido creada." });
+      toast({ title: "Cuenta Creada", description: `¡Bienvenido/a, ${data.firstName}! Tu cuenta ha sido creada.` }); // Use first name
    };
 
   const handleLogout = () => {
@@ -543,8 +544,8 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
              <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon">
                <SidebarHeader className="p-4 border-b flex items-center justify-center flex-shrink-0 h-14">
-                  {/* Simple placeholder logo */}
-                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold group-data-[collapsible=icon]:mx-auto">
+                  {/* Logo */}
+                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold group-data-[collapsible=icon]:mx-auto flex-shrink-0">
                      SO {/* Initials for sportoffice */}
                    </div>
                  <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
@@ -618,7 +619,7 @@ export default function AppLayout({
                                 <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">SO</div>
                                 <span className="whitespace-nowrap">sportoffice</span>
                               </SheetTitle>
-                              {/* SheetDescription is required for accessibility, keeping it visually hidden */}
+                              {/* SheetDescription is required for accessibility */}
                                <SheetDescription className="sr-only">Menú principal</SheetDescription>
                            </SheetHeader>
                          <SidebarContent className="flex-grow p-2 overflow-y-auto">
@@ -668,8 +669,8 @@ export default function AppLayout({
                   </Sheet>
 
                  <div className="flex items-center flex-grow justify-center">
-                     {/* Simple logo placeholder */}
-                     <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5">
+                     {/* Logo */}
+                     <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">
                         SO
                      </div>
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
@@ -700,9 +701,9 @@ export default function AppLayout({
                    </div>
                </header>
 
-              <main className="flex-1 overflow-y-auto bg-background">
-                {children}
-              </main>
+              <SidebarInset>
+                 {children}
+              </SidebarInset>
             </div>
             <Toaster />
           </div>
