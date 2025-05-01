@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -331,12 +332,12 @@ export default function AppLayout({
                                render={({ field }) => (
                                  <FormItem>
                                    <FormLabel>País</FormLabel>
-                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                      <FormControl>
                                        <SelectTrigger>
                                          <SelectValue placeholder="Selecciona tu país" />
                                        </SelectTrigger>
-                                     </FormControl>
+                                      </FormControl>
                                      <SelectContent>
                                        {countries.map((country) => (
                                          <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
@@ -364,7 +365,7 @@ export default function AppLayout({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Tipo de perfil</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Selecciona tu tipo de perfil" />
@@ -422,7 +423,7 @@ export default function AppLayout({
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Género</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder="Selecciona tu género" />
@@ -447,7 +448,7 @@ export default function AppLayout({
                              render={({ field }) => (
                                <FormItem>
                                  <FormLabel>Tipo de documento</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                                    <FormControl>
                                      <SelectTrigger>
                                        <SelectValue placeholder="Selecciona tipo" />
@@ -612,14 +613,13 @@ export default function AppLayout({
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                            <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
+                              {/* Logo in Sheet Title */}
                               <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
-                                 {/* Simple logo placeholder */}
-                                 <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
-                                     SO
-                                 </div>
-                                 <span className="whitespace-nowrap">sportoffice</span>
+                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">SO</div>
+                                <span className="whitespace-nowrap">sportoffice</span>
                               </SheetTitle>
-                               <SheetDescription className="sr-only">Menu principal</SheetDescription> {/* Added for accessibility */}
+                              {/* SheetDescription is required for accessibility, keeping it visually hidden */}
+                               <SheetDescription className="sr-only">Menú principal</SheetDescription>
                            </SheetHeader>
                          <SidebarContent className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
@@ -709,5 +709,3 @@ export default function AppLayout({
       </SidebarProvider>
   );
 }
-
-    

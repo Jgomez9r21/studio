@@ -267,12 +267,12 @@ function ServicePublicationForm() {
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>Tarifa (por hora)</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                         <Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} />
-                      </div>
-                    </FormControl>
+                    <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <FormControl>
+                            <Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} />
+                        </FormControl>
+                    </div>
                     <FormDescription>
                        Ingresa tu tarifa base por hora.
                     </FormDescription>
@@ -407,4 +407,3 @@ const PostJob = () => {
 };
 
 export default PostJob;
-
