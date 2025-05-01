@@ -11,13 +11,10 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarInset,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
@@ -158,11 +155,6 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  // Note: Directly using useSidebar() here might be problematic if AppLayout itself
-  // isn't always wrapped by SidebarProvider. Consider conditional usage or passing props.
-  // For now, assuming it's generally within a provider context.
-  // const { isMobile } = useSidebar(); // Removed as it causes crash when not in provider
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
@@ -333,24 +325,28 @@ export default function AppLayout({
                      </div>
                      {/* Country and Phone */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField control={signupForm.control} name="country" render={({ field }) => (
-                             <FormItem>
-                               <FormLabel>País</FormLabel>
-                               <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                 <FormControl>
-                                   <SelectTrigger>
-                                     <SelectValue placeholder="Selecciona tu país" />
-                                   </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {countries.map((country) => (
-                                      <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
-                                    ))}
-                                 </SelectContent>
-                               </Select>
-                               <FormMessage />
-                             </FormItem>
-                          )}/>
+                           <FormField
+                               control={signupForm.control}
+                               name="country"
+                               render={({ field }) => (
+                                 <FormItem>
+                                   <FormLabel>País</FormLabel>
+                                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                     <FormControl>
+                                       <SelectTrigger>
+                                         <SelectValue placeholder="Selecciona tu país" />
+                                       </SelectTrigger>
+                                     </FormControl>
+                                     <SelectContent>
+                                       {countries.map((country) => (
+                                         <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
+                                       ))}
+                                     </SelectContent>
+                                   </Select>
+                                   <FormMessage />
+                                 </FormItem>
+                               )}
+                             />
                           <FormField control={signupForm.control} name="phone" render={({ field }) => (
                              <FormItem>
                                <FormLabel>Teléfono</FormLabel>
@@ -361,31 +357,35 @@ export default function AppLayout({
                              </FormItem>
                           )}/>
                      </div>
-                     {/* Profile Type */}
-                     <FormField control={signupForm.control} name="profileType" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Tipo de perfil</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      {/* Profile Type */}
+                      <FormField
+                          control={signupForm.control}
+                          name="profileType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo de perfil</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                    <SelectTrigger>
+                                  <SelectTrigger>
                                     <SelectValue placeholder="Selecciona tu tipo de perfil" />
-                                    </SelectTrigger>
+                                  </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {profileTypes.map((type) => (
+                                  {profileTypes.map((type) => (
                                     <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                                    ))}
+                                  ))}
                                 </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                     )}/>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                      {/* DOB and Gender */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField control={signupForm.control} name="dob" render={({ field }) => (
                            <FormItem className="flex flex-col">
                              <FormLabel>Fecha de Nacimiento</FormLabel>
-                              <Popover>
+                             <Popover>
                                <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -416,45 +416,53 @@ export default function AppLayout({
                              <FormMessage />
                             </FormItem>
                          )}/>
-                         <FormField control={signupForm.control} name="gender" render={({ field }) => (
-                            <FormItem>
+                         <FormField
+                            control={signupForm.control}
+                            name="gender"
+                            render={({ field }) => (
+                              <FormItem>
                                 <FormLabel>Género</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
+                                  <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona tu género" />
+                                      <SelectValue placeholder="Selecciona tu género" />
                                     </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
+                                  </FormControl>
+                                  <SelectContent>
                                     {genders.map((gender) => (
-                                        <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
+                                      <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
                                     ))}
-                                    </SelectContent>
+                                  </SelectContent>
                                 </Select>
                                 <FormMessage />
-                            </FormItem>
-                         )}/>
+                              </FormItem>
+                            )}
+                         />
                      </div>
                      {/* Document Type and Number */}
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <FormField control={signupForm.control} name="documentType" render={({ field }) => (
-                             <FormItem>
-                                <FormLabel>Tipo de documento</FormLabel>
+                         <FormField
+                             control={signupForm.control}
+                             name="documentType"
+                             render={({ field }) => (
+                               <FormItem>
+                                 <FormLabel>Tipo de documento</FormLabel>
                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecciona tipo" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    {documentTypes.map((docType) => (
-                                        <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
-                                    ))}
-                                    </SelectContent>
+                                   <FormControl>
+                                     <SelectTrigger>
+                                       <SelectValue placeholder="Selecciona tipo" />
+                                     </SelectTrigger>
+                                   </FormControl>
+                                   <SelectContent>
+                                     {documentTypes.map((docType) => (
+                                       <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
+                                     ))}
+                                   </SelectContent>
                                  </Select>
-                                <FormMessage />
-                             </FormItem>
-                         )}/>
+                                 <FormMessage />
+                               </FormItem>
+                             )}
+                          />
                          <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
                              <FormItem>
                                 <FormLabel>Número de documento</FormLabel>
@@ -611,6 +619,7 @@ export default function AppLayout({
                                  </div>
                                  <span className="whitespace-nowrap">sportoffice</span>
                               </SheetTitle>
+                               <SheetDescription className="sr-only">Menu principal</SheetDescription> {/* Added for accessibility */}
                            </SheetHeader>
                          <SidebarContent className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
@@ -700,3 +709,5 @@ export default function AppLayout({
       </SidebarProvider>
   );
 }
+
+    
