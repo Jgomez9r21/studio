@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type React from 'react';
@@ -386,7 +387,7 @@ function ServicePublicationForm() {
 
 const PostJobContent = () => {
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto"> {/* Adjusted max-width */}
+    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto"> {/* Adjusted max-width and padding */}
       <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publica tu Servicio</h1>
       <p className="text-muted-foreground mb-6 md:mb-8">
         Completa el formulario para ofrecer tus habilidades y servicios en la plataforma.
@@ -407,4 +408,3 @@ const PostJob = () => {
 
 export default PostJob;
 
-    

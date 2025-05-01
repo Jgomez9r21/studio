@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -96,7 +97,7 @@ function ProfileForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* First Name */}
           <FormField
@@ -191,7 +192,7 @@ function ProfileForm() {
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>Selecciona tu fecha</span> // Changed placeholder text
+                          <span>Seleccionar fecha</span> // Updated placeholder
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -246,7 +247,7 @@ function ProfileForm() {
 
 const SettingsContent = () => {
  return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto"> {/* Adjusted padding */}
       <h1 className="text-2xl md:text-3xl font-semibold mb-6">Configuración de Perfil</h1>
        <ProfileForm />
        {/* Add other settings sections later, e.g., Notifications, Password Change */}
@@ -264,3 +265,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

@@ -62,7 +62,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn } from "lucide-react";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Toaster } from "@/components/ui/toaster";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
@@ -174,7 +174,7 @@ function LandingPageContent() {
   );
 
   return (
-    <>
+    <div className="p-4 md:p-6 lg:p-8">
       {/* Hero Section */}
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 pt-6 md:pt-8 lg:pt-12">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -313,6 +313,9 @@ function LandingPageContent() {
                                     onSelect={setDate}
                                     disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
                                     initialFocus
+                                     captionLayout="dropdown-buttons" // Ensure dropdowns are enabled
+                                     fromYear={1900}
+                                     toYear={new Date().getFullYear()}
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -359,7 +362,7 @@ function LandingPageContent() {
           </ScrollArea>
         </TabsContent>
       </Tabs>
-    </>
+    </div>
   );
 }
 
@@ -372,3 +375,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
