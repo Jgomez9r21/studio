@@ -50,6 +50,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 // Navigation Items (centralized)
@@ -137,9 +138,9 @@ const signupSchema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Updated validation
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
-  dob: z.date().optional(),
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
   gender: z.string().optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
@@ -160,7 +161,7 @@ export default function AppLayout({
   // Note: Directly using useSidebar() here might be problematic if AppLayout itself
   // isn't always wrapped by SidebarProvider. Consider conditional usage or passing props.
   // For now, assuming it's generally within a provider context.
-  // const { isMobile } = useSidebar();
+  // const { isMobile } = useSidebar(); // Removed as it causes crash when not in provider
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
@@ -198,6 +199,18 @@ export default function AppLayout({
       setCurrentView('login'); // Reset view on close
       loginForm.reset(); // Reset login form on close
       signupForm.reset(); // Reset signup form on close
+    } else {
+        // When opening, decide which dialog to show based on current state
+        if (isLoggedIn && !showLoginDialog) {
+            setShowProfileDialog(true);
+        } else if (!isLoggedIn && !showProfileDialog) {
+             setShowLoginDialog(true);
+        }
+        // If neither is explicitly set to show, default based on login status
+        else if (!showLoginDialog && !showProfileDialog) {
+            if(isLoggedIn) setShowProfileDialog(true);
+            else setShowLoginDialog(true);
+        }
     }
   };
 
@@ -245,244 +258,246 @@ export default function AppLayout({
 
 
   const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto p-6">
-       <DialogHeader>
-         <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
-         <DialogDescription>
-           {currentView === 'login'
-              ? 'Ingresa tus datos para continuar.'
-              : 'Completa el formulario para crear tu cuenta.'}
-         </DialogDescription>
-       </DialogHeader>
-        {currentView === 'login' ? (
-           <Form {...loginForm}>
-             <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="grid gap-4 py-4">
-                 <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem className="grid grid-cols-[auto_1fr] items-center gap-4">
-                        <FormLabel className="text-right">Correo</FormLabel>
-                        <FormControl>
-                           <Input placeholder="tu@correo.com" {...field} className="col-span-3" />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" /> {/* Adjusted message position */}
-                      </FormItem>
-                    )}
-                  />
-                 <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem className="grid grid-cols-[auto_1fr] items-center gap-4">
-                        <FormLabel className="text-right">Contraseña</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} className="col-span-3" />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" /> {/* Adjusted message position */}
-                      </FormItem>
-                    )}
-                  />
-                 <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
-                     <Button type="button" variant="link" onClick={() => setCurrentView('signup')} className="p-0 h-auto text-sm order-2 sm:order-1">
-                        ¿No tienes cuenta? Crear una
-                     </Button>
-                    <Button type="submit" className="order-1 sm:order-2" disabled={loginForm.formState.isSubmitting}>
-                         {loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"}
-                    </Button>
-                 </DialogFooter>
-           </form>
-           </Form>
-        ) : (
-           <Form {...signupForm}>
-             <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-4 py-4">
-                 {/* Name Fields */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField control={signupForm.control} name="firstName" render={({ field }) => (
-                         <FormItem>
-                           <FormLabel>Nombre</FormLabel>
+     <DialogContent className="sm:max-w-[425px] max-h-[90vh] md:max-h-[80vh] p-0"> {/* Adjusted padding and max-height */}
+       <ScrollArea className="max-h-[85vh] md:max-h-[75vh] p-6"> {/* Wrap content in ScrollArea */}
+           <DialogHeader className="mb-4">
+             <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
+             <DialogDescription>
+               {currentView === 'login'
+                  ? 'Ingresa tus datos para continuar.'
+                  : 'Completa el formulario para crear tu cuenta.'}
+             </DialogDescription>
+           </DialogHeader>
+            {currentView === 'login' ? (
+               <Form {...loginForm}>
+                 <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="grid gap-4">
+                     <FormField
+                        control={loginForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2"> {/* Adjusted grid for smaller screens */}
+                            <FormLabel className="text-left sm:text-right">Correo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Tu nombre" {...field} />
-                           </FormControl>
-                           <FormMessage />
-                         </FormItem>
-                      )}/>
-                      <FormField control={signupForm.control} name="lastName" render={({ field }) => (
-                         <FormItem>
-                           <FormLabel>Apellido</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Tu apellido" {...field} />
-                           </FormControl>
-                           <FormMessage />
+                               <Input placeholder="tu@correo.com" {...field} className="sm:col-span-1" /> {/* Adjusted span */}
+                            </FormControl>
+                            <FormMessage className="col-start-1 sm:col-start-2 col-span-1" /> {/* Adjusted message position */}
                           </FormItem>
-                      )}/>
-                 </div>
-                 {/* Country and Phone */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField control={signupForm.control} name="country" render={({ field }) => (
-                         <FormItem>
-                           <FormLabel>País</FormLabel>
-                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                             <FormControl>
-                               <SelectTrigger>
-                                 <SelectValue placeholder="Selecciona tu país" />
-                               </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {countries.map((country) => (
-                                  <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
-                                ))}
-                             </SelectContent>
-                           </Select>
-                           <FormMessage />
-                         </FormItem>
-                      )}/>
-                      <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                         <FormItem>
-                           <FormLabel>Teléfono</FormLabel>
+                        )}
+                      />
+                     <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2">
+                            <FormLabel className="text-left sm:text-right">Contraseña</FormLabel>
                             <FormControl>
-                               <Input type="tel" placeholder="+1234567890" {...field} />
+                              <Input type="password" {...field} className="sm:col-span-1" />
                             </FormControl>
-                            <FormMessage />
-                         </FormItem>
-                      )}/>
-                 </div>
-                 {/* Profile Type */}
-                 <FormField control={signupForm.control} name="profileType" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Tipo de perfil</FormLabel>
-                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Selecciona tu tipo de perfil" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {profileTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                 )}/>
-                 {/* DOB and Gender */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={signupForm.control} name="dob" render={({ field }) => (
-                       <FormItem className="flex flex-col">
-                         <FormLabel>Fecha de Nacimiento</FormLabel>
-                          <Popover>
-                           <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                   variant={"outline"}
-                                   className={cn(
-                                   "w-full justify-start text-left font-normal",
-                                   !field.value && "text-muted-foreground"
-                                   )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4"/>
-                                    {field.value ? format(field.value, "PPP") : <span>Seleccionar fecha</span>}
-                                 </Button>
-                              </FormControl>
-                           </PopoverTrigger>
-                           <PopoverContent className="w-auto p-0" align="start">
-                             <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                initialFocus
-                                captionLayout="dropdown-buttons"
-                                fromYear={1900}
-                                toYear={currentYear}
-                             />
-                           </PopoverContent>
-                         </Popover>
-                         <FormMessage />
-                        </FormItem>
-                     )}/>
-                     <FormField control={signupForm.control} name="gender" render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Género</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormMessage className="col-start-1 sm:col-start-2 col-span-1" />
+                          </FormItem>
+                        )}
+                      />
+                     <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                         <Button type="button" variant="link" onClick={() => setCurrentView('signup')} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                            ¿No tienes cuenta? Crear una
+                         </Button>
+                        <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
+                             {loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"}
+                        </Button>
+                     </DialogFooter>
+               </form>
+               </Form>
+            ) : (
+               <Form {...signupForm}>
+                 <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-4">
+                     {/* Name Fields */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField control={signupForm.control} name="firstName" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Nombre</FormLabel>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona tu género" />
-                                </SelectTrigger>
+                                    <Input placeholder="Tu nombre" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                          )}/>
+                          <FormField control={signupForm.control} name="lastName" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Apellido</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Tu apellido" {...field} />
+                               </FormControl>
+                               <FormMessage />
+                              </FormItem>
+                          )}/>
+                     </div>
+                     {/* Country and Phone */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField control={signupForm.control} name="country" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>País</FormLabel>
+                               <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                 <FormControl>
+                                   <SelectTrigger>
+                                     <SelectValue placeholder="Selecciona tu país" />
+                                   </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {countries.map((country) => (
+                                      <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
+                                    ))}
+                                 </SelectContent>
+                               </Select>
+                               <FormMessage />
+                             </FormItem>
+                          )}/>
+                          <FormField control={signupForm.control} name="phone" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel>Teléfono</FormLabel>
+                                <FormControl>
+                                   <Input type="tel" placeholder="+1234567890" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                             </FormItem>
+                          )}/>
+                     </div>
+                     {/* Profile Type */}
+                     <FormField control={signupForm.control} name="profileType" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Tipo de perfil</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona tu tipo de perfil" />
+                                    </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                {genders.map((gender) => (
-                                    <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
-                                ))}
+                                    {profileTypes.map((type) => (
+                                    <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
                         </FormItem>
                      )}/>
-                 </div>
-                 {/* Document Type and Number */}
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <FormField control={signupForm.control} name="documentType" render={({ field }) => (
-                         <FormItem>
-                            <FormLabel>Tipo de documento</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                     {/* DOB and Gender */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField control={signupForm.control} name="dob" render={({ field }) => (
+                           <FormItem className="flex flex-col">
+                             <FormLabel>Fecha de Nacimiento</FormLabel>
+                              <Popover>
+                               <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                       variant={"outline"}
+                                       className={cn(
+                                       "w-full justify-start text-left font-normal",
+                                       !field.value && "text-muted-foreground"
+                                       )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4"/>
+                                        {field.value ? format(field.value, "PPP") : <span>Seleccionar fecha</span>}
+                                     </Button>
+                                  </FormControl>
+                               </PopoverTrigger>
+                               <PopoverContent className="w-auto p-0" align="start">
+                                 <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                    initialFocus
+                                    captionLayout="dropdown-buttons"
+                                    fromYear={1900}
+                                    toYear={currentYear}
+                                 />
+                               </PopoverContent>
+                             </Popover>
+                             <FormMessage />
+                            </FormItem>
+                         )}/>
+                         <FormField control={signupForm.control} name="gender" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Género</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona tu género" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {genders.map((gender) => (
+                                        <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                         )}/>
+                     </div>
+                     {/* Document Type and Number */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FormField control={signupForm.control} name="documentType" render={({ field }) => (
+                             <FormItem>
+                                <FormLabel>Tipo de documento</FormLabel>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecciona tipo" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {documentTypes.map((docType) => (
+                                        <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                 </Select>
+                                <FormMessage />
+                             </FormItem>
+                         )}/>
+                         <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
+                             <FormItem>
+                                <FormLabel>Número de documento</FormLabel>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona tipo" />
-                                </SelectTrigger>
+                                    <Input placeholder="Número de documento" {...field} />
                                 </FormControl>
-                                <SelectContent>
-                                {documentTypes.map((docType) => (
-                                    <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
-                                ))}
-                                </SelectContent>
-                             </Select>
-                            <FormMessage />
-                         </FormItem>
-                     )}/>
-                     <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
-                         <FormItem>
-                            <FormLabel>Número de documento</FormLabel>
+                                <FormMessage />
+                             </FormItem>
+                         )}/>
+                     </div>
+                     {/* Email */}
+                     <FormField control={signupForm.control} name="email" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Correo</FormLabel>
                             <FormControl>
-                                <Input placeholder="Número de documento" {...field} />
+                                <Input type="email" placeholder="tu@correo.com" {...field} />
                             </FormControl>
                             <FormMessage />
-                         </FormItem>
+                        </FormItem>
                      )}/>
-                 </div>
-                 {/* Email */}
-                 <FormField control={signupForm.control} name="email" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Correo</FormLabel>
-                        <FormControl>
-                            <Input type="email" placeholder="tu@correo.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                 )}/>
-                 {/* Password */}
-                 <FormField control={signupForm.control} name="password" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
-                        <FormControl>
-                            <Input type="password" {...field} />
-                         </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                 )}/>
+                     {/* Password */}
+                     <FormField control={signupForm.control} name="password" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Contraseña</FormLabel>
+                            <FormControl>
+                                <Input type="password" {...field} />
+                             </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                     )}/>
 
-                  <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
-                     <Button type="button" variant="link" onClick={() => setCurrentView('login')} className="p-0 h-auto text-sm order-2 sm:order-1">
-                        ¿Ya tienes cuenta? Ingresar
-                     </Button>
-                    <Button type="submit" className="order-1 sm:order-2" disabled={signupForm.formState.isSubmitting}>
-                         {signupForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
-                    </Button>
-                 </DialogFooter>
-            </form>
-            </Form>
-        )}
+                      <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                         <Button type="button" variant="link" onClick={() => setCurrentView('login')} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                            ¿Ya tienes cuenta? Ingresar
+                         </Button>
+                        <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={signupForm.formState.isSubmitting}>
+                             {signupForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
+                        </Button>
+                     </DialogFooter>
+                </form>
+                </Form>
+            )}
+        </ScrollArea>
      </DialogContent>
   );
 
@@ -519,7 +534,7 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
              <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon">
                <SidebarHeader className="p-4 border-b flex items-center justify-center flex-shrink-0 h-14">
-                  {/* Replaced SVG with a simpler placeholder or logo if available */}
+                  {/* Simple placeholder logo */}
                    <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold group-data-[collapsible=icon]:mx-auto">
                      SO {/* Initials for sportoffice */}
                    </div>
@@ -685,5 +700,3 @@ export default function AppLayout({
       </SidebarProvider>
   );
 }
-
-    
