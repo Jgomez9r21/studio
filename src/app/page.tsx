@@ -65,6 +65,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Toaster } from "@/components/ui/toaster";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 
 // Define Category types with explicit icon typing
@@ -76,7 +77,7 @@ interface Category {
 // Service Categories
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Reserva Deportiva', icon: Dumbbell }, // Changed from 'Deporte'
+  { name: 'Reserva Deportiva', icon: Dumbbell },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -266,7 +267,7 @@ function LandingPageContent() {
                         {listing.description}
                       </p>
                       <p className="text-sm font-medium mb-1">
-                        Tarifa: ${listing.rate}/hr
+                        Tarifa: ${listing.rate} por hora
                       </p>
                       <p className="text-sm text-muted-foreground mb-4">
                         Disponibilidad: {listing.availability.join(', ')}
