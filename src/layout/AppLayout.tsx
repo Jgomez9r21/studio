@@ -3,9 +3,9 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { zodResolver } from "@hookform/resolvers/zod"; // Import zodResolver
-import { useForm } from "react-hook-form"; // Import useForm
-import * as z from "zod"; // Import zod
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Sidebar,
   SidebarContent,
@@ -48,8 +48,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"; // Import Form components
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+} from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
 
 
 // Navigation Items (centralized)
@@ -135,7 +135,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 const signupSchema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
-  lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
+  lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
   phone: z.string().optional(),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
@@ -157,13 +157,16 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  // Note: Directly using useSidebar() here might be problematic if AppLayout itself
+  // isn't always wrapped by SidebarProvider. Consider conditional usage or passing props.
+  // For now, assuming it's generally within a provider context.
+  // const { isMobile } = useSidebar();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup'>('login');
-  const [dob, setDob] = useState<Date | undefined>();
 
   // Form hooks
   const loginForm = useForm<LoginValues>({
@@ -195,7 +198,6 @@ export default function AppLayout({
       setCurrentView('login'); // Reset view on close
       loginForm.reset(); // Reset login form on close
       signupForm.reset(); // Reset signup form on close
-      setDob(undefined); // Reset DOB picker
     }
   };
 
@@ -210,13 +212,12 @@ export default function AppLayout({
   };
 
    const handleSignupSubmit = (data: SignupValues) => {
-      console.log("Attempting to sign up with data:", { ...data, dob: dob ? dob.toISOString().split('T')[0] : null });
+      console.log("Attempting to sign up with data:", data);
       // TODO: Implement actual signup logic using form data
       setIsLoggedIn(true); // Simulate successful signup/login
       setShowLoginDialog(false); // Close the dialog
       setCurrentView('login'); // Reset view
       signupForm.reset();
-      setDob(undefined);
       toast({ title: "Cuenta Creada", description: "¡Bienvenido/a! Tu cuenta ha sido creada." });
    };
 
@@ -298,50 +299,177 @@ export default function AppLayout({
                  {/* Name Fields */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField control={signupForm.control} name="firstName" render={({ field }) => (
-                         <FormItem> <FormLabel>Nombre</FormLabel> <FormControl> <Input placeholder="Tu nombre" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                         <FormItem>
+                           <FormLabel>Nombre</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Tu nombre" {...field} />
+                           </FormControl>
+                           <FormMessage />
+                         </FormItem>
                       )}/>
                       <FormField control={signupForm.control} name="lastName" render={({ field }) => (
-                         <FormItem> <FormLabel>Apellido</FormLabel> <FormControl> <Input placeholder="Tu apellido" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                         <FormItem>
+                           <FormLabel>Apellido</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Tu apellido" {...field} />
+                           </FormControl>
+                           <FormMessage />
+                          </FormItem>
                       )}/>
                  </div>
                  {/* Country and Phone */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField control={signupForm.control} name="country" render={({ field }) => (
-                         <FormItem> <FormLabel>País</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Selecciona tu país" /> </SelectTrigger> </FormControl> <SelectContent> {countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))} </SelectContent> </Select> <FormMessage /> </FormItem>
+                         <FormItem>
+                           <FormLabel>País</FormLabel>
+                           <Select onValueChange={field.onChange} defaultValue={field.value}>
+                             <FormControl>
+                               <SelectTrigger>
+                                 <SelectValue placeholder="Selecciona tu país" />
+                               </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {countries.map((country) => (
+                                  <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
+                                ))}
+                             </SelectContent>
+                           </Select>
+                           <FormMessage />
+                         </FormItem>
                       )}/>
                       <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                         <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl> <Input type="tel" placeholder="+1234567890" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                         <FormItem>
+                           <FormLabel>Teléfono</FormLabel>
+                            <FormControl>
+                               <Input type="tel" placeholder="+1234567890" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                         </FormItem>
                       )}/>
                  </div>
                  {/* Profile Type */}
                  <FormField control={signupForm.control} name="profileType" render={({ field }) => (
-                    <FormItem> <FormLabel>Tipo de perfil</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Selecciona tu tipo de perfil" /> </SelectTrigger> </FormControl> <SelectContent> {profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))} </SelectContent> </Select> <FormMessage /> </FormItem>
+                    <FormItem>
+                        <FormLabel>Tipo de perfil</FormLabel>
+                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Selecciona tu tipo de perfil" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {profileTypes.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
                  )}/>
                  {/* DOB and Gender */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={signupForm.control} name="dob" render={({ field }) => (
-                       <FormItem className="flex flex-col"> <FormLabel>Fecha de Nacimiento</FormLabel> <Popover> <PopoverTrigger asChild> <FormControl> <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}> <CalendarIcon className="mr-2 h-4 w-4"/> {field.value ? format(field.value, "PPP") : <span>Seleccionar fecha</span>} </Button> </FormControl> </PopoverTrigger> <PopoverContent className="w-auto p-0" align="start"> <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} /> </PopoverContent> </Popover> <FormMessage /> </FormItem>
+                       <FormItem className="flex flex-col">
+                         <FormLabel>Fecha de Nacimiento</FormLabel>
+                          <Popover>
+                           <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                   variant={"outline"}
+                                   className={cn(
+                                   "w-full justify-start text-left font-normal",
+                                   !field.value && "text-muted-foreground"
+                                   )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4"/>
+                                    {field.value ? format(field.value, "PPP") : <span>Seleccionar fecha</span>}
+                                 </Button>
+                              </FormControl>
+                           </PopoverTrigger>
+                           <PopoverContent className="w-auto p-0" align="start">
+                             <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                initialFocus
+                                captionLayout="dropdown-buttons"
+                                fromYear={1900}
+                                toYear={currentYear}
+                             />
+                           </PopoverContent>
+                         </Popover>
+                         <FormMessage />
+                        </FormItem>
                      )}/>
                      <FormField control={signupForm.control} name="gender" render={({ field }) => (
-                        <FormItem> <FormLabel>Género</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Selecciona tu género" /> </SelectTrigger> </FormControl> <SelectContent> {genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))} </SelectContent> </Select> <FormMessage /> </FormItem>
+                        <FormItem>
+                            <FormLabel>Género</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona tu género" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {genders.map((gender) => (
+                                    <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
                      )}/>
                  </div>
                  {/* Document Type and Number */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <FormField control={signupForm.control} name="documentType" render={({ field }) => (
-                         <FormItem> <FormLabel>Tipo de documento</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl> <SelectTrigger> <SelectValue placeholder="Selecciona tipo" /> </SelectTrigger> </FormControl> <SelectContent> {documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))} </SelectContent> </Select> <FormMessage /> </FormItem>
+                         <FormItem>
+                            <FormLabel>Tipo de documento</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecciona tipo" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {documentTypes.map((docType) => (
+                                    <SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>
+                                ))}
+                                </SelectContent>
+                             </Select>
+                            <FormMessage />
+                         </FormItem>
                      )}/>
                      <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
-                         <FormItem> <FormLabel>Número de documento</FormLabel> <FormControl> <Input placeholder="Número de documento" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                         <FormItem>
+                            <FormLabel>Número de documento</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Número de documento" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                         </FormItem>
                      )}/>
                  </div>
                  {/* Email */}
                  <FormField control={signupForm.control} name="email" render={({ field }) => (
-                    <FormItem> <FormLabel>Correo</FormLabel> <FormControl> <Input type="email" placeholder="tu@correo.com" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                    <FormItem>
+                        <FormLabel>Correo</FormLabel>
+                        <FormControl>
+                            <Input type="email" placeholder="tu@correo.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
                  )}/>
                  {/* Password */}
                  <FormField control={signupForm.control} name="password" render={({ field }) => (
-                    <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl> <Input type="password" {...field} /> </FormControl> <FormMessage /> </FormItem>
+                    <FormItem>
+                        <FormLabel>Contraseña</FormLabel>
+                        <FormControl>
+                            <Input type="password" {...field} />
+                         </FormControl>
+                        <FormMessage />
+                    </FormItem>
                  )}/>
 
                   <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
@@ -361,18 +489,26 @@ export default function AppLayout({
   const renderProfileDialog = () => (
      <DialogContent className="sm:max-w-md">
        <DialogHeader>
-         <DialogTitle>{user?.name}</DialogTitle>
+         <DialogTitle>{user?.name ?? 'Perfil'}</DialogTitle> {/* Provide fallback title */}
          <DialogDescription>Perfil de Usuario</DialogDescription>
        </DialogHeader>
        <div className="py-4">
          <p className="text-sm text-muted-foreground">
-           Bienvenido/a, {user?.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.
+           {user ? `Bienvenido/a, ${user.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.` : 'Inicia sesión para ver tu perfil.'}
          </p>
-          <p className="text-sm mt-2">Email: usuario@ejemplo.com</p> {/* Example: Display user email */}
+          {/* Example: Display user email - replace with actual user data */}
+         {user && <p className="text-sm mt-2">Email: {user.name.toLowerCase().replace(' ', '.')}@ejemplo.com</p> }
        </div>
        <DialogFooter className="gap-2 sm:gap-0 justify-between">
-          <Button variant="outline" onClick={goToSettings}>Configuración</Button>
-         <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
+         {user ? (
+            <>
+              <Button variant="outline" onClick={goToSettings}>Configuración</Button>
+              <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
+            </>
+          ) : (
+            <Button onClick={() => { setShowProfileDialog(false); setShowLoginDialog(true); }}>Iniciar Sesión</Button>
+         )}
+
        </DialogFooter>
     </DialogContent>
   );
@@ -383,9 +519,10 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
              <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon">
                <SidebarHeader className="p-4 border-b flex items-center justify-center flex-shrink-0 h-14">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-primary flex-shrink-0 group-data-[collapsible=icon]:mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 012 2v1m-2-3a2 2 0 00-2 2v1m0 0V9m0 8a2 2 0 11-2 2h-1m2-2a2 2 0 002-2m0 0V9m-6 8a2 2 0 01-2-2v-1m2 3a2 2 0 002-2V9m0 0a2 2 0 012-2h1m-2 2a2 2 0 00-2 2" />
-                  </svg>
+                  {/* Replaced SVG with a simpler placeholder or logo if available */}
+                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold group-data-[collapsible=icon]:mx-auto">
+                     SO {/* Initials for sportoffice */}
+                   </div>
                  <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
                       <h3 className="font-semibold text-lg whitespace-nowrap">sportoffice</h3>
                   </div>
@@ -412,8 +549,8 @@ export default function AppLayout({
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                   <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    {user ? (
-                      <DialogTrigger asChild onClick={() => setShowProfileDialog(true)}>
-                        <Button variant="ghost" className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" onClick={() => setShowProfileDialog(true)} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                            <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                              <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                              <AvatarFallback>{user.initials}</AvatarFallback>
@@ -424,8 +561,8 @@ export default function AppLayout({
                          </Button>
                       </DialogTrigger>
                    ) : (
-                     <DialogTrigger asChild onClick={() => setShowLoginDialog(true)}>
-                       <Button variant="ghost" className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                     <DialogTrigger asChild>
+                       <Button variant="ghost" onClick={() => { setCurrentView('login'); setShowLoginDialog(true);}} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                           <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                                Ingresar / Crear Cuenta
@@ -434,7 +571,8 @@ export default function AppLayout({
                         </Button>
                      </DialogTrigger>
                    )}
-                   {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                    {/* Render correct dialog based on state */}
+                   {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                  </Dialog>
                </SidebarFooter>
              </Sidebar>
@@ -452,9 +590,10 @@ export default function AppLayout({
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                            <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
                               <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
-                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 012 2v1m-2-3a2 2 0 00-2 2v1m0 0V9m0 8a2 2 0 11-2 2h-1m2-2a2 2 0 002-2m0 0V9m-6 8a2 2 0 01-2-2v-1m2 3a2 2 0 002-2V9m0 0a2 2 0 012-2h1m-2 2a2 2 0 00-2 2" />
-                                 </svg>
+                                 {/* Simple logo placeholder */}
+                                 <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
+                                     SO
+                                 </div>
                                  <span className="whitespace-nowrap">sportoffice</span>
                               </SheetTitle>
                            </SheetHeader>
@@ -478,8 +617,8 @@ export default function AppLayout({
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                                <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                 {user ? (
-                                   <DialogTrigger asChild onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }}>
-                                     <Button variant="ghost" className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md w-full text-left">
+                                   <DialogTrigger asChild>
+                                     <Button variant="ghost" onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md w-full text-left">
                                        <Avatar className="h-8 w-8">
                                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                                            <AvatarFallback>{user.initials}</AvatarFallback>
@@ -490,30 +629,32 @@ export default function AppLayout({
                                      </Button>
                                    </DialogTrigger>
                                 ) : (
-                                  <DialogTrigger asChild onClick={() => { setShowLoginDialog(true); setIsMobileSheetOpen(false); }}>
-                                     <Button variant="outline" className="w-full justify-start">
+                                  <DialogTrigger asChild>
+                                     <Button variant="outline" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); setIsMobileSheetOpen(false);}} className="w-full justify-start">
                                          <LogIn className="mr-2 h-4 w-4" />
                                          Ingresar / Crear Cuenta
                                      </Button>
                                   </DialogTrigger>
                                 )}
-                                 {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                                 {/* Render correct dialog based on state */}
+                                 {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                               </Dialog>
                           </SidebarFooter>
                       </SheetContent>
                   </Sheet>
 
                  <div className="flex items-center flex-grow justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 012 2v1m-2-3a2 2 0 00-2 2v1m0 0V9m0 8a2 2 0 11-2 2h-1m2-2a2 2 0 002-2m0 0V9m-6 8a2 2 0 01-2-2v-1m2 3a2 2 0 002-2V9m0 0a2 2 0 012-2h1m-2 2a2 2 0 00-2 2" />
-                      </svg>
+                     {/* Simple logo placeholder */}
+                     <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5">
+                        SO
+                     </div>
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10">
                       <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                       {user ? (
-                         <DialogTrigger asChild onClick={() => setShowProfileDialog(true)}>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
+                         <DialogTrigger asChild>
+                                <Button variant="ghost" onClick={() => setShowProfileDialog(true)} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
                                     <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
                                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                                         <AvatarFallback>{user.initials}</AvatarFallback>
@@ -522,14 +663,15 @@ export default function AppLayout({
                                 </Button>
                          </DialogTrigger>
                       ) : (
-                        <DialogTrigger asChild onClick={() => setShowLoginDialog(true)}>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                        <DialogTrigger asChild>
+                             <Button variant="ghost" onClick={() => {setCurrentView('login'); setShowLoginDialog(true);}} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
                                 <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                 <span className="sr-only">Ingresar / Crear Cuenta</span>
                              </Button>
                         </DialogTrigger>
                       )}
-                          {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                         {/* Render correct dialog based on state */}
+                         {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                          </Dialog>
                    </div>
                </header>
@@ -543,3 +685,5 @@ export default function AppLayout({
       </SidebarProvider>
   );
 }
+
+    
