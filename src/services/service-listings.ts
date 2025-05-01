@@ -49,7 +49,7 @@ export async function getServiceListings(category?: string, location?: string): 
       description: 'Sesiones de entrenamiento personalizadas para ayudarte a alcanzar tus metas de fitness.',
       rate: 50,
       availability: ['Lunes 9:00-10:00', 'Miércoles 18:00-19:00'],
-      category: 'Deporte',
+      category: 'Reserva Deportiva', // Changed from 'Deporte'
       location: 'Gimnasio Local'
     },
     {
@@ -115,6 +115,15 @@ export async function getServiceListings(category?: string, location?: string): 
       category: 'Marketing Digital',
       location: 'Remoto'
     },
+     {
+        id: '9',
+        title: 'Reserva de Cancha de Fútbol 5',
+        description: 'Alquila una cancha de césped sintético para tu partido con amigos.',
+        rate: 45,
+        availability: ['Martes 20:00-21:00', 'Jueves 21:00-22:00', 'Sábado 16:00-17:00'],
+        category: 'Reserva Deportiva',
+        location: 'Complejo Deportivo Norte'
+     },
     // Add more listings for other categories as needed
   ];
 }

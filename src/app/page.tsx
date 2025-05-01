@@ -64,6 +64,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
 import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Toaster } from "@/components/ui/toaster";
 
 
 // Define Category types with explicit icon typing
@@ -75,7 +76,7 @@ interface Category {
 // Service Categories
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Deporte', icon: Dumbbell },
+  { name: 'Reserva Deportiva', icon: Dumbbell }, // Changed from 'Deporte'
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -96,11 +97,11 @@ const categorias: Category[] = [
 
 // Featured Services for Carousel
 const featuredServices = [
-  { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1' },
-  { id: 'f2', title: 'Entrenamiento Funcional', description: 'Mejora tu fuerza y resistencia.', category: 'Deporte', image: 'https://picsum.photos/400/300?random=2' },
-  { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3' },
-  { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4' },
-  { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5' },
+  { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1', dataAiHint: "web development code" },
+  { id: 'f2', title: 'Reserva de Cancha de Tenis', description: 'Encuentra y reserva tu hora.', category: 'Reserva Deportiva', image: 'https://picsum.photos/400/300?random=2', dataAiHint: "tennis court" },
+  { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3', dataAiHint: "logo design graphic" },
+  { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4', dataAiHint: "language class conversation" },
+  { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5', dataAiHint: "electrician repair home" },
 ];
 
 // Navigation Items (centralized) - Also used in LandingPage for mobile sidebar
@@ -153,7 +154,8 @@ function LandingPageContent() {
         const data = await getServiceListings();
         const updatedData = data.map(listing => ({
           ...listing,
-          category: categorias.find(cat => cat.name === listing.category) ? listing.category : 'Otros'
+          // Ensure category exists, otherwise default to 'Otros'
+          category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros'
         }));
         setListings(updatedData);
       } catch (error) {
@@ -208,7 +210,7 @@ function LandingPageContent() {
                 <div className="p-1">
                   <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
-                       <img src={service.image} alt={service.title} className="object-cover w-full h-full" />
+                       <img src={service.image} alt={service.title} className="object-cover w-full h-full" data-ai-hint={service.dataAiHint} />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                        <div className="absolute bottom-0 left-0 p-4">
                          <CardTitle className="text-lg font-semibold text-white mb-1">{service.title}</CardTitle>
