@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import type React from 'react';
@@ -18,8 +16,9 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster"; // Import Toaster
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet"; // Removed SheetTitle, SheetDescription imports
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn } from "lucide-react"; // Added LogIn icon
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from '@/components/ui/button'; // Import Button
 
 
 // Navigation Items (centralized)
@@ -99,8 +98,14 @@ export default function AppLayout({
               ))}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="p-4 border-t text-xs text-muted-foreground transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 flex-shrink-0"> {/* Added flex-shrink-0 */}
-             <div className="overflow-hidden whitespace-nowrap">
+          <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0"> {/* Added flex-col and gap-2 */}
+             {/* Login Button - visible only when sidebar is expanded */}
+             <Button variant="outline" className="w-full transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
+                <LogIn className="mr-2 h-4 w-4" />
+                <span className="overflow-hidden whitespace-nowrap">Ingresar Cuenta</span>
+             </Button>
+             {/* Copyright Text - visible only when sidebar is expanded */}
+             <div className="text-xs text-muted-foreground text-center overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                 © {new Date().getFullYear()} sportoffice
             </div>
           </SidebarFooter>
@@ -135,16 +140,15 @@ export default function AppLayout({
         </div>
 
          {/* Mobile Sidebar (Sheet) */}
-         {/* This Sheet component is controlled by SidebarProvider */}
-         {/* Ensure SheetContent has a DialogTitle for accessibility as required by Radix */}
          <Sheet>
             <SheetContent side="left" className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground md:hidden flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}> {/* Adjusted width, added flex flex-col */}
                  <SheetHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
+                    {/* Added SheetTitle for accessibility */}
+                    <SheetTitle className="sr-only">Menú Principal</SheetTitle>
                     {/* Simple low-profile logo/icon */}
                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
                      </svg>
-                     {/* Removed explicit SheetTitle and SheetDescription, ensure title is conveyed by header content if needed */}
                     <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
                  </SheetHeader>
                 <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Ensured content scrolls */}
@@ -164,8 +168,16 @@ export default function AppLayout({
                     ))}
                     </SidebarMenu>
                 </SidebarContent>
-                 <SidebarFooter className="p-4 border-t text-xs text-muted-foreground flex-shrink-0"> {/* Added flex-shrink-0 */}
-                     © {new Date().getFullYear()} sportoffice
+                 <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0"> {/* Added flex-col and gap-2 */}
+                     {/* Login Button for Mobile */}
+                    <Button variant="outline" className="w-full">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Ingresar Cuenta
+                    </Button>
+                     {/* Copyright Text for Mobile */}
+                    <div className="text-xs text-muted-foreground text-center">
+                         © {new Date().getFullYear()} sportoffice
+                    </div>
                  </SidebarFooter>
             </SheetContent>
         </Sheet>
