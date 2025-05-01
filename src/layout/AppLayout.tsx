@@ -1,6 +1,7 @@
 'use client';
 
 import type React from 'react';
+import { useState } from 'react'; // Import useState
 import { usePathname } from 'next/navigation';
 import {
   Sidebar,
@@ -15,10 +16,21 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Toaster } from "@/components/ui/toaster"; // Import Toaster
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn } from "lucide-react"; // Added LogIn icon
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from '@/components/ui/button'; // Import Button
+import { Toaster } from "@/components/ui/toaster";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon } from "lucide-react"; // Added UserIcon
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Added SheetTrigger
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 
 // Navigation Items (centralized)
@@ -55,30 +67,43 @@ const navegacion = [
   },
 ];
 
+// Dummy user data for demonstration
+const dummyUser = {
+  name: "Usuario Ejemplo",
+  initials: "UE",
+  avatarUrl: "https://picsum.photos/50/50?random=user"
+};
+
 export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  // Simulate login state - replace with actual auth logic
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Start as logged out
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false); // State for mobile sheet
+
+  const user = isLoggedIn ? dummyUser : null;
+
+  const handleMobileSheetOpenChange = (open: boolean) => {
+    setIsMobileSheetOpen(open);
+  };
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden"> {/* Changed min-h-screen to h-screen and added overflow-hidden */}
+      <div className="flex h-screen overflow-hidden">
         {/* Desktop Sidebar */}
-        <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon"> {/* Added flex-col and flex-shrink-0 */}
-          <SidebarHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-             {/* Simple low-profile logo/icon */}
+        <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon">
+          <SidebarHeader className="p-4 border-b flex items-center flex-shrink-0">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
              </svg>
-
-             {/* Title visible only when sidebar is expanded */}
             <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                  <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
              </div>
           </SidebarHeader>
-          <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Added overflow-y-auto */}
+          <SidebarContent className="flex-grow p-2 overflow-y-auto">
             <SidebarMenu>
               {navegacion.map((item) => (
                 <SidebarMenuItem key={item.title}>
@@ -89,7 +114,6 @@ export default function AppLayout({
                      tooltip={{ children: item.title, side: 'right', align: 'center' }}
                   >
                     <item.icon className="h-4 w-4" />
-                     {/* Text visible only when sidebar is expanded */}
                      <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
                         {item.title}
                     </span>
@@ -98,26 +122,202 @@ export default function AppLayout({
               ))}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0"> {/* Added flex-col and gap-2 */}
-             {/* Login Button - visible only when sidebar is expanded */}
-             <Button variant="outline" className="w-full transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
-                <LogIn className="mr-2 h-4 w-4" />
-                <span className="overflow-hidden whitespace-nowrap">Ingresar Cuenta</span>
-             </Button>
-             {/* Copyright Text - visible only when sidebar is expanded */}
-             <div className="text-xs text-muted-foreground text-center overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
-                © {new Date().getFullYear()} sportoffice
+          <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0">
+            <Dialog>
+              {user ? (
+                 // Logged-in user trigger
+                 <DialogTrigger asChild>
+                   <div className="flex items-center gap-2 overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 cursor-pointer hover:bg-muted/50 p-1 rounded-md">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                        <AvatarFallback>{user.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col text-sm">
+                          <span className="font-semibold">{user.name}</span>
+                          <span className="text-xs text-muted-foreground">Ver perfil</span>
+                      </div>
+                    </div>
+                 </DialogTrigger>
+              ) : (
+                // Login trigger
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:pointer-events-none">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    <span className="overflow-hidden whitespace-nowrap">Ingresar Cuenta</span>
+                  </Button>
+                </DialogTrigger>
+              )}
+
+              {/* Conditional Content */}
+              {user ? (
+                // Profile Content
+                <DialogContent className="sm:max-w-md">
+                   <DialogHeader>
+                     <DialogTitle>{user.name}</DialogTitle>
+                     <DialogDescription>Perfil de Usuario</DialogDescription>
+                   </DialogHeader>
+                   <div className="py-4">
+                     <p>Información del perfil aquí...</p>
+                      {/* Add more profile details later */}
+                   </div>
+                   <DialogFooter>
+                     {/* Implement actual logout logic here */}
+                     <Button variant="outline" onClick={() => setIsLoggedIn(false)}>Cerrar Sesión</Button>
+                   </DialogFooter>
+                </DialogContent>
+              ) : (
+                // Login Content
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Ingresar a tu Cuenta</DialogTitle>
+                    <DialogDescription>
+                      Ingresa tu correo electrónico y contraseña para continuar.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    {/* Email input */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="email-login" className="text-right">
+                        Correo
+                      </Label>
+                      <Input id="email-login" type="email" placeholder="tu@correo.com" className="col-span-3" />
+                    </div>
+                     {/* Password input */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="password-login" className="text-right">
+                        Contraseña
+                      </Label>
+                      <Input id="password-login" type="password" className="col-span-3" />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                     {/* Implement actual login logic here */}
+                     <Button type="submit" onClick={() => setIsLoggedIn(true)}>Ingresar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              )}
+            </Dialog>
+
+            {/* Copyright Text */}
+            <div className="text-xs text-muted-foreground text-center overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 mt-auto pt-2">
+              © {new Date().getFullYear()} sportoffice
             </div>
           </SidebarFooter>
         </Sidebar>
 
-        <div className="flex flex-col flex-1 overflow-hidden"> {/* Changed SidebarInset to div and added flex classes */}
-          {/* Mobile Header with Sidebar Trigger */}
-           <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0"> {/* Adjusted height and padding, added flex-shrink-0 */}
-             {/* Sidebar Trigger for Mobile */}
-             <SidebarTrigger className="md:hidden -ml-2 sm:ml-0"> {/* Adjusted margin */}
-                <Menu className="h-5 w-5 sm:h-6 sm:w-6" /> {/* Adjusted icon size */}
-             </SidebarTrigger>
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Mobile Header */}
+           <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
+             {/* Mobile Sidebar Trigger */}
+             <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
+                 <SheetTrigger asChild>
+                   <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
+                     <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                     <span className="sr-only">Abrir menú</span>
+                   </Button>
+                 </SheetTrigger>
+                 {/* Mobile Sidebar Content */}
+                 <SheetContent side="left" className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
+                     <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
+                       {/* Removed redundant SheetTitle, use header content */}
+                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
+                         </svg>
+                        <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
+                     </SheetHeader>
+                    <SidebarContent className="flex-grow p-2 overflow-y-auto">
+                        <SidebarMenu>
+                        {navegacion.map((item) => (
+                            <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                                href={item.href}
+                                isActive={pathname === item.href}
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                                onClick={() => handleMobileSheetOpenChange(false)} // Close sidebar on navigation
+                            >
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.title}</span>
+                            </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        ))}
+                        </SidebarMenu>
+                    </SidebarContent>
+                     <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0">
+                         <Dialog>
+                           {user ? (
+                              <DialogTrigger asChild>
+                                <div className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md">
+                                  <Avatar className="h-8 w-8">
+                                      <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                                      <AvatarFallback>{user.initials}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex flex-col text-sm">
+                                      <span className="font-semibold">{user.name}</span>
+                                      <span className="text-xs text-muted-foreground">Ver perfil</span>
+                                  </div>
+                                </div>
+                              </DialogTrigger>
+                           ) : (
+                             <DialogTrigger asChild>
+                                <Button variant="outline" className="w-full">
+                                    <LogIn className="mr-2 h-4 w-4" />
+                                    Ingresar Cuenta
+                                </Button>
+                             </DialogTrigger>
+                           )}
+                            {/* Conditional Content for Mobile Dialog */}
+                             {user ? (
+                                // Profile Content (Mobile)
+                                <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>{user.name}</DialogTitle>
+                                    <DialogDescription>Perfil de Usuario</DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4">
+                                    <p>Información del perfil aquí...</p>
+                                </div>
+                                <DialogFooter>
+                                    <Button variant="outline" onClick={() => setIsLoggedIn(false)}>Cerrar Sesión</Button>
+                                </DialogFooter>
+                                </DialogContent>
+                            ) : (
+                                // Login Content (Mobile)
+                                <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>Ingresar a tu Cuenta</DialogTitle>
+                                    <DialogDescription>
+                                    Ingresa tu correo electrónico y contraseña para continuar.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="email-login-mobile" className="text-right">
+                                        Correo
+                                    </Label>
+                                    <Input id="email-login-mobile" type="email" placeholder="tu@correo.com" className="col-span-3" />
+                                    </div>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="password-login-mobile" className="text-right">
+                                        Contraseña
+                                    </Label>
+                                    <Input id="password-login-mobile" type="password" className="col-span-3" />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" onClick={() => setIsLoggedIn(true)}>Ingresar</Button>
+                                </DialogFooter>
+                                </DialogContent>
+                            )}
+                         </Dialog>
+
+                         {/* Copyright Text for Mobile */}
+                        <div className="text-xs text-muted-foreground text-center mt-auto pt-2">
+                             © {new Date().getFullYear()} sportoffice
+                        </div>
+                     </SidebarFooter>
+                 </SheetContent>
+             </Sheet>
+
              {/* Centered Logo/Title */}
              <div className="flex items-center flex-grow justify-center">
                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -125,62 +325,55 @@ export default function AppLayout({
                  </svg>
                  <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
              </div>
-             {/* Right side Avatar */}
+             {/* Right side Avatar/Placeholder */}
               <div className="flex-shrink-0">
-                   <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                     <AvatarImage src="https://picsum.photos/50/50?random=user" alt="User Avatar" data-ai-hint="user avatar placeholder" />
-                     <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
+                 {user ? (
+                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                        <AvatarFallback>{user.initials}</AvatarFallback>
+                    </Avatar>
+                 ) : (
+                   <Dialog>
+                     <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                           <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </Button>
+                     </DialogTrigger>
+                       {/* Login Content (Mobile Header Icon) */}
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                            <DialogTitle>Ingresar a tu Cuenta</DialogTitle>
+                            <DialogDescription>
+                                Ingresa tu correo electrónico y contraseña para continuar.
+                            </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="email-login-header" className="text-right">
+                                Correo
+                                </Label>
+                                <Input id="email-login-header" type="email" placeholder="tu@correo.com" className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="password-login-header" className="text-right">
+                                Contraseña
+                                </Label>
+                                <Input id="password-login-header" type="password" className="col-span-3" />
+                            </div>
+                            </div>
+                            <DialogFooter>
+                            <Button type="submit" onClick={() => setIsLoggedIn(true)}>Ingresar</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                 )}
               </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto"> {/* Made main area scrollable */}
+          <main className="flex-1 overflow-y-auto">
             {children}
           </main>
         </div>
-
-         {/* Mobile Sidebar (Sheet) */}
-         <Sheet>
-            <SheetContent side="left" className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground md:hidden flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}> {/* Adjusted width, added flex flex-col */}
-                 <SheetHeader className="p-4 border-b flex items-center flex-shrink-0"> {/* Added flex-shrink-0 */}
-                    {/* Added SheetTitle for accessibility */}
-                    <SheetTitle className="sr-only">Menú Principal</SheetTitle>
-                    {/* Simple low-profile logo/icon */}
-                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 14v5m8-12v5m-4-8v11m-5-6h10a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2" />
-                     </svg>
-                    <h3 className="font-bold text-lg whitespace-nowrap">sportoffice</h3>
-                 </SheetHeader>
-                <SidebarContent className="flex-grow p-2 overflow-y-auto"> {/* Ensured content scrolls */}
-                    <SidebarMenu>
-                    {navegacion.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                            href={item.href}
-                            isActive={pathname === item.href}
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
-                            // onClick={() => setOpenMobile(false)} // Optional: Close sidebar on navigation
-                        >
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.title}</span>
-                        </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
-                    </SidebarMenu>
-                </SidebarContent>
-                 <SidebarFooter className="p-4 border-t flex flex-col gap-2 flex-shrink-0"> {/* Added flex-col and gap-2 */}
-                     {/* Login Button for Mobile */}
-                    <Button variant="outline" className="w-full">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Ingresar Cuenta
-                    </Button>
-                     {/* Copyright Text for Mobile */}
-                    <div className="text-xs text-muted-foreground text-center">
-                         © {new Date().getFullYear()} sportoffice
-                    </div>
-                 </SidebarFooter>
-            </SheetContent>
-        </Sheet>
         <Toaster />
       </div>
     </SidebarProvider>
