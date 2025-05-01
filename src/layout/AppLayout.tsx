@@ -1,7 +1,8 @@
+
 'use client';
 
 import type React from 'react';
-import { useState } from 'react'; // Import useState
+import { useState, useEffect } from 'react'; // Import useEffect
 import { usePathname, useRouter } from 'next/navigation'; // Import useRouter
 import {
   Sidebar,
@@ -109,6 +110,11 @@ const genders = [
     { value: "prefer_not_say", label: "Prefiero no decir" },
 ]
 
+const profileTypes = [
+    { value: "usuario", label: "Usuario" },
+    { value: "profesional", label: "Profesional" },
+]
+
 
 export default function AppLayout({
   children,
@@ -127,6 +133,15 @@ export default function AppLayout({
   const [currentView, setCurrentView] = useState<'login' | 'signup'>('login'); // 'login' or 'signup'
   const [dob, setDob] = useState<Date | undefined>(); // State for Date of Birth
 
+  // Close dialog handler
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setShowLoginDialog(false);
+      setShowProfileDialog(false);
+      setCurrentView('login'); // Reset view on close
+    }
+  };
+
 
   // Placeholder for login logic
   const handleLoginSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -135,6 +150,7 @@ export default function AppLayout({
       console.log("Attempting to log in...");
       setIsLoggedIn(true); // Simulate successful login
       setShowLoginDialog(false); // Close the dialog
+      setCurrentView('login'); // Reset view
   };
 
    // Placeholder for signup logic
@@ -148,6 +164,7 @@ export default function AppLayout({
        console.log("Signup data:", data); // Log signup data
       setIsLoggedIn(true); // Simulate successful signup/login
       setShowLoginDialog(false); // Close the dialog
+      setCurrentView('login'); // Reset view
    };
 
   const handleLogout = () => {
@@ -174,40 +191,41 @@ export default function AppLayout({
 
 
   const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto">
+     <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto p-6">
        <DialogHeader>
          <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
          <DialogDescription>
            {currentView === 'login'
               ? 'Ingresa tus datos para continuar.'
-              : 'Crea una cuenta nueva para empezar.'}
+              : 'Completa el formulario para crear tu cuenta.'}
          </DialogDescription>
        </DialogHeader>
         {currentView === 'login' ? (
              <form onSubmit={handleLoginSubmit} className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-4">
                     <Label htmlFor="email-login" className="text-right">
                         Correo
                     </Label>
                     <Input id="email-login" type="email" placeholder="tu@correo.com" className="col-span-3" required />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
+                <div className="grid grid-cols-[auto_1fr] items-center gap-4">
                     <Label htmlFor="password-login" className="text-right">
                         Contraseña
                     </Label>
                     <Input id="password-login" type="password" className="col-span-3" required />
                 </div>
-                 <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4">
-                     <Button type="button" variant="link" onClick={() => setCurrentView('signup')} className="p-0 h-auto text-sm">
+                 <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                     <Button type="button" variant="link" onClick={() => setCurrentView('signup')} className="p-0 h-auto text-sm order-2 sm:order-1">
                         ¿No tienes cuenta? Crear una
                      </Button>
-                    <Button type="submit">
+                    <Button type="submit" className="order-1 sm:order-2">
                         Ingresar
                     </Button>
                  </DialogFooter>
            </form>
         ) : (
              <form onSubmit={handleSignupSubmit} className="space-y-4 py-4">
+                 {/* Name Fields */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
                          <Label htmlFor="firstName">Nombre</Label>
@@ -218,6 +236,7 @@ export default function AppLayout({
                          <Input id="lastName" name="lastName" placeholder="Tu apellido" required />
                      </div>
                  </div>
+                 {/* Country and Phone */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
                          <Label htmlFor="country">País</Label>
@@ -239,6 +258,7 @@ export default function AppLayout({
                          <Input id="phone" name="phone" type="tel" placeholder="+1234567890" />
                      </div>
                  </div>
+                 {/* Profile Type */}
                  <div>
                     <Label htmlFor="profileType">Tipo de perfil</Label>
                      <Select name="profileType" required>
@@ -246,11 +266,15 @@ export default function AppLayout({
                              <SelectValue placeholder="Selecciona tu tipo de perfil" />
                          </SelectTrigger>
                          <SelectContent>
-                             <SelectItem value="usuario">Usuario</SelectItem>
-                             <SelectItem value="profesional">Profesional</SelectItem>
+                             {profileTypes.map((type) => (
+                                 <SelectItem key={type.value} value={type.value}>
+                                     {type.label}
+                                 </SelectItem>
+                             ))}
                          </SelectContent>
                      </Select>
                  </div>
+                 {/* DOB and Gender */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
                         <Label htmlFor="dob">Fecha de Nacimiento</Label>
@@ -301,6 +325,7 @@ export default function AppLayout({
                          </Select>
                      </div>
                  </div>
+                 {/* Document Type and Number */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                      <div>
                          <Label htmlFor="documentType">Tipo de documento</Label>
@@ -322,21 +347,22 @@ export default function AppLayout({
                          <Input id="documentNumber" name="documentNumber" placeholder="Número de documento" />
                      </div>
                  </div>
-
+                 {/* Email */}
                  <div>
                      <Label htmlFor="email-signup">Correo</Label>
                      <Input id="email-signup" name="email" type="email" placeholder="tu@correo.com" required />
                  </div>
+                 {/* Password */}
                  <div>
                      <Label htmlFor="password-signup">Contraseña</Label>
                      <Input id="password-signup" name="password" type="password" required />
                  </div>
 
-                  <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4">
-                     <Button type="button" variant="link" onClick={() => setCurrentView('login')} className="p-0 h-auto text-sm">
+                  <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                     <Button type="button" variant="link" onClick={() => setCurrentView('login')} className="p-0 h-auto text-sm order-2 sm:order-1">
                         ¿Ya tienes cuenta? Ingresar
                      </Button>
-                    <Button type="submit">
+                    <Button type="submit" className="order-1 sm:order-2">
                         Crear Cuenta
                     </Button>
                  </DialogFooter>
@@ -400,16 +426,10 @@ export default function AppLayout({
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0"> {/* Reduced padding */}
                  {/* User Avatar / Login/Signup Button */}
-                 <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={(open) => {
-                     if (!open) {
-                         setShowProfileDialog(false);
-                         setShowLoginDialog(false);
-                         setCurrentView('login'); // Reset view on close
-                     }
-                 }}>
+                 <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                   {user ? (
                      // Logged-in user trigger
-                     <DialogTrigger asChild>
+                     <DialogTrigger asChild onClick={() => setShowProfileDialog(true)}>
                        <Button variant="ghost" className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                           <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                             <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -422,7 +442,7 @@ export default function AppLayout({
                      </DialogTrigger>
                   ) : (
                     // Signup/Login trigger
-                    <DialogTrigger asChild>
+                     <DialogTrigger asChild onClick={() => setShowLoginDialog(true)}>
                        <Button variant="ghost" className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                           <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -434,7 +454,7 @@ export default function AppLayout({
                   )}
 
                   {/* Conditional Content based on which state is true */}
-                  {user && showProfileDialog ? renderProfileDialog() : showLoginDialog ? renderLoginSignupDialog() : null}
+                   {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                 </Dialog>
 
               </SidebarFooter>
@@ -454,12 +474,12 @@ export default function AppLayout({
                      {/* Mobile Sidebar Content */}
                       <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                           <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                            <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
+                             <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6V4m0 2a2 2 0 012 2v1m-2-3a2 2 0 00-2 2v1m0 0V9m0 8a2 2 0 11-2 2h-1m2-2a2 2 0 002-2m0 0V9m-6 8a2 2 0 01-2-2v-1m2 3a2 2 0 002-2V9m0 0a2 2 0 012-2h1m-2 2a2 2 0 00-2 2" />
                                 </svg>
                                 <span className="whitespace-nowrap">sportoffice</span>
-                            </SheetTitle>
+                             </DialogTitle>
                           </SheetHeader>
 
                         <SidebarContent className="flex-grow p-2 overflow-y-auto">
@@ -480,15 +500,9 @@ export default function AppLayout({
                             </SidebarMenu>
                         </SidebarContent>
                          <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0"> {/* Reduced padding */}
-                              <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={(open) => {
-                                 if (!open) {
-                                     setShowProfileDialog(false);
-                                     setShowLoginDialog(false);
-                                      setCurrentView('login'); // Reset view on close
-                                 }
-                             }}>
+                              <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                {user ? (
-                                  <DialogTrigger asChild>
+                                  <DialogTrigger asChild onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }}>
                                     <Button variant="ghost" className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md w-full text-left">
                                       <Avatar className="h-8 w-8">
                                           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -500,7 +514,7 @@ export default function AppLayout({
                                     </Button>
                                   </DialogTrigger>
                                ) : (
-                                 <DialogTrigger asChild>
+                                 <DialogTrigger asChild onClick={() => { setShowLoginDialog(true); setIsMobileSheetOpen(false); }}>
                                     <Button variant="outline" className="w-full justify-start"> {/* Ensure text aligns left */}
                                         <LogIn className="mr-2 h-4 w-4" />
                                         Ingresar / Crear Cuenta
@@ -508,7 +522,7 @@ export default function AppLayout({
                                  </DialogTrigger>
                                )}
                                 {/* Conditional Content for Mobile Dialog */}
-                                 {user && showProfileDialog ? renderProfileDialog() : showLoginDialog ? renderLoginSignupDialog() : null }
+                                 {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                              </Dialog>
                          </SidebarFooter>
                      </SheetContent>
@@ -523,15 +537,9 @@ export default function AppLayout({
                  </div>
                  {/* Right side Avatar/Placeholder */}
                   <div className="flex-shrink-0 w-8 sm:w-10"> {/* Reserve space for the icon */}
-                     <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={(open) => {
-                         if (!open) {
-                             setShowProfileDialog(false);
-                             setShowLoginDialog(false);
-                             setCurrentView('login'); // Reset view on close
-                         }
-                     }}>
+                     <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                      {user ? (
-                        <DialogTrigger asChild>
+                        <DialogTrigger asChild onClick={() => setShowProfileDialog(true)}>
                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
                                    <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
                                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -541,7 +549,7 @@ export default function AppLayout({
                                </Button>
                         </DialogTrigger>
                      ) : (
-                       <DialogTrigger asChild>
+                       <DialogTrigger asChild onClick={() => setShowLoginDialog(true)}>
                             <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
                                <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                <span className="sr-only">Ingresar / Crear Cuenta</span>
@@ -549,7 +557,7 @@ export default function AppLayout({
                        </DialogTrigger>
                      )}
                      {/* Conditional Content (Mobile Header Icon) */}
-                        {user && showProfileDialog ? renderProfileDialog() : showLoginDialog ? renderLoginSignupDialog() : null }
+                         {user && showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                         </Dialog>
                   </div>
               </header>
