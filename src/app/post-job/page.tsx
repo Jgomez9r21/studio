@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { BarChart, Camera, Code, Construction, Database, DollarSign, Dumbbell, Edit, HomeIcon as LucideHomeIcon, ImageIcon, Lightbulb, Music, Palette, School2, User } from 'lucide-react';
+import { BarChart, Camera, Code, Construction, Database, DollarSign, Dumbbell, Edit, HomeIcon as LucideHomeIcon, ImageIcon, Lightbulb, Music, Palette, School2, User, X } from 'lucide-react';
 
 // Define Category types with explicit icon typing - Reuse from page.tsx for consistency
 interface Category {
@@ -37,7 +37,7 @@ interface Category {
 
 // Service Categories - Reuse from page.tsx for consistency
 const categorias: Category[] = [
-  { name: 'Deporte', icon: Dumbbell },
+  { name: 'Reserva Deportiva', icon: Dumbbell },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -56,8 +56,13 @@ const categorias: Category[] = [
 ];
 
 // Define the form schema using Zod
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per image
+const MAX_IMAGES = 8;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+const fileSchema = z.instanceof(File)
+  .refine(file => file.size <= MAX_FILE_SIZE, `El tamaño máximo por imagen es 5MB.`)
+  .refine(file => ACCEPTED_IMAGE_TYPES.includes(file.type), "Solo se aceptan formatos .jpg, .jpeg, .png y .webp.");
 
 const serviceFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
@@ -66,9 +71,10 @@ const serviceFormSchema = z.object({
   rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
   availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
   location: z.string().min(2, "Ingresa la ubicación o área de servicio.").max(100, "La ubicación no puede tener más de 100 caracteres."),
-  image: z.instanceof(File).optional().nullable()
-    .refine(file => !file || file.size <= MAX_FILE_SIZE, `El tamaño máximo de la imagen es 5MB.`)
-    .refine(file => !file || ACCEPTED_IMAGE_TYPES.includes(file.type), "Solo se aceptan formatos .jpg, .jpeg, .png y .webp.")
+  images: z.array(fileSchema)
+    .max(MAX_IMAGES, `Puedes subir un máximo de ${MAX_IMAGES} imágenes.`)
+    .optional()
+    .nullable(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -81,59 +87,104 @@ const defaultValues: Partial<ServiceFormValues> = {
   // rate: undefined, // Use undefined for number inputs to allow placeholder
   availability: "",
   location: "",
-  image: null,
+  images: [], // Initialize as empty array
 };
 
 
 function ServicePublicationForm() {
    const { toast } = useToast(); // Initialize toast hook
-   const [previewImage, setPreviewImage] = useState<string | null>(null); // State for image preview
+   const [previewImages, setPreviewImages] = useState<string[]>([]); // State for image previews
    const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
     defaultValues,
     mode: "onChange", // Validate on change for better UX
   });
 
-  // Placeholder for actual submission logic
-  async function onSubmit(data: ServiceFormValues) {
+   const currentImages = form.watch("images") || []; // Watch current files
+
+   // Placeholder for actual submission logic
+   async function onSubmit(data: ServiceFormValues) {
+     console.log("Datos del servicio enviados (simulado):", {
+         ...data,
+         images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null, // Log image details array
+     });
      // --- BACKEND INTEGRATION NEEDED ---
-     // 1. Send the 'data' object (including data.image if present) to your backend API endpoint.
-     // 2. Handle potential errors from the API call (e.g., network issues, validation errors).
-     // 3. On success, show the toast and reset the form.
-     // 4. On failure, show an error toast or message.
-     // Example (conceptual):
      // const formData = new FormData();
      // Object.entries(data).forEach(([key, value]) => {
-     //   if (value instanceof File) {
-     //     formData.append(key, value);
-     //   } else if (value != null) { // Append other non-null values
+     //   if (key === 'images' && Array.isArray(value)) {
+     //      value.forEach((file, index) => {
+     //        formData.append(`image_${index}`, file); // Send files with unique keys
+     //      });
+     //   } else if (value != null && !(value instanceof File)) { // Append other non-null, non-File values
      //     formData.append(key, String(value));
      //   }
      // });
      // try {
-     //   const response = await fetch('/api/services', { method: 'POST', body: formData }); // Send as FormData
+     //   const response = await fetch('/api/services', { method: 'POST', body: formData });
      //   if (!response.ok) throw new Error('Failed to publish service');
      //   toast({ title: "Servicio Publicado", description: "Tu servicio ha sido publicado correctamente." });
      //   form.reset();
-     //   setPreviewImage(null); // Reset preview
+     //   setPreviewImages([]);
      // } catch (error) {
      //   console.error("Failed to publish service:", error);
      //   toast({ title: "Error", description: "No se pudo publicar el servicio. Inténtalo de nuevo.", variant: "destructive" });
      // }
 
-    console.log("Datos del servicio enviados (simulado):", {
-        ...data,
-        image: data.image ? { name: data.image.name, size: data.image.size, type: data.image.type } : null, // Log image details
-    });
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({
-        title: "Servicio Publicado (Simulado)",
-        description: "Tu servicio ha sido publicado correctamente.",
-      });
-    form.reset(); // Reset form after successful submission
-    setPreviewImage(null); // Reset preview image
-  }
+     // Simulate API call delay
+     await new Promise(resolve => setTimeout(resolve, 1000));
+     toast({
+         title: "Servicio Publicado (Simulado)",
+         description: "Tu servicio ha sido publicado correctamente.",
+       });
+     form.reset(); // Reset form after successful submission
+     setPreviewImages([]); // Reset preview images
+   }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files ? Array.from(e.target.files) : [];
+        const existingFiles = form.getValues("images") || [];
+        const totalFiles = existingFiles.length + files.length;
+
+        if (totalFiles > MAX_IMAGES) {
+            toast({
+                title: "Límite de imágenes excedido",
+                description: `Solo puedes subir hasta ${MAX_IMAGES} imágenes. Se han ignorado las últimas seleccionadas.`,
+                variant: "destructive",
+            });
+            // Take only enough files to reach the limit
+            files.splice(MAX_IMAGES - existingFiles.length);
+        }
+
+        const newFiles = [...existingFiles, ...files];
+        form.setValue("images", newFiles, { shouldValidate: true }); // Update form state and trigger validation
+
+        // Update previews
+        const newPreviews: string[] = [];
+        const readFile = (file: File): Promise<string> => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        };
+
+        Promise.all(newFiles.map(readFile)).then(previews => {
+            setPreviewImages(previews);
+        }).catch(error => {
+             console.error("Error generating image previews:", error);
+             toast({ title: "Error", description: "No se pudieron generar las vistas previas de las imágenes.", variant: "destructive" });
+        });
+    };
+
+     const removeImage = (indexToRemove: number) => {
+        const updatedFiles = (form.getValues("images") || []).filter((_, index) => index !== indexToRemove);
+        form.setValue("images", updatedFiles, { shouldValidate: true }); // Update form state
+
+        const updatedPreviews = previewImages.filter((_, index) => index !== indexToRemove);
+        setPreviewImages(updatedPreviews); // Update previews
+    };
+
 
   return (
     <Form {...form}>
@@ -218,7 +269,7 @@ function ServicePublicationForm() {
                     <FormControl>
                       <div className="relative">
                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                         <Input type="number" placeholder="50" {...field} className="pl-8" />
+                         <Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} />
                       </div>
                     </FormControl>
                     <FormDescription>
@@ -231,43 +282,55 @@ function ServicePublicationForm() {
         </div>
 
          {/* Image Upload */}
-        <FormField
-            control={form.control}
-            name="image"
-            render={({ field: { onChange, value, ...rest } }) => (
-                <FormItem>
-                <FormLabel>Imagen del Servicio (Opcional)</FormLabel>
-                <FormControl>
-                    <Input
-                    type="file"
-                    accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                    onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        onChange(file ?? null); // Pass file or null to react-hook-form
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                                setPreviewImage(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                        } else {
-                            setPreviewImage(null);
-                        }
-                    }}
-                    {...rest}
-                    />
-                </FormControl>
-                <FormDescription>
-                    Sube una imagen representativa de tu servicio (JPG, PNG, WEBP, máx 5MB).
-                </FormDescription>
-                 {previewImage && (
-                    <div className="mt-4">
-                       <img src={previewImage} alt="Vista previa" className="max-w-xs max-h-40 rounded-md object-cover shadow-sm" data-ai-hint="service image preview"/>
-                    </div>
+         <FormField
+             control={form.control}
+             name="images"
+             render={({ field: { onChange, value, ...rest } }) => ( // Destructure onChange
+                 <FormItem>
+                 <FormLabel>Imágenes del Servicio (Opcional, hasta {MAX_IMAGES})</FormLabel>
+                 <FormControl>
+                     <Input
+                     type="file"
+                     accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                     multiple // Allow multiple file selection
+                     onChange={handleFileChange} // Use custom handler
+                     {...rest} // Spread remaining field props (name, ref, etc.)
+                     // Reset input value to allow re-uploading the same file(s) if needed
+                     onClick={(event) => {
+                        const element = event.target as HTMLInputElement
+                        element.value = ''
+                     }}
+                     />
+                 </FormControl>
+                 <FormDescription>
+                     Sube hasta {MAX_IMAGES} imágenes representativas (JPG, PNG, WEBP, máx 5MB c/u).
+                 </FormDescription>
+                 {previewImages.length > 0 && (
+                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                     {previewImages.map((src, index) => (
+                         <div key={index} className="relative group">
+                         <img
+                             src={src}
+                             alt={`Vista previa ${index + 1}`}
+                             className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="service image preview"
+                         />
+                         <Button
+                            type="button" // Prevent form submission
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                          >
+                            <X className="h-3 w-3" />
+                            <span className="sr-only">Eliminar imagen {index + 1}</span>
+                          </Button>
+                         </div>
+                     ))}
+                     </div>
                  )}
-                <FormMessage />
-                </FormItem>
-            )}
+                 <FormMessage />
+                 </FormItem>
+             )}
          />
 
 
@@ -311,9 +374,10 @@ function ServicePublicationForm() {
           )}
         />
 
-        <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isValid}>
-            {form.formState.isSubmitting ? "Publicando..." : "Publicar Servicio"}
-        </Button>
+        <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isValid || (currentImages.length > MAX_IMAGES)}>
+             {form.formState.isSubmitting ? "Publicando..." : "Publicar Servicio"}
+         </Button>
+
       </form>
     </Form>
   );
@@ -342,3 +406,5 @@ const PostJob = () => {
 };
 
 export default PostJob;
+
+    
