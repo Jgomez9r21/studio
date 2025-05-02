@@ -1,10 +1,9 @@
-
 "use client";
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { z } from "zod"; // Ensure z is imported
+import { z } from "zod"; // Import z explicitly
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 import {
   getAuth,
@@ -30,9 +29,9 @@ interface User {
   isPhoneVerified?: boolean; // Add flag for phone verification status
 }
 
-// Dummy user data (Keep for initial login simulation, phone verification will override)
+// Corrected Dummy User Credentials
 const DUMMY_EMAIL = "user@ejemplo.com";
-const DUMMY_PASSWORD = "user12345"; // Updated password
+const DUMMY_PASSWORD = "user12345"; // Corrected password
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",
@@ -143,12 +142,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async check
       // For demo: Assume logged in initially for testing settings page
       // In a real app, check Firebase Auth state: getAuth().onAuthStateChanged(...)
-      setUser(dummyUser);
-      setIsLoggedIn(true);
+      // setUser(dummyUser); // Uncomment for testing logged in state
+      // setIsLoggedIn(true); // Uncomment for testing logged in state
       setIsLoading(false); // Set loading false after check completes
     };
     checkAuth();
   }, []); // Empty dependency array ensures this runs only once on mount
+
+
+  const resetPhoneVerification = useCallback(() => {
+      setConfirmationResult(null);
+      setPhoneVerificationError(null);
+      setIsVerificationSent(false);
+      setIsVerifyingCode(false);
+      // Consider resetting the reCAPTCHA verifier if applicable
+  }, []);
 
   const login = useCallback(async (credentials: LoginValues) => {
     setLoginError(null);
@@ -226,22 +234,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
 
       let newAvatarUrl = user.avatarUrl;
+      let objectUrlToRevoke: string | null = null;
 
       // Simulate avatar upload or update
       if (data.avatarFile) {
           console.log("Simulating avatar upload for:", data.avatarFile.name);
           try {
-              // Simulate generating a new URL (in real app, this comes from storage)
+              // Use createObjectURL for *preview only*
               newAvatarUrl = URL.createObjectURL(data.avatarFile);
-              console.log("Simulation: Using generated object URL for avatar preview.");
-               // Important: In a real app, you would upload the file to Firebase Storage
-               // and get the download URL. For preview, createObjectURL is fine,
-               // but it's temporary. You'd need to revoke it later if needed.
-               // Example (conceptual):
+              objectUrlToRevoke = newAvatarUrl; // Store for potential later revocation
+              console.log("Simulation: Using generated object URL for avatar preview:", newAvatarUrl);
+               // Important: In a real app, upload to Firebase Storage here
                // const storageRef = ref(storage, `avatars/${user.id}`);
-               // const uploadTask = uploadBytesResumable(storageRef, data.avatarFile);
-               // await uploadTask;
-               // newAvatarUrl = await getDownloadURL(uploadTask.snapshot.ref);
+               // await uploadBytes(storageRef, data.avatarFile);
+               // newAvatarUrl = await getDownloadURL(storageRef); // Get persistent URL
           } catch (error) {
                 console.error("Error creating object URL for preview:", error);
                  toast({
@@ -272,15 +278,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstName: updatedFirstName, // Update firstName
           lastName: updatedLastName,   // Update lastName
           initials: updatedInitials,
-          phone: newPhone, // Update phone number
+          phone: newPhone || '', // Ensure phone is string or empty string
           country: data.country !== undefined ? data.country : user.country,
           dob: data.dob !== undefined ? (data.dob instanceof Date ? data.dob.toISOString() : data.dob) : user.dob,
-          avatarUrl: newAvatarUrl,
+          avatarUrl: newAvatarUrl, // Use new URL (persistent from Storage or temporary Object URL)
           // Reset verification status ONLY if phone changes to a new, non-empty value
-          isPhoneVerified: needsVerification ? false : user.isPhoneVerified,
+          isPhoneVerified: needsVerification ? false : (user.isPhoneVerified ?? false), // Handle potential undefined isPhoneVerified
       };
 
       setUser(updatedUser); // Update the user state
+
+      // Revoke previous object URL if a new one was created and we are done with it
+      if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
+         // URL.revokeObjectURL(user.avatarUrl); // Be cautious with revoking if the URL is still needed elsewhere
+         console.log("Consider revoking previous blob URL if no longer needed:", user.avatarUrl);
+      }
+
 
       // Conditional Toasting based on verification need
       if (!needsVerification) {
@@ -299,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setIsLoading(false);
-  }, [user, toast]); // Dependency array includes user and toast
+  }, [user, toast, resetPhoneVerification]); // Dependency array includes user and toast
 
   // --- Firebase Phone Auth Functions ---
    const sendVerificationCode = useCallback(async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => {
@@ -347,10 +360,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        setIsVerifyingCode(true);
        setIsLoading(true);
        try {
-           await confirmationResult.confirm(code);
+           const credential = await confirmationResult.confirm(code);
            // Phone number verified successfully!
+           const verifiedUser = credential.user; // Get the user from the credential
            if (user) {
-               const updatedUser = { ...user, isPhoneVerified: true, phone: confirmationResult.verificationId ? firebaseAuth.currentUser?.phoneNumber : user.phone }; // Update phone number from auth if possible
+               const updatedUser = {
+                 ...user,
+                 isPhoneVerified: true,
+                 // Update phone number from auth if available and different
+                 phone: verifiedUser.phoneNumber && verifiedUser.phoneNumber !== user.phone ? verifiedUser.phoneNumber : user.phone
+               };
                setUser(updatedUser); // Update user state locally
                // TODO: Update user profile in your backend to mark phone as verified
                // e.g., await updateBackendProfile({ isPhoneVerified: true, phone: updatedUser.phone });
@@ -377,13 +396,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        }
    }, [confirmationResult, toast, user]); // Depends on confirmationResult, toast, user
 
-  const resetPhoneVerification = useCallback(() => {
-      setConfirmationResult(null);
-      setPhoneVerificationError(null);
-      setIsVerificationSent(false);
-      setIsVerifyingCode(false);
-      // Consider resetting the reCAPTCHA verifier if applicable
-  }, []);
+
+   // Define openLoginDialog and openProfileDialog first
+    const openLoginDialog = useCallback(() => {
+     if (isLoggedIn && user) {
+         setShowProfileDialog(true);
+         setShowLoginDialog(false);
+     } else {
+        setShowLoginDialog(true);
+        setShowProfileDialog(false);
+        setCurrentView('login');
+        setSignupStep(1);
+        setLoginError(null);
+        resetPhoneVerification();
+     }
+    }, [isLoggedIn, user, resetPhoneVerification]); // Added resetPhoneVerification
+
+
+    const openProfileDialog = useCallback(() => {
+        if (isLoggedIn && user) {
+            setShowProfileDialog(true);
+            setShowLoginDialog(false);
+            resetPhoneVerification(); // Reset on opening profile too
+        } else {
+            openLoginDialog(); // Redirect to login if not logged in
+        }
+    }, [isLoggedIn, user, openLoginDialog, resetPhoneVerification]); // Added resetPhoneVerification
 
 
   const handleOpenChange = useCallback((open: boolean) => {
@@ -401,30 +439,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [showLoginDialog, showProfileDialog, resetPhoneVerification]);
 
 
-  const openLoginDialog = useCallback(() => {
-     if (isLoggedIn && user) { // Check if user exists too
-         setShowProfileDialog(true); // Open profile if logged in
-         setShowLoginDialog(false);
-     } else {
-        setShowLoginDialog(true); // Open login if not logged in
-        setShowProfileDialog(false);
-        setCurrentView('login');
-        setSignupStep(1);
-        setLoginError(null);
-        resetPhoneVerification();
-     }
-  }, [isLoggedIn, user, resetPhoneVerification]); // Depends on isLoggedIn and user state
-
-
-  const openProfileDialog = useCallback(() => {
-    if (isLoggedIn && user) { // Check user state
-        setShowProfileDialog(true);
-        setShowLoginDialog(false);
-        resetPhoneVerification(); // Also reset when opening profile directly
-    } else {
-        openLoginDialog(); // Redirect to login if not logged in
-    }
-  }, [isLoggedIn, user, openLoginDialog, resetPhoneVerification]); // Depends on isLoggedIn, user, and the login opener
 
    // Pass resetForm to the context function
    const handleLoginSubmit = useCallback(async (data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
@@ -531,5 +545,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
-    
