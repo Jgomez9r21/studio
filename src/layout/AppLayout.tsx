@@ -251,9 +251,10 @@ export default function AppLayout({
 
 
   const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-[425px] max-h-[90vh] md:max-h-[80vh] p-0 overflow-hidden"> {/* Adjusted padding and max-height */}
-       <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)] p-6"> {/* Wrap content in ScrollArea, adjust padding */}
-           <DialogHeader className="mb-4">
+     // Updated DialogContent for better scrolling on mobile
+     <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-6">
+       {/* Removed ScrollArea, padding moved to DialogContent */}
+           <DialogHeader className="mb-6"> {/* Added more bottom margin */}
              <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
              <DialogDescription>
                {currentView === 'login'
@@ -284,13 +285,13 @@ export default function AppLayout({
                            <FormItem>
                              <FormLabel>Contraseña</FormLabel>
                              <FormControl>
-                               <Input type="password" {...field} />
+                               <Input type="password" placeholder="Tu contraseña" {...field} />
                              </FormControl>
                              <FormMessage />
                            </FormItem>
                         )}
                       />
-                     <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                     <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-6 pt-4 border-t"> {/* Added more top margin */}
                          <Button type="button" variant="link" onClick={() => setCurrentView('signup')} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                             ¿No tienes cuenta? Crear una
                          </Button>
@@ -397,7 +398,7 @@ export default function AppLayout({
                                        )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4"/>
-                                        {field.value ? format(field.value, "PPP") : <span>Seleccionar fecha</span>}
+                                        {field.value ? format(field.value, "PPP") : <span>Elige una fecha</span>}
                                      </Button>
                                   </FormControl>
                                </PopoverTrigger>
@@ -489,13 +490,13 @@ export default function AppLayout({
                         <FormItem>
                             <FormLabel>Contraseña</FormLabel>
                             <FormControl>
-                                <Input type="password" {...field} />
+                                <Input type="password" placeholder="Crea una contraseña" {...field} />
                              </FormControl>
                             <FormMessage />
                         </FormItem>
                      )}/>
 
-                      <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">
+                      <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-6 pt-4 border-t"> {/* Added more top margin */}
                          <Button type="button" variant="link" onClick={() => setCurrentView('login')} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                             ¿Ya tienes cuenta? Ingresar
                          </Button>
@@ -506,7 +507,6 @@ export default function AppLayout({
                 </form>
                 </Form>
             )}
-        </ScrollArea>
      </DialogContent>
   );
 
