@@ -16,7 +16,6 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarInset,
-  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,7 +29,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger, // Import DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,11 +38,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
-import { es } from 'date-fns/locale'; // Import Spanish locale
+import { es } from 'date-fns/locale';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -51,6 +49,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 
 // Navigation Items (centralized)
@@ -66,12 +65,12 @@ const navegacion = [
     icon: Users,
   },
   {
-    title: "Publicar Servicio", // Changed from Publicar un Trabajo
+    title: "Publicar Servicio",
     href: "/post-job",
     icon: UserPlus,
   },
   {
-    title: "Reservar Servicio", // Changed from Reservar un Servicio
+    title: "Reservar Servicio",
     href: "/book-service",
     icon: Briefcase,
   },
@@ -87,13 +86,6 @@ const navegacion = [
   },
 ];
 
-// Dummy user data for demonstration
-const dummyUser = {
-  name: "Usuario Ejemplo",
-  initials: "UE",
-  avatarUrl: "https://picsum.photos/50/50?random=user",
-  email: "usuario@ejemplo.com" // Added email for simulation
-};
 
 // Dummy country list for signup form
 const countries = [
@@ -135,7 +127,6 @@ const loginSchema = z.object({
 });
 type LoginValues = z.infer<typeof loginSchema>;
 
-// Separate schemas for each step (optional, but can help with per-step validation if needed later)
 const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
@@ -153,7 +144,6 @@ const signupStep2Schema = z.object({
   password: z.string().min(6, "Contraseña debe tener al menos 6 caracteres."),
 });
 
-// Combined schema for final submission
 const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
@@ -166,23 +156,38 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-  const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [currentView, setCurrentView] = useState<'login' | 'signup'>('login');
-  const [signupStep, setSignupStep] = useState(1); // State for signup form step
-  const [loginError, setLoginError] = useState<string | null>(null); // State for login errors
+
+  // Use auth context
+  const {
+    user,
+    isLoggedIn,
+    showLoginDialog,
+    showProfileDialog,
+    handleOpenChange,
+    handleLogout,
+    openLoginDialog,
+    openProfileDialog,
+    currentView,
+    setCurrentView,
+    loginError,
+    handleLoginSubmit: contextHandleLoginSubmit, // Renamed to avoid conflict
+    signupStep,
+    setSignupStep,
+    handleSignupSubmit: contextHandleSignupSubmit, // Renamed to avoid conflict
+    handleNextStep: contextHandleNextStep, // Renamed to avoid conflict
+    handlePrevStep: contextHandlePrevStep, // Renamed to avoid conflict
+   } = useAuth();
 
 
-  // Form hooks
+  // Form hooks remain here as they are specific to the dialogs within this layout
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
   const signupForm = useForm<SignupValues>({
-    resolver: zodResolver(signupSchema), // Validate against the combined schema on submit
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -196,108 +201,33 @@ export default function AppLayout({
       email: "",
       password: "",
     },
-    mode: "onChange", // Validate step 1 fields on change
+    mode: "onChange",
   });
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      setShowLoginDialog(false);
-      setShowProfileDialog(false);
-      setCurrentView('login'); // Reset view on close
-      setSignupStep(1); // Reset signup step on close
-      setLoginError(null); // Clear login errors on close
-      loginForm.reset(); // Reset login form on close
-      signupForm.reset(); // Reset signup form on close
-    } else {
-        // When opening, decide which dialog to show based on current state
-        if (isLoggedIn && !showLoginDialog) {
-            setShowProfileDialog(true);
-        } else if (!isLoggedIn && !showProfileDialog) {
-             setShowLoginDialog(true);
-        }
-        // If neither is explicitly set to show, default based on login status
-        else if (!showLoginDialog && !showProfileDialog) {
-            if(isLoggedIn) setShowProfileDialog(true);
-            else setShowLoginDialog(true);
-        }
-    }
-  };
-
-  const handleLoginSubmit = (data: LoginValues) => {
-      console.log("Attempting to log in with data:", data);
-      setLoginError(null); // Clear previous errors
-
-      // --- SIMULATED LOGIN LOGIC ---
-      // Check if email matches the dummy user and password is "password" (for demo)
-      if (data.email === dummyUser.email && data.password === "password") {
-        // Successful login
-        setIsLoggedIn(true);
-        setShowLoginDialog(false);
-        setCurrentView('login');
-        loginForm.reset();
-        toast({ title: "Ingreso exitoso", description: `Bienvenido/a, ${dummyUser.name}!` });
-      } else {
-        // Incorrect credentials
-        const errorMessage = "Correo o contraseña incorrectos.";
-        setLoginError(errorMessage);
-        toast({ title: "Error de Ingreso", description: errorMessage, variant: "destructive" });
-      }
-      // --- END SIMULATED LOGIN LOGIC ---
-
-      // TODO: Replace simulation with actual backend authentication call
-  };
-
-   const handleSignupSubmit = (data: SignupValues) => {
-      console.log("Attempting to sign up with data:", data);
-      // TODO: Implement actual signup logic using form data
-      setIsLoggedIn(true); // Simulate successful signup/login
-      setShowLoginDialog(false); // Close the dialog
-      setCurrentView('login'); // Reset view
-      setSignupStep(1); // Reset step
-      signupForm.reset();
-      toast({ title: "Cuenta Creada", description: `¡Bienvenido/a, ${data.firstName}! Tu cuenta ha sido creada.` }); // Use first name
+  // Modified submit handlers to call context functions
+   const handleLoginSubmit = (data: LoginValues) => {
+     contextHandleLoginSubmit(data, loginForm.reset);
    };
 
-   const handleNextStep = async () => {
-      // Trigger validation for step 1 fields
-      const step1Fields: (keyof z.infer<typeof signupStep1Schema>)[] = ['firstName', 'lastName', 'country', 'profileType', 'phone'];
-      const result = await signupForm.trigger(step1Fields);
-      if (result) {
-         setSignupStep(2);
-      } else {
-         // Optionally show a toast or highlight errors
-         console.log("Validación del paso 1 fallida");
-         // Show toast for validation errors
-         Object.values(signupForm.formState.errors).forEach(error => {
-            if(error.message) {
-                 toast({ title: "Error de Validación", description: error.message, variant: "destructive" });
-            }
-         });
-      }
+    const handleSignupSubmit = (data: SignupValues) => {
+      contextHandleSignupSubmit(data, signupForm.reset);
     };
 
-   const handlePrevStep = () => {
-       setSignupStep(1);
+     const handleNextStep = async () => {
+        contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
+    };
+
+     const handlePrevStep = () => {
+       contextHandlePrevStep();
    };
 
-
-  const handleLogout = () => {
-     console.log("Logging out...");
-     // TODO: Implement actual logout logic
-     setIsLoggedIn(false);
-     setShowProfileDialog(false);
-     toast({ title: "Sesión cerrada" });
-  };
-
-
-  const user = isLoggedIn ? dummyUser : null;
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
   };
 
   const goToSettings = () => {
-      setShowProfileDialog(false);
+      handleOpenChange(false); // Close profile dialog
       router.push('/settings');
   };
 
@@ -306,8 +236,8 @@ export default function AppLayout({
 
   const renderLoginSignupDialog = () => (
      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-       <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
-           <div className="p-6"> {/* Re-add padding here inside ScrollArea */}
+        <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
+           <div className="p-6"> {/* Padding inside ScrollArea */}
               <DialogHeader className="mb-4">
                 <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
                 <DialogDescription>
@@ -330,8 +260,8 @@ export default function AppLayout({
                                      placeholder="tu@correo.com"
                                      {...field}
                                      onChange={(e) => {
-                                       field.onChange(e);
-                                       setLoginError(null); // Clear error on email change
+                                        field.onChange(e);
+                                        // Clear error on change - handled in context now
                                      }}
                                    />
                                  </FormControl>
@@ -350,9 +280,9 @@ export default function AppLayout({
                                      type="password"
                                      placeholder="Tu contraseña"
                                      {...field}
-                                     onChange={(e) => {
+                                       onChange={(e) => {
                                         field.onChange(e);
-                                        setLoginError(null); // Clear error on password change
+                                        // Clear error on change - handled in context now
                                      }}
                                     />
                                  </FormControl>
@@ -362,7 +292,7 @@ export default function AppLayout({
                             )}
                           />
                          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); setLoginError(null); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                             <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                 ¿No tienes cuenta? Crear una
                              </Button>
                             <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
@@ -374,7 +304,6 @@ export default function AppLayout({
                 ) : (
                    <Form {...signupForm}>
                      <form
-                        // Only submit on the final step
                         onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
                         className="space-y-4"
                       >
@@ -391,14 +320,32 @@ export default function AppLayout({
                              </div>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <FormField control={signupForm.control} name="country" render={({ field }) => (
-                                 <FormItem> <FormLabel>País</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger></FormControl> <SelectContent>{countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))}</SelectContent> </Select> <FormMessage /> </FormItem>
+                                 <FormItem>
+                                  <FormLabel>País</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                     <FormControl>
+                                          <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
+                                     </FormControl>
+                                      <SelectContent>{countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                  <FormMessage />
+                                 </FormItem>
                                )}/>
                                <FormField control={signupForm.control} name="phone" render={({ field }) => (
                                  <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+1234567890" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
                              </div>
                              <FormField control={signupForm.control} name="profileType" render={({ field }) => (
-                               <FormItem> <FormLabel>Tipo de perfil</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger></FormControl> <SelectContent>{profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}</SelectContent> </Select> <FormMessage /> </FormItem>
+                                <FormItem>
+                                    <FormLabel>Tipo de perfil</FormLabel>
+                                     <Select onValueChange={field.onChange} value={field.value}>
+                                         <FormControl>
+                                             <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
+                                         </FormControl>
+                                         <SelectContent>{profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}</SelectContent>
+                                     </Select>
+                                    <FormMessage />
+                                </FormItem>
                              )}/>
                            </div>
                          )}
@@ -420,19 +367,37 @@ export default function AppLayout({
                                       </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0" align="start">
-                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} />
+                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} locale={es}/>
                                     </PopoverContent>
                                   </Popover>
                                   <FormMessage />
                                 </FormItem>
                                )}/>
                                <FormField control={signupForm.control} name="gender" render={({ field }) => (
-                                 <FormItem> <FormLabel>Género</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger></FormControl> <SelectContent>{genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))}</SelectContent> </Select> <FormMessage /> </FormItem>
+                                 <FormItem>
+                                  <FormLabel>Género</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                     <FormControl>
+                                          <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
+                                     </FormControl>
+                                      <SelectContent>{genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                  <FormMessage />
+                                 </FormItem>
                                )}/>
                              </div>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <FormField control={signupForm.control} name="documentType" render={({ field }) => (
-                                 <FormItem> <FormLabel>Tipo de documento</FormLabel> <Select onValueChange={field.onChange} defaultValue={field.value}> <FormControl><SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger></FormControl> <SelectContent>{documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))}</SelectContent> </Select> <FormMessage /> </FormItem>
+                                <FormItem>
+                                  <FormLabel>Tipo de documento</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                     <FormControl>
+                                          <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
+                                     </FormControl>
+                                      <SelectContent>{documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                  <FormMessage />
+                                 </FormItem>
                                )}/>
                                <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
                                  <FormItem> <FormLabel>Número de documento</FormLabel> <FormControl><Input placeholder="Número de documento" {...field} /></FormControl> <FormMessage /> </FormItem>
@@ -495,8 +460,13 @@ export default function AppLayout({
               <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
             </>
           ) : (
-             <Button onClick={() => { setShowProfileDialog(false); setShowLoginDialog(true); setCurrentView('login'); }}>Iniciar Sesión</Button>
-
+             // If somehow profile dialog is shown while not logged in, show login button
+              <Button onClick={() => {
+                 handleOpenChange(false); // Close current dialog
+                 setTimeout(() => openLoginDialog(), 100); // Open login after a short delay
+               }}>
+                Iniciar Sesión
+             </Button>
          )}
 
        </DialogFooter>
@@ -539,7 +509,7 @@ export default function AppLayout({
                   <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    <DialogTrigger asChild>
                      {user ? (
-                       <Button variant="ghost" onClick={() => setShowProfileDialog(true)} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                       <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                            <AvatarFallback>{user.initials}</AvatarFallback>
@@ -549,7 +519,7 @@ export default function AppLayout({
                          </div>
                        </Button>
                      ) : (
-                       <Button variant="ghost" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); }} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
+                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            Ingresar / Crear Cuenta
@@ -558,7 +528,7 @@ export default function AppLayout({
                        </Button>
                      )}
                    </DialogTrigger>
-                   {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                    {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
                  </Dialog>
                </SidebarFooter>
              </Sidebar>
@@ -600,10 +570,10 @@ export default function AppLayout({
                              </SidebarMenu>
                          </SidebarContent>
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                              <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+                               <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                 <DialogTrigger asChild>
                                   {user ? (
-                                    <Button variant="ghost" onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
+                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
                                       <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                                         <AvatarFallback>{user.initials}</AvatarFallback>
@@ -613,7 +583,7 @@ export default function AppLayout({
                                       </div>
                                     </Button>
                                   ) : (
-                                    <Button variant="outline" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
+                                    <Button variant="outline" onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
                                       <LogIn className="mr-2 h-4 w-4" />
                                       Ingresar / Crear Cuenta
                                     </Button>
@@ -632,10 +602,10 @@ export default function AppLayout({
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10">
-                      <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+                       <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                          <DialogTrigger asChild>
                            {user ? (
-                             <Button variant="ghost" onClick={() => setShowProfileDialog(true)} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
+                             <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
                                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
                                  <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                                  <AvatarFallback>{user.initials}</AvatarFallback>
@@ -643,7 +613,7 @@ export default function AppLayout({
                                <span className="sr-only">Abrir perfil</span>
                              </Button>
                            ) : (
-                             <Button variant="ghost" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); }} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                             <Button variant="ghost" onClick={openLoginDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
                                <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                <span className="sr-only">Ingresar / Crear Cuenta</span>
                              </Button>
@@ -654,8 +624,9 @@ export default function AppLayout({
                    </div>
                </header>
 
+              {/* Main Content Area */}
               <SidebarInset>
-                 {children}
+                  {children}
               </SidebarInset>
             </div>
             <Toaster />

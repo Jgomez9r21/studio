@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Define the form schema using Zod
 const profileFormSchema = z.object({
@@ -76,39 +77,35 @@ const countries = [
 
 function ProfileForm() {
    const { toast } = useToast(); // Initialize toast hook
+   const { user } = useAuth(); // Get user data from context
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues, // Use empty defaults
     mode: "onChange",
   });
 
-  // Simulate fetching user data after mount
+  // Populate form with user data from context when component mounts or user changes
   useEffect(() => {
-    // In a real app, fetch user data from your backend/auth provider
-    const fetchUserData = async () => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // Dummy data for demonstration
-      const userData: ProfileFormValues = {
-        firstName: "Usuario",
-        lastName: "Ejemplo",
-        phone: "+1234567890",
-        country: "CO", // Example: Colombia
-        dob: new Date(1990, 5, 15), // Example date
-        email: "usuario@ejemplo.com",
-      };
-      // Populate the form with fetched data
-      form.reset(userData);
-    };
+    if (user) {
+      form.reset({
+        firstName: user.name.split(' ')[0] || '', // Extract first name
+        lastName: user.name.split(' ').slice(1).join(' ') || '', // Extract last name
+        phone: user.phone || '',
+        country: user.country || '',
+        dob: user.dob ? new Date(user.dob) : undefined,
+        email: user.email || '',
+      });
+    } else {
+      form.reset(defaultValues); // Reset to defaults if user logs out
+    }
+  }, [user, form]); // Dependency array includes user and form
 
-    fetchUserData();
-  }, [form]); // Dependency array includes form to ensure reset works correctly
 
   function onSubmit(data: ProfileFormValues) {
-     // TODO: Implement actual data saving logic here
+     // TODO: Implement actual data saving logic here (e.g., call API to update user profile)
     console.log("Datos del perfil enviados:", data);
     toast({
-        title: "Perfil Actualizado",
+        title: "Perfil Actualizado (Simulado)",
         description: "Tus datos han sido guardados correctamente.",
       });
   }
@@ -201,9 +198,8 @@ function ProfileForm() {
                 <FormLabel>Fecha de Nacimiento</FormLabel>
                  <Popover>
                   <PopoverTrigger asChild>
-                    {/* FormControl needs a single direct child */}
                     <FormControl>
-                      <Button
+                       <Button
                         variant={"outline"}
                         className={cn(
                           "w-full pl-3 text-left font-normal",
@@ -213,7 +209,7 @@ function ProfileForm() {
                         {field.value ? (
                           format(field.value, "PPP", { locale: es }) // Format date in Spanish
                         ) : (
-                          <span>Seleccionar fecha</span> // Updated placeholder
+                          <span>Elige una fecha</span> // Updated placeholder
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -248,10 +244,11 @@ function ProfileForm() {
               <FormItem>
                 <FormLabel>Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="tu@correo.com" {...field} />
+                  <Input type="email" placeholder="tu@correo.com" {...field} readOnly // Make email read-only, as it's usually the identifier
+                   className="bg-muted cursor-not-allowed" />
                 </FormControl>
                  <FormDescription>
-                    Este es el correo electrónico asociado a tu cuenta.
+                    Este es el correo electrónico asociado a tu cuenta (no se puede cambiar).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -271,10 +268,19 @@ function ProfileForm() {
 
 
 const SettingsContent = () => {
+ const { isLoggedIn, openLoginDialog } = useAuth(); // Get login status and openLoginDialog function
+
  return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto"> {/* Adjusted padding */}
       <h1 className="text-2xl md:text-3xl font-semibold mb-6">Configuración de Perfil</h1>
-       <ProfileForm />
+       {isLoggedIn ? (
+         <ProfileForm />
+       ) : (
+         <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-card p-6 text-center">
+           <p className="mb-4 text-muted-foreground">Debes iniciar sesión para ver y editar tu perfil.</p>
+           <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
+         </div>
+       )}
        {/* Add other settings sections later, e.g., Notifications, Password Change */}
     </div>
   );
