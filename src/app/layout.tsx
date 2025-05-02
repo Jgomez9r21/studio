@@ -27,8 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">{/* Changed language to Spanish */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="es">{/* Changed language to Spanish */}<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
        <AuthProvider> {/* Wrap with AuthProvider */}
           <SidebarProvider> {/* Wrap with SidebarProvider */}
             <Body>
