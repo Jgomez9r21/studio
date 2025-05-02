@@ -1,4 +1,3 @@
-
 'use client';
 
 import type React from 'react';
@@ -252,8 +251,8 @@ export default function AppLayout({
 
 
   const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-[425px] max-h-[90vh] md:max-h-[80vh] p-0"> {/* Adjusted padding and max-height */}
-       <ScrollArea className="max-h-[85vh] md:max-h-[75vh] p-6"> {/* Wrap content in ScrollArea */}
+     <DialogContent className="sm:max-w-[425px] max-h-[90vh] md:max-h-[80vh] p-0 overflow-hidden"> {/* Adjusted padding and max-height */}
+       <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)] p-6"> {/* Wrap content in ScrollArea, adjust padding */}
            <DialogHeader className="mb-4">
              <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
              <DialogDescription>
@@ -264,31 +263,31 @@ export default function AppLayout({
            </DialogHeader>
             {currentView === 'login' ? (
                <Form {...loginForm}>
-                 <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="grid gap-4">
+                 <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
                      <FormField
                         control={loginForm.control}
                         name="email"
                         render={({ field }) => (
-                          <FormItem className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2"> {/* Adjusted grid for smaller screens */}
-                            <FormLabel className="text-left sm:text-right">Correo</FormLabel>
-                            <FormControl>
-                               <Input placeholder="tu@correo.com" {...field} className="sm:col-span-1" /> {/* Adjusted span */}
-                            </FormControl>
-                            <FormMessage className="col-start-1 sm:col-start-2 col-span-1" /> {/* Adjusted message position */}
-                          </FormItem>
+                           <FormItem>
+                             <FormLabel>Correo</FormLabel>
+                             <FormControl>
+                               <Input placeholder="tu@correo.com" {...field} />
+                             </FormControl>
+                             <FormMessage />
+                           </FormItem>
                         )}
                       />
                      <FormField
                         control={loginForm.control}
                         name="password"
                         render={({ field }) => (
-                          <FormItem className="grid grid-cols-1 sm:grid-cols-[auto_1fr] items-center gap-x-4 gap-y-2">
-                            <FormLabel className="text-left sm:text-right">Contraseña</FormLabel>
-                            <FormControl>
-                              <Input type="password" {...field} className="sm:col-span-1" />
-                            </FormControl>
-                            <FormMessage className="col-start-1 sm:col-start-2 col-span-1" />
-                          </FormItem>
+                           <FormItem>
+                             <FormLabel>Contraseña</FormLabel>
+                             <FormControl>
+                               <Input type="password" {...field} />
+                             </FormControl>
+                             <FormMessage />
+                           </FormItem>
                         )}
                       />
                      <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between mt-4 pt-4 border-t">

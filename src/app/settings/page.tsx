@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -181,6 +180,7 @@ function ProfileForm() {
                 <FormLabel>Fecha de Nacimiento</FormLabel>
                  <Popover>
                   <PopoverTrigger asChild>
+                    {/* FormControl needs a single direct child */}
                     <FormControl>
                       <Button
                         variant={"outline"}
