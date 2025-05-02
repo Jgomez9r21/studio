@@ -1,7 +1,7 @@
 "use client";
 
 import type React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,7 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Camera } from "lucide-react";
+import { CalendarIcon, Camera, CheckCircle, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
 import { es } from 'date-fns/locale';
@@ -49,11 +49,17 @@ const fileSchema = z.instanceof(File)
   .optional()
   .nullable();
 
+// Phone validation regex
+const phoneRegex = new RegExp(
+  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+);
+const phoneValidation = z.string().regex(phoneRegex, 'Número de teléfono inválido.').optional().or(z.literal(""));
+
 // Define the form schema using Zod
 const profileFormSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(50, "El nombre no puede tener más de 50 caracteres."),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres.").max(50, "El apellido no puede tener más de 50 caracteres."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")),
+  phone: phoneValidation,
   country: z.string().min(1, "Selecciona un país."),
   dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), // Allow null
   email: z.string().email("Correo electrónico inválido."),
@@ -87,44 +93,146 @@ const countries = [
   { code: "VE", name: "Venezuela" },
 ];
 
+const DUMMY_VERIFICATION_CODE = "123456"; // For simulation
+
 function ProfileForm() {
    const { toast } = useToast();
    const { user, updateUser, isLoading: authLoading } = useAuth();
    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
    const fileInputRef = useRef<HTMLInputElement>(null);
 
+   // Phone Verification State
+   const [originalPhoneNumber, setOriginalPhoneNumber] = useState<string | undefined>(undefined);
+   const [isPhoneVerified, setIsPhoneVerified] = useState(true); // Assume verified initially if user exists with phone
+   const [isVerificationSent, setIsVerificationSent] = useState(false);
+   const [verificationCode, setVerificationCode] = useState("");
+   const [verificationError, setVerificationError] = useState<string | null>(null);
+   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: "onChange",
+    mode: "onChange", // Validate on change
   });
 
-  // Populate form with user data from context
+  const currentPhoneNumber = form.watch("phone");
+  const isPhoneValid = phoneValidation.safeParse(currentPhoneNumber).success;
+  const isPhoneDifferent = currentPhoneNumber !== originalPhoneNumber;
+  const canSendVerification = isPhoneValid && isPhoneDifferent && !isPhoneVerified;
+
+  // Populate form and phone verification state
   useEffect(() => {
     if (user) {
+      const initialPhone = user.phone || '';
       form.reset({
         firstName: user.name.split(' ')[0] || '',
         lastName: user.name.split(' ').slice(1).join(' ') || '',
-        phone: user.phone || '',
+        phone: initialPhone,
         country: user.country || '',
         dob: user.dob ? new Date(user.dob) : null, // Ensure dob is Date or null
         email: user.email || '',
         avatarFile: null, // Always reset file input on user change
       });
       setAvatarPreview(user.avatarUrl || null);
+      setOriginalPhoneNumber(initialPhone);
+      // If the user has a phone number loaded, assume it's verified for this demo
+      // In a real app, this status would come from the backend/user data
+      setIsPhoneVerified(!!initialPhone);
+      setIsVerificationSent(false); // Reset verification flow on user change
+      setVerificationCode("");
+      setVerificationError(null);
     } else {
       form.reset(defaultValues);
       setAvatarPreview(null);
+      setOriginalPhoneNumber(undefined);
+      setIsPhoneVerified(false);
+      setIsVerificationSent(false);
+      setVerificationCode("");
+       setVerificationError(null);
     }
-  }, [user, form.reset]); // use form.reset in dependency array
+  }, [user, form.reset]);
+
+  // Reset verification state if phone number changes back to original or becomes invalid
+  useEffect(() => {
+    if (!isPhoneDifferent) {
+      setIsPhoneVerified(true); // If it matches original, it's considered verified (or doesn't need verification)
+      setIsVerificationSent(false);
+      setVerificationCode("");
+      setVerificationError(null);
+    } else if (isPhoneDifferent) {
+        setIsPhoneVerified(false); // If it's different, it's not verified yet
+        // Don't automatically reset isVerificationSent here, allow user to retry verification if needed
+    }
+     if (!isPhoneValid && isVerificationSent) {
+        // If phone becomes invalid after sending code, reset verification
+         setIsVerificationSent(false);
+         setVerificationCode("");
+         setVerificationError("Número de teléfono inválido. No se puede verificar.");
+     }
+
+  }, [currentPhoneNumber, originalPhoneNumber, isPhoneDifferent, isPhoneValid, isVerificationSent]);
+
+
+  // Simulate sending verification code
+  const handleSendVerificationCode = useCallback(async () => {
+     if (!canSendVerification) return;
+     setIsVerificationSent(true);
+     setVerificationError(null); // Clear previous errors
+     setVerificationCode(""); // Clear old code input
+     toast({
+       title: "Código Enviado (Simulado)",
+       description: `Se envió un código de verificación a ${currentPhoneNumber}.`,
+     });
+     // In real app: await sendVerificationCodeApi(currentPhoneNumber);
+     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+  }, [currentPhoneNumber, toast, canSendVerification]);
+
+  // Simulate verifying the code
+  const handleVerifyCode = useCallback(async () => {
+    if (!verificationCode) {
+        setVerificationError("Ingresa el código de verificación.");
+        return;
+    }
+    setIsVerifyingCode(true);
+    setVerificationError(null);
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+
+    if (verificationCode === DUMMY_VERIFICATION_CODE) {
+      setIsPhoneVerified(true);
+      setIsVerificationSent(false); // Hide code input
+      setOriginalPhoneNumber(currentPhoneNumber); // Update original number upon successful verification
+      toast({
+        title: "Teléfono Verificado",
+        description: "Tu número de teléfono ha sido verificado.",
+      });
+    } else {
+      setVerificationError("Código de verificación incorrecto.");
+      toast({
+        title: "Error de Verificación",
+        description: "El código ingresado es incorrecto.",
+        variant: "destructive",
+      });
+    }
+    setIsVerifyingCode(false);
+  }, [verificationCode, toast, currentPhoneNumber]);
 
 
   async function onSubmit(data: ProfileFormValues) {
+     // Check if phone is different and not verified
+     if (isPhoneDifferent && !isPhoneVerified) {
+         toast({
+             title: "Verificación Requerida",
+             description: "Debes verificar tu nuevo número de teléfono antes de actualizar el perfil.",
+             variant: "destructive",
+         });
+         return; // Prevent submission
+     }
+
     // Pass the entire data object, including avatarFile, to updateUser
     const updateData = {
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone,
+        phone: data.phone, // Send the (potentially new and verified) phone number
         country: data.country,
         dob: data.dob, // Pass Date object or null
         avatarFile: data.avatarFile, // Pass the File object or null
@@ -135,13 +243,20 @@ function ProfileForm() {
        // Reset the form with potentially updated values (or keep existing if no feedback)
        // Clearing the avatarFile is crucial after successful submission
         form.reset({
-         ...form.getValues(), // Keep current form values (could be slightly out of sync if API updates differently)
+         ...form.getValues(), // Keep current form values
          avatarFile: null, // Clear the file input value in the form state
        });
        if (fileInputRef.current) {
           fileInputRef.current.value = ''; // Clear the actual file input element
        }
-       // The preview should update automatically via the useEffect hook reacting to the user state change
+        // Reset verification state *after* successful profile update
+        // Update original number state to reflect the newly saved number
+       setOriginalPhoneNumber(data.phone || '');
+       setIsPhoneVerified(!!data.phone); // Consider it verified if saved
+       setIsVerificationSent(false);
+       setVerificationCode("");
+       setVerificationError(null);
+       // The avatar preview should update automatically via the useEffect hook reacting to the user state change
      } catch (error) {
        console.error("Failed to update profile:", error);
        // Toast handled within updateUser context function
@@ -271,19 +386,72 @@ function ProfileForm() {
           />
 
           {/* Phone */}
-           <FormField
-             control={form.control}
-             name="phone"
-             render={({ field }) => (
-               <FormItem>
-                 <FormLabel>Teléfono</FormLabel>
-                 <FormControl>
-                   <Input type="tel" placeholder="+1234567890" {...field} />
-                 </FormControl>
-                 <FormMessage />
-               </FormItem>
-             )}
-           />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2"> {/* Span across columns */}
+                <FormLabel>Teléfono</FormLabel>
+                 <div className="flex items-center gap-2 flex-wrap">
+                  <FormControl className="flex-1 min-w-[150px]">
+                    <Input type="tel" placeholder="+1234567890" {...field} />
+                  </FormControl>
+                  {isPhoneDifferent && !isPhoneVerified && !isVerificationSent && (
+                      <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleSendVerificationCode}
+                          disabled={!canSendVerification || authLoading}
+                       >
+                          Verificar Número
+                       </Button>
+                   )}
+                    {isPhoneVerified && <span className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Verificado</span>}
+                     {!isPhoneVerified && !isPhoneDifferent && currentPhoneNumber && <span className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Verificado</span>}
+                     {isPhoneDifferent && !isPhoneVerified && isVerificationSent && !isPhoneVerified && (
+                         <span className="text-sm text-orange-600 flex items-center gap-1"><ShieldAlert className="h-4 w-4"/> Verificación pendiente</span>
+                     )}
+                 </div>
+                <FormMessage /> {/* Shows Zod validation errors */}
+
+                 {/* Verification Code Input Section */}
+                 {isVerificationSent && !isPhoneVerified && (
+                     <div className="mt-2 space-y-2 p-3 border rounded-md bg-muted/50">
+                         <Label htmlFor="verification-code" className="text-sm">Ingresa el código de verificación</Label>
+                         <div className="flex items-center gap-2">
+                            <Input
+                               id="verification-code"
+                               type="text"
+                               value={verificationCode}
+                               onChange={(e) => setVerificationCode(e.target.value)}
+                               placeholder="123456"
+                               maxLength={6}
+                               className="flex-1"
+                            />
+                            <Button
+                               type="button"
+                               onClick={handleVerifyCode}
+                               disabled={isVerifyingCode || verificationCode.length !== 6 || authLoading}
+                             >
+                                {isVerifyingCode ? "Verificando..." : "Confirmar"}
+                             </Button>
+                         </div>
+                          {verificationError && <p className="text-sm font-medium text-destructive">{verificationError}</p>}
+                           <Button
+                             type="button"
+                             variant="link"
+                             size="sm"
+                             onClick={handleSendVerificationCode}
+                             disabled={!canSendVerification || authLoading}
+                             className="p-0 h-auto text-xs"
+                           >
+                             Reenviar código
+                           </Button>
+                     </div>
+                 )}
+              </FormItem>
+            )}
+          />
 
 
             {/* Country */}
@@ -381,7 +549,10 @@ function ProfileForm() {
         </div>
 
 
-        <Button type="submit" disabled={!form.formState.isDirty || form.formState.isSubmitting || authLoading}>
+        <Button
+             type="submit"
+             disabled={!form.formState.isDirty || form.formState.isSubmitting || authLoading || (isPhoneDifferent && !isPhoneVerified)}
+         >
              {form.formState.isSubmitting || authLoading ? "Actualizando..." : "Actualizar Perfil"}
          </Button>
 
