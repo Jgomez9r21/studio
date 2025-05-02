@@ -22,10 +22,10 @@ const serviceAccount: ServiceAccount = {
 const requiredFields: (keyof ServiceAccount)[] = ['projectId', 'privateKey', 'clientEmail'];
 const missingFields = requiredFields.filter(field => !serviceAccount[field]);
 
-let adminApp: admin.app.App;
+let adminApp: admin.app.App | null = null; // Initialize as null
 
 if (missingFields.length > 0) {
-  console.warn(`Firebase Admin SDK not initialized. Missing environment variables: ${missingFields.join(', ')}`);
+  console.warn(`Firebase Admin SDK not initialized. Missing environment variables: ${missingFields.join(', ')}. Check your .env file.`);
 } else {
   if (!admin.apps.length) {
     try {
@@ -37,6 +37,7 @@ if (missingFields.length > 0) {
       console.log('Firebase Admin SDK initialized successfully.');
     } catch (error: any) {
       console.error('Firebase Admin SDK initialization error:', error.stack);
+      adminApp = null; // Ensure adminApp is null on error
     }
   } else {
     adminApp = admin.app(); // Get the default app if already initialized
@@ -44,8 +45,7 @@ if (missingFields.length > 0) {
   }
 }
 
-export { adminApp }; // Export the initialized app
+export { adminApp }; // Export the initialized app (which might be null)
 // You might also want to export specific services like auth or firestore:
 // export const adminAuth = adminApp ? adminApp.auth() : null;
 // export const adminDb = adminApp ? adminApp.firestore() : null;
-
