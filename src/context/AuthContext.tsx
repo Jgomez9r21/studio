@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -61,6 +62,12 @@ const signupStep2Schema = z.object({
 const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
+// Define the profile update data type
+type UpdateProfileData = Omit<User, 'id' | 'email' | 'avatarUrl' | 'initials'> & {
+  firstName: string;
+  lastName: string;
+};
+
 
 interface AuthContextType {
   user: User | null;
@@ -74,6 +81,7 @@ interface AuthContextType {
   login: (credentials: LoginValues) => Promise<void>; // Placeholder for actual login logic
   signup: (details: SignupValues) => Promise<void>; // Placeholder for actual signup logic
   logout: () => void;
+  updateUser: (data: UpdateProfileData) => Promise<void>; // Function to update user data
   handleOpenChange: (open: boolean) => void;
   openLoginDialog: () => void;
   openProfileDialog: () => void;
@@ -118,15 +126,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
     // Check against the dummyUser email and the defined password
-    if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
+     if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
       setUser(dummyUser);
       setIsLoggedIn(true);
       setShowLoginDialog(false);
-      toast({ title: "Ingreso exitoso", description: `Bienvenido/a, ${dummyUser.name}!` });
+      toast({ title: "Ingreso exitoso", description: `¡Bienvenido/a de vuelta, ${dummyUser.name}!` });
     } else {
       const errorMessage = "Correo o contraseña incorrectos.";
       setLoginError(errorMessage); // Set error state
-      // toast is handled by the form component now based on loginError state
+      // The form will now display the error using this state
     }
     setIsLoading(false);
     // --- END SIMULATED LOGIN LOGIC ---
@@ -176,6 +184,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout();
   }, [logout]);
 
+  // --- UPDATE USER FUNCTION ---
+  const updateUser = useCallback(async (data: UpdateProfileData) => {
+      // Simulate API call to update user profile
+      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (user) {
+          const updatedUser: User = {
+              ...user,
+              name: `${data.firstName} ${data.lastName}`,
+              initials: `${data.firstName[0]}${data.lastName[0]}`,
+              phone: data.phone || user.phone,
+              country: data.country || user.country,
+              dob: data.dob || user.dob,
+              // Email cannot be changed here
+          };
+          setUser(updatedUser); // Update the user state
+           toast({
+               title: "Perfil Actualizado",
+               description: "Tus datos han sido guardados correctamente.",
+           });
+      } else {
+           toast({
+                title: "Error",
+                description: "No se pudo actualizar el perfil. Usuario no encontrado.",
+                variant: "destructive",
+            });
+      }
+      setIsLoading(false);
+  }, [user, toast]);
+  // --- END UPDATE USER FUNCTION ---
+
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
@@ -202,16 +242,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Wrap form submissions to interact with context state
    const handleLoginSubmit = useCallback(async (data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
         await login(data);
-        // Reset form only if login was successful (user state is updated)
-        // The login function now sets the loginError state which can be checked after await
-        // Checking isLoggedIn state directly might have timing issues
-        // We rely on the fact that loginError is set only on failure
-         // Wait a tick to allow state update before checking loginError
+        // Reset form only if login was successful (no error)
+        // Wait a tick to allow state update before checking loginError
         await new Promise(resolve => setTimeout(resolve, 0));
         if (!loginError) {
              resetForm();
         }
-        // Error toast is now handled within the login function or based on loginError in the form component
    }, [login, loginError]); // Add loginError dependency
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
@@ -259,6 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
+    updateUser, // Provide updateUser in the context
     handleOpenChange,
     openLoginDialog,
     openProfileDialog,

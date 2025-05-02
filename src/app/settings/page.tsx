@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -77,7 +78,7 @@ const countries = [
 
 function ProfileForm() {
    const { toast } = useToast(); // Initialize toast hook
-   const { user } = useAuth(); // Get user data from context
+   const { user, updateUser, isLoading: authLoading } = useAuth(); // Get user, updateUser, and loading state from context
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues, // Use empty defaults
@@ -101,13 +102,21 @@ function ProfileForm() {
   }, [user, form]); // Dependency array includes user and form
 
 
-  function onSubmit(data: ProfileFormValues) {
-     // TODO: Implement actual data saving logic here (e.g., call API to update user profile)
-    console.log("Datos del perfil enviados:", data);
-    toast({
-        title: "Perfil Actualizado (Simulado)",
-        description: "Tus datos han sido guardados correctamente.",
-      });
+  async function onSubmit(data: ProfileFormValues) {
+     // Combine first and last name for the update data structure expected by AuthContext
+    const updateData = {
+        ...data, // Includes phone, country, dob
+        name: `${data.firstName} ${data.lastName}`,
+    };
+     try {
+       await updateUser(updateData);
+       // Reset form to reflect saved state, important if API doesn't return updated user immediately
+       form.reset(data);
+     } catch (error) {
+       // Error handling is now within the updateUser function in context
+       // Toast is also handled there
+       console.error("Failed to update profile:", error);
+     }
   }
 
   const currentYear = getYear(new Date()); // Get the current year
@@ -257,8 +266,8 @@ function ProfileForm() {
         </div>
 
 
-        <Button type="submit" disabled={!form.formState.isDirty || form.formState.isSubmitting}>
-             {form.formState.isSubmitting ? "Actualizando..." : "Actualizar Perfil"}
+        <Button type="submit" disabled={!form.formState.isDirty || form.formState.isSubmitting || authLoading}>
+             {form.formState.isSubmitting || authLoading ? "Actualizando..." : "Actualizar Perfil"}
          </Button>
 
       </form>
