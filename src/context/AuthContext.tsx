@@ -1,13 +1,12 @@
-
 "use client";
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import * as z from "zod"; // Import zod
+import * as z from "zod";
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 
-// Define user type (can be expanded later)
+// Define user type
 interface User {
   id: string;
   name: string;
@@ -16,25 +15,24 @@ interface User {
   email: string;
   phone?: string;
   country?: string;
-  dob?: Date | string; // Store as string/Date, adjust as needed
+  dob?: Date | string | null; // Allow null
 }
 
-// Dummy user data for demonstration
+// Dummy user data
 const DUMMY_EMAIL = "user@ejemplo.com";
-const DUMMY_PASSWORD = "user12345"; // Ensure this matches the login check
+const DUMMY_PASSWORD = "user12345";
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",
   initials: "UE",
   avatarUrl: "https://picsum.photos/50/50?random=user",
-  email: DUMMY_EMAIL, // Use the constant
+  email: DUMMY_EMAIL,
   phone: "+1234567890",
   country: "CO",
-  dob: new Date(1990, 5, 15).toISOString(), // Example date as ISO string
+  dob: new Date(1990, 5, 15).toISOString(),
 };
 
-// Login and Signup types (assuming they exist in AppLayout or similar)
-// Re-define or import them if needed
+// Zod Schemas for Login and Signup
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
   password: z.string().min(1, "La contraseña es requerida."),
@@ -45,12 +43,12 @@ const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Updated validation
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
 const signupStep2Schema = z.object({
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(),
   gender: z.string().optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
@@ -58,31 +56,32 @@ const signupStep2Schema = z.object({
   password: z.string().min(6, "Contraseña debe tener al menos 6 caracteres."),
 });
 
-// Combined schema for final submission
 const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
-// Define the profile update data type
-type UpdateProfileData = Omit<Partial<User>, 'id' | 'email' | 'initials'> & {
+// Define the profile update data type (align with form values)
+type UpdateProfileData = {
   firstName?: string;
   lastName?: string;
-  avatarUrl?: string; // Add optional avatarUrl (string for data URI in simulation)
+  phone?: string;
+  country?: string;
+  dob?: Date | null;
+  avatarUrl?: string; // URL or data URI from preview
 };
-
 
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  isLoading: boolean; // Add loading state if fetching user data async
+  isLoading: boolean;
   showLoginDialog: boolean;
   showProfileDialog: boolean;
   currentView: 'login' | 'signup';
   signupStep: number;
   loginError: string | null;
-  login: (credentials: LoginValues) => Promise<void>; // Placeholder for actual login logic
-  signup: (details: SignupValues) => Promise<void>; // Placeholder for actual signup logic
+  login: (credentials: LoginValues) => Promise<void>;
+  signup: (details: SignupValues) => Promise<void>;
   logout: () => void;
-  updateUser: (data: UpdateProfileData) => Promise<void>; // Function to update user data
+  updateUser: (data: UpdateProfileData) => Promise<void>;
   handleOpenChange: (open: boolean) => void;
   openLoginDialog: () => void;
   openProfileDialog: () => void;
@@ -92,7 +91,7 @@ interface AuthContextType {
   handleSignupSubmit: (data: SignupValues, resetForm: UseFormReset<SignupValues>) => void;
   handleNextStep: (trigger: UseFormTrigger<SignupValues>, errors: FieldErrors<SignupValues>, toast: ReturnType<typeof useToast>['toast']) => Promise<void>;
   handlePrevStep: () => void;
-  handleLogout: () => void; // Added missing handleLogout signature
+  handleLogout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,7 +99,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Start loading initially
+  const [isLoading, setIsLoading] = useState(true);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup'>('login');
@@ -110,100 +109,90 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Simulate checking auth status on mount
   useEffect(() => {
-    // In a real app, check local storage/cookies for token, validate it, fetch user data
     const checkAuth = async () => {
-      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      // For demo: assume not logged in initially
-      // Set user to dummy user for testing logged-in state initially
-      // setUser(dummyUser);
-      // setIsLoggedIn(true);
+      // For demo: Assume logged in initially for testing settings page
+      setUser(dummyUser);
+      setIsLoggedIn(true);
       setIsLoading(false);
     };
     checkAuth();
   }, []);
 
   const login = useCallback(async (credentials: LoginValues) => {
-    // --- SIMULATED LOGIN LOGIC ---
-    setLoginError(null); // Clear previous errors
+    setLoginError(null);
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Check against the dummyUser email and the defined password
-     if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
+    if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
       setUser(dummyUser);
       setIsLoggedIn(true);
       setShowLoginDialog(false);
       toast({ title: "Ingreso exitoso", description: `¡Bienvenido/a de vuelta, ${dummyUser.name}!` });
     } else {
       const errorMessage = "Correo o contraseña incorrectos.";
-      setLoginError(errorMessage); // Set error state
-      // The form will now display the error using this state
+      setLoginError(errorMessage);
     }
     setIsLoading(false);
-    // --- END SIMULATED LOGIN LOGIC ---
-    // TODO: Replace with actual backend call
   }, [toast]);
 
 
    const signup = useCallback(async (details: SignupValues) => {
-    // --- SIMULATED SIGNUP LOGIC ---
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Create a new dummy user based on signup data (adjust as needed)
     const newUser: User = {
-        id: `usr${Math.random().toString(36).substring(7)}`, // Generate a random ID
+        id: `usr${Math.random().toString(36).substring(7)}`,
         name: `${details.firstName} ${details.lastName}`,
         initials: `${details.firstName[0]}${details.lastName[0]}`,
-        avatarUrl: `https://picsum.photos/50/50?random=${Math.random()}`, // Random avatar
+        avatarUrl: `https://picsum.photos/50/50?random=${Math.random()}`,
         email: details.email,
         phone: details.phone || undefined,
         country: details.country || undefined,
-        dob: details.dob?.toISOString() || undefined,
+        dob: details.dob?.toISOString() || null, // Store as ISO string or null
     };
 
     setUser(newUser);
     setIsLoggedIn(true);
-    setShowLoginDialog(false); // Close the dialog
-    setCurrentView('login'); // Reset view
-    setSignupStep(1); // Reset step
+    setShowLoginDialog(false);
+    setCurrentView('login');
+    setSignupStep(1);
     toast({ title: "Cuenta Creada", description: `¡Bienvenido/a, ${details.firstName}! Tu cuenta ha sido creada.` });
     setIsLoading(false);
-    // --- END SIMULATED SIGNUP LOGIC ---
-     // TODO: Replace with actual backend call
   }, [toast]);
 
 
   const logout = useCallback(() => {
-    // TODO: Implement actual logout (clear token, call backend endpoint if needed)
     setUser(null);
     setIsLoggedIn(false);
-    setShowProfileDialog(false); // Close profile dialog on logout
+    setShowProfileDialog(false);
     toast({ title: "Sesión cerrada" });
   }, [toast]);
 
-  // Add handleLogout to match the context type signature
   const handleLogout = useCallback(() => {
     logout();
   }, [logout]);
 
-  // --- UPDATE USER FUNCTION ---
+  // Updated updateUser function
   const updateUser = useCallback(async (data: UpdateProfileData) => {
-      // Simulate API call to update user profile
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
 
       if (user) {
+          const updatedName = (data.firstName && data.lastName) ? `${data.firstName} ${data.lastName}` : user.name;
+          const updatedInitials = (data.firstName && data.lastName) ? `${data.firstName[0]}${data.lastName[0]}` : user.initials;
+
           const updatedUser: User = {
               ...user,
-              name: (data.firstName && data.lastName) ? `${data.firstName} ${data.lastName}` : user.name,
-              initials: (data.firstName && data.lastName) ? `${data.firstName[0]}${data.lastName[0]}` : user.initials,
-              phone: data.phone || user.phone,
-              country: data.country || user.country,
-              dob: data.dob || user.dob,
-              avatarUrl: data.avatarUrl || user.avatarUrl, // Update avatarUrl if provided
+              name: updatedName,
+              initials: updatedInitials,
+              phone: data.phone !== undefined ? data.phone : user.phone, // Update if provided
+              country: data.country !== undefined ? data.country : user.country, // Update if provided
+              dob: data.dob !== undefined ? data.dob : user.dob, // Update if provided (handles null)
+              // Update avatarUrl only if a new one is explicitly provided in data
+              avatarUrl: data.avatarUrl !== undefined ? data.avatarUrl : user.avatarUrl,
           };
+
           setUser(updatedUser); // Update the user state
            toast({
                title: "Perfil Actualizado",
@@ -218,45 +207,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setIsLoading(false);
   }, [user, toast]);
-  // --- END UPDATE USER FUNCTION ---
 
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       setShowLoginDialog(false);
       setShowProfileDialog(false);
-      setCurrentView('login'); // Reset view on close
-      setSignupStep(1); // Reset signup step on close
-      setLoginError(null); // Clear login errors on close
+      setCurrentView('login');
+      setSignupStep(1);
+      setLoginError(null);
     }
-    // Opening logic handled by specific open functions below
   }, []);
 
   const openLoginDialog = useCallback(() => {
-    handleOpenChange(false); // Ensure other dialogs are closed first
+    handleOpenChange(false);
     setCurrentView('login');
     setShowLoginDialog(true);
   }, [handleOpenChange]);
 
   const openProfileDialog = useCallback(() => {
-    handleOpenChange(false); // Ensure other dialogs are closed first
+    handleOpenChange(false);
     setShowProfileDialog(true);
   }, [handleOpenChange]);
 
-  // Wrap form submissions to interact with context state
    const handleLoginSubmit = useCallback(async (data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
         await login(data);
-        // Reset form only if login was successful (no error)
-        // Wait a tick to allow state update before checking loginError
-        // Removed timeout and direct check of loginError as it might not update in time
-        // Error display is now handled directly in the form based on loginError state.
-   }, [login]); // Removed loginError dependency
+        // No automatic reset on error, let user correct input
+   }, [login]);
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
        signup(data).then(() => {
            resetForm();
        }).catch(() => {
-           // Handle signup errors if the signup function throws
            toast({ title: "Error al Crear Cuenta", description: "No se pudo crear la cuenta. Inténtalo de nuevo.", variant: "destructive" });
        });
    }, [signup, toast]);
@@ -264,16 +246,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    const handleNextStep = useCallback(async (
     trigger: UseFormTrigger<SignupValues>,
     errors: FieldErrors<SignupValues>,
-    toastFn: ReturnType<typeof useToast>['toast'] // Pass toast function explicitly
+    toastFn: ReturnType<typeof useToast>['toast']
     ) => {
       const step1Fields: (keyof z.infer<typeof signupStep1Schema>)[] = ['firstName', 'lastName', 'country', 'profileType', 'phone'];
       const result = await trigger(step1Fields);
       if (result) {
          setSignupStep(2);
       } else {
-         // Show toast for validation errors
          Object.values(errors).forEach(error => {
-            if(error?.message && step1Fields.includes(error.ref?.name as any)) { // Check if error belongs to step 1
+            if(error?.message && step1Fields.includes(error.ref?.name as any)) {
                  toastFn({ title: "Error de Validación", description: error.message, variant: "destructive" });
             }
          });
@@ -297,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     signup,
     logout,
-    updateUser, // Provide updateUser in the context
+    updateUser,
     handleOpenChange,
     openLoginDialog,
     openProfileDialog,
@@ -307,7 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleSignupSubmit,
     handleNextStep,
     handlePrevStep,
-    handleLogout, // Provide handleLogout in the context
+    handleLogout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,9 +1,8 @@
-
 "use client";
 
 import type React from 'react';
-import { useState, useEffect, useRef } from 'react'; // Import useRef
-import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
+import { useState, useEffect, useRef } from 'react';
+import AppLayout from '@/layout/AppLayout';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -18,17 +17,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Keep Label for non-form elements if needed
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Camera } from "lucide-react"; // Import Camera icon
+import { CalendarIcon, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, getYear } from "date-fns"; // Import getYear
-import { es } from 'date-fns/locale'; // Import Spanish locale
+import { format, getYear } from "date-fns";
+import { es } from 'date-fns/locale';
 import {
   Select,
   SelectContent,
@@ -36,28 +35,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar component
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+// Zod schema for single file validation
+const fileSchema = z.instanceof(File)
+  .refine(file => file.size <= 5 * 1024 * 1024, `El tamaño máximo de la imagen es 5MB.`)
+  .refine(
+    file => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type),
+    "Solo se aceptan formatos .jpg, .jpeg, .png y .webp."
+  )
+  .optional()
+  .nullable();
 
 // Define the form schema using Zod
 const profileFormSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(50, "El nombre no puede tener más de 50 caracteres."),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres.").max(50, "El apellido no puede tener más de 50 caracteres."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Basic phone validation, allow empty
-  country: z.string().min(1, "Selecciona un país."), // Require country selection
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")),
+  country: z.string().min(1, "Selecciona un país."),
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), // Allow null
   email: z.string().email("Correo electrónico inválido."),
-  // Add file validation for avatar (optional, max 5MB, specific types)
-  avatarFile: z.instanceof(File)
-    .refine(file => file.size <= 5 * 1024 * 1024, `El tamaño máximo de la imagen es 5MB.`)
-    .refine(
-      file => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type),
-      "Solo se aceptan formatos .jpg, .jpeg, .png y .webp."
-    )
-    .optional()
-    .nullable(),
+  avatarFile: fileSchema, // Use the defined file schema
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -67,10 +67,10 @@ const defaultValues: Partial<ProfileFormValues> = {
   firstName: "",
   lastName: "",
   phone: "",
-  country: "", // Or a default country code if desired
-  dob: undefined,
+  country: "",
+  dob: null, // Initialize date as null
   email: "",
-  avatarFile: null, // Initialize avatarFile as null
+  avatarFile: null,
 };
 
 // Dummy country list
@@ -85,87 +85,81 @@ const countries = [
   { code: "PE", name: "Perú" },
   { code: "UY", name: "Uruguay" },
   { code: "VE", name: "Venezuela" },
-  // Add more countries as needed
 ];
 
 function ProfileForm() {
-   const { toast } = useToast(); // Initialize toast hook
-   const { user, updateUser, isLoading: authLoading } = useAuth(); // Get user, updateUser, and loading state from context
-   const [avatarPreview, setAvatarPreview] = useState<string | null>(null); // State for image preview
-   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+   const { toast } = useToast();
+   const { user, updateUser, isLoading: authLoading } = useAuth();
+   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+   const fileInputRef = useRef<HTMLInputElement>(null);
 
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues, // Use empty defaults
+    defaultValues,
     mode: "onChange",
   });
 
-  // Populate form with user data from context when component mounts or user changes
+  // Populate form with user data from context
   useEffect(() => {
     if (user) {
       form.reset({
-        firstName: user.name.split(' ')[0] || '', // Extract first name
-        lastName: user.name.split(' ').slice(1).join(' ') || '', // Extract last name
+        firstName: user.name.split(' ')[0] || '',
+        lastName: user.name.split(' ').slice(1).join(' ') || '',
         phone: user.phone || '',
         country: user.country || '',
-        dob: user.dob ? new Date(user.dob) : undefined,
+        dob: user.dob ? new Date(user.dob) : null, // Ensure dob is Date or null
         email: user.email || '',
-        avatarFile: null, // Reset avatar file on user change
+        avatarFile: null, // Always reset file input on user change
       });
-      setAvatarPreview(user.avatarUrl || null); // Set initial preview from user data
+      setAvatarPreview(user.avatarUrl || null);
     } else {
-      form.reset(defaultValues); // Reset to defaults if user logs out
-      setAvatarPreview(null); // Clear preview on logout
+      form.reset(defaultValues);
+      setAvatarPreview(null);
     }
-  }, [user, form]); // Dependency array includes user and form
+  }, [user, form.reset]); // use form.reset in dependency array
 
 
   async function onSubmit(data: ProfileFormValues) {
-     // Combine first and last name for the update data structure expected by AuthContext
-    const updateData: any = { // Use 'any' temporarily if UpdateProfileData causes issues
+    // Use a more specific type for updateData if possible, but 'any' is okay for now
+    const updateData: any = {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
         country: data.country,
-        dob: data.dob,
-        // Add avatarUrl based on preview state (which comes from file selection)
-        avatarUrl: avatarPreview || user?.avatarUrl || undefined, // Prioritize preview, then existing, then undefined
+        dob: data.dob, // Pass Date object or null
+        // Include avatarUrl only if a new file was selected and preview generated
+        ...(avatarPreview && data.avatarFile ? { avatarUrl: avatarPreview } : {}),
     };
 
     // In a real app, you'd upload the data.avatarFile if it exists
     if (data.avatarFile) {
-       console.log("Uploading new avatar:", data.avatarFile.name);
-       // ---- SIMULATED UPLOAD & URL UPDATE ---
-       // In a real scenario:
-       // 1. Upload data.avatarFile to your storage (e.g., Firebase Storage)
-       // 2. Get the public URL of the uploaded image.
-       // 3. Set updateData.avatarUrl = the_new_public_url;
-       // For this simulation, we've already set avatarUrl from the preview in updateData
-       // ---- END SIMULATION ----
+       console.log("Uploading new avatar (simulated):", data.avatarFile.name);
+       // Simulation: avatarUrl is already set in updateData if needed
     }
 
 
      try {
        await updateUser(updateData);
-       // Reset form to reflect saved state, important if API doesn't return updated user immediately
+       // Reset the form with potentially updated values (or keep existing if no feedback)
+       // Clearing the avatarFile is crucial after successful submission
         form.reset({
-         ...data, // Keep other form values
+         ...form.getValues(), // Keep current form values (could be slightly out of sync if API updates differently)
          avatarFile: null, // Clear the file input value in the form state
        });
+       // The preview will reflect the user.avatarUrl after context update if successful
      } catch (error) {
-       // Error handling is now within the updateUser function in context
-       // Toast is also handled there
        console.error("Failed to update profile:", error);
+       // Toast handled within updateUser context function
      }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-        // Validate file using the schema before setting
+       // Validate file using the schema before setting
        const validationResult = fileSchema.safeParse(file);
        if (validationResult.success) {
-         form.setValue("avatarFile", file, { shouldValidate: true }); // Update form state
+         form.setValue("avatarFile", file, { shouldValidate: true });
          const reader = new FileReader();
          reader.onloadend = () => {
            setAvatarPreview(reader.result as string); // Update preview
@@ -173,7 +167,7 @@ function ProfileForm() {
          reader.readAsDataURL(file);
        } else {
            // Show validation errors from Zod
-            validationResult.error.errors.forEach(err => {
+            (validationResult.error.errors || []).forEach(err => {
                  toast({
                     title: "Error de Archivo",
                     description: err.message,
@@ -193,16 +187,8 @@ function ProfileForm() {
     }
   };
 
-   // Zod schema for single file validation (reuse from post-job if needed)
-    const fileSchema = z.instanceof(File)
-    .refine(file => file.size <= 5 * 1024 * 1024, `El tamaño máximo de la imagen es 5MB.`)
-    .refine(
-        file => ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type),
-        "Solo se aceptan formatos .jpg, .jpeg, .png y .webp."
-    );
 
-
-  const currentYear = getYear(new Date()); // Get the current year
+  const currentYear = getYear(new Date());
 
   return (
     <Form {...form}>
@@ -211,12 +197,11 @@ function ProfileForm() {
          {/* Avatar Section */}
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24 border-2 border-primary relative group">
-              <AvatarImage src={avatarPreview || user?.avatarUrl} alt={user?.name ?? 'Usuario'} data-ai-hint="user profile picture placeholder" />
+              <AvatarImage src={avatarPreview || undefined} alt={user?.name ?? 'Usuario'} data-ai-hint="user profile picture placeholder" />
               <AvatarFallback>{user?.initials ?? 'U'}</AvatarFallback>
-               {/* Overlay for Camera Icon */}
                 <div
                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
-                 onClick={() => fileInputRef.current?.click()} // Trigger file input click
+                 onClick={() => fileInputRef.current?.click()}
                 >
                  <Camera className="h-8 w-8 text-white" />
                  <span className="sr-only">Cambiar foto de perfil</span>
@@ -225,8 +210,8 @@ function ProfileForm() {
             <FormField
               control={form.control}
               name="avatarFile"
-              render={({ field: { onChange, value, ...rest } }) => ( // Destructure to avoid passing `onChange` directly to input
-                <FormItem className="sr-only"> {/* Hide the actual input visually */}
+              render={({ field }) => (
+                <FormItem className="sr-only">
                   <FormLabel htmlFor="avatar-upload">Cambiar foto de perfil</FormLabel>
                   <FormControl>
                     <Input
@@ -234,9 +219,11 @@ function ProfileForm() {
                        type="file"
                        accept="image/jpeg,image/png,image/webp,image/jpg"
                        ref={fileInputRef}
-                       onChange={handleFileChange} // Use custom handler
-                       className="hidden" // Hide the default input UI
-                       {...rest} // Pass other props like name, etc.
+                       onChange={handleFileChange}
+                       className="hidden"
+                       // No need to manage value directly here, let the ref and onChange handle it
+                       {...field} // Pass necessary field props
+                       value={undefined} // Ensure input is fully controlled by onChange
                     />
                   </FormControl>
                   <FormMessage /> {/* Show validation errors */}
@@ -303,17 +290,17 @@ function ProfileForm() {
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>País</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}> {/* Use value prop for controlled Select */}
+                    <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                         <SelectTrigger>
-                        <SelectValue placeholder="Selecciona tu país" />
+                           <SelectValue placeholder="Selecciona tu país" />
                         </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                         {countries.map((country) => (
-                        <SelectItem key={country.code} value={country.code}>
-                            {country.name}
-                        </SelectItem>
+                          <SelectItem key={country.code} value={country.code}>
+                              {country.name}
+                          </SelectItem>
                         ))}
                     </SelectContent>
                     </Select>
@@ -341,9 +328,9 @@ function ProfileForm() {
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: es }) // Format date in Spanish
+                          format(field.value, "PPP", { locale: es })
                         ) : (
-                          <span>Elige una fecha</span> // Updated placeholder
+                          <span>Elige una fecha</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
@@ -358,10 +345,10 @@ function ProfileForm() {
                         date > new Date() || date < new Date("1900-01-01")
                       }
                       initialFocus
-                      captionLayout="dropdown-buttons" // Enable dropdowns
-                      fromYear={1900} // Set the start year
-                      toYear={currentYear} // Set the end year to the current year
-                      locale={es} // Set locale to Spanish
+                      captionLayout="dropdown-buttons"
+                      fromYear={1900}
+                      toYear={currentYear}
+                      locale={es}
                     />
                   </PopoverContent>
                 </Popover>
@@ -378,7 +365,7 @@ function ProfileForm() {
               <FormItem>
                 <FormLabel>Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="tu@correo.com" {...field} readOnly // Make email read-only, as it's usually the identifier
+                  <Input type="email" placeholder="tu@correo.com" {...field} readOnly
                    className="bg-muted cursor-not-allowed" />
                 </FormControl>
                  <FormDescription>
@@ -402,10 +389,10 @@ function ProfileForm() {
 
 
 const SettingsContent = () => {
- const { isLoggedIn, openLoginDialog } = useAuth(); // Get login status and openLoginDialog function
+ const { isLoggedIn, openLoginDialog } = useAuth();
 
  return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto"> {/* Adjusted padding */}
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl md:text-3xl font-semibold mb-6">Configuración de Perfil</h1>
        {isLoggedIn ? (
          <ProfileForm />
@@ -415,7 +402,6 @@ const SettingsContent = () => {
            <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
          </div>
        )}
-       {/* Add other settings sections later, e.g., Notifications, Password Change */}
     </div>
   );
 };
