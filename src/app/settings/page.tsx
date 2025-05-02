@@ -120,23 +120,15 @@ function ProfileForm() {
 
 
   async function onSubmit(data: ProfileFormValues) {
-    // Use a more specific type for updateData if possible, but 'any' is okay for now
-    const updateData: any = {
+    // Pass the entire data object, including avatarFile, to updateUser
+    const updateData = {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
         country: data.country,
         dob: data.dob, // Pass Date object or null
-        // Include avatarUrl only if a new file was selected and preview generated
-        ...(avatarPreview && data.avatarFile ? { avatarUrl: avatarPreview } : {}),
+        avatarFile: data.avatarFile, // Pass the File object or null
     };
-
-    // In a real app, you'd upload the data.avatarFile if it exists
-    if (data.avatarFile) {
-       console.log("Uploading new avatar (simulated):", data.avatarFile.name);
-       // Simulation: avatarUrl is already set in updateData if needed
-    }
-
 
      try {
        await updateUser(updateData);
@@ -149,8 +141,7 @@ function ProfileForm() {
        if (fileInputRef.current) {
           fileInputRef.current.value = ''; // Clear the actual file input element
        }
-       // The preview will reflect the user.avatarUrl after context update if successful
-       // The useEffect hook listening to 'user' will set the preview
+       // The preview should update automatically via the useEffect hook reacting to the user state change
      } catch (error) {
        console.error("Failed to update profile:", error);
        // Toast handled within updateUser context function
@@ -158,11 +149,6 @@ function ProfileForm() {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Reset input value first to allow re-selecting the same file
-    if (e.target) {
-        e.target.value = '';
-    }
-
     const file = e.target.files?.[0];
     if (file) {
        // Validate file using the schema before setting
@@ -194,6 +180,13 @@ function ProfileForm() {
          form.setValue("avatarFile", null, { shouldValidate: true });
          setAvatarPreview(user?.avatarUrl || null); // Revert preview if no file selected
     }
+     // Ensure the actual input element value is cleared if no file is selected or if validation fails
+     // This allows re-selecting the same file after an error or cancellation.
+     if (!file || !fileSchema.safeParse(file).success) {
+         if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+         }
+     }
   };
 
 
@@ -219,7 +212,7 @@ function ProfileForm() {
             <FormField
               control={form.control}
               name="avatarFile"
-              render={({ field: { ref, name, onBlur, onChange } }) => ( // Destructure to only use what's needed for control, exclude 'value'
+              render={({ field: { ref, name, onBlur } }) => ( // Destructure to only use what's needed for control, exclude 'value' and 'onChange'
                 <FormItem className="sr-only">
                   <FormLabel htmlFor="avatar-upload">Cambiar foto de perfil</FormLabel>
                   <FormControl>
@@ -232,7 +225,8 @@ function ProfileForm() {
                        onBlur={onBlur} // Keep onBlur for form state
                        onChange={handleFileChange} // Use custom handler
                        className="hidden"
-                       // value={undefined} // Don't control the value prop for file inputs
+                       // Do NOT control the value prop for file inputs
+                       // value={undefined}
                     />
                   </FormControl>
                   <FormMessage /> {/* Show validation errors */}
@@ -348,7 +342,7 @@ function ProfileForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ?? undefined} // Pass undefined if null
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
@@ -425,3 +419,5 @@ const Settings = () => {
 };
 
 export default Settings;
+
+    
