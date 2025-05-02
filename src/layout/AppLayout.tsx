@@ -39,6 +39,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
+import { es } from 'date-fns/locale'; // Import Spanish locale
 import {
   Form,
   FormControl,
@@ -90,7 +91,8 @@ const navegacion = [
 const dummyUser = {
   name: "Usuario Ejemplo",
   initials: "UE",
-  avatarUrl: "https://picsum.photos/50/50?random=user"
+  avatarUrl: "https://picsum.photos/50/50?random=user",
+  email: "usuario@ejemplo.com" // Added email for simulation
 };
 
 // Dummy country list for signup form
@@ -170,6 +172,7 @@ export default function AppLayout({
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup'>('login');
   const [signupStep, setSignupStep] = useState(1); // State for signup form step
+  const [loginError, setLoginError] = useState<string | null>(null); // State for login errors
 
 
   // Form hooks
@@ -193,6 +196,7 @@ export default function AppLayout({
       email: "",
       password: "",
     },
+    mode: "onChange", // Validate step 1 fields on change
   });
 
   const handleOpenChange = (open: boolean) => {
@@ -201,6 +205,7 @@ export default function AppLayout({
       setShowProfileDialog(false);
       setCurrentView('login'); // Reset view on close
       setSignupStep(1); // Reset signup step on close
+      setLoginError(null); // Clear login errors on close
       loginForm.reset(); // Reset login form on close
       signupForm.reset(); // Reset signup form on close
     } else {
@@ -220,12 +225,26 @@ export default function AppLayout({
 
   const handleLoginSubmit = (data: LoginValues) => {
       console.log("Attempting to log in with data:", data);
-      // TODO: Implement actual login logic using email and password
-      setIsLoggedIn(true); // Simulate successful login
-      setShowLoginDialog(false); // Close the dialog
-      setCurrentView('login'); // Reset view
-      loginForm.reset();
-      toast({ title: "Ingreso exitoso", description: `Bienvenido/a!` }); // Use first name from dummy data
+      setLoginError(null); // Clear previous errors
+
+      // --- SIMULATED LOGIN LOGIC ---
+      // Check if email matches the dummy user and password is "password" (for demo)
+      if (data.email === dummyUser.email && data.password === "password") {
+        // Successful login
+        setIsLoggedIn(true);
+        setShowLoginDialog(false);
+        setCurrentView('login');
+        loginForm.reset();
+        toast({ title: "Ingreso exitoso", description: `Bienvenido/a, ${dummyUser.name}!` });
+      } else {
+        // Incorrect credentials
+        const errorMessage = "Correo o contraseña incorrectos.";
+        setLoginError(errorMessage);
+        toast({ title: "Error de Ingreso", description: errorMessage, variant: "destructive" });
+      }
+      // --- END SIMULATED LOGIN LOGIC ---
+
+      // TODO: Replace simulation with actual backend authentication call
   };
 
    const handleSignupSubmit = (data: SignupValues) => {
@@ -240,14 +259,20 @@ export default function AppLayout({
    };
 
    const handleNextStep = async () => {
-      // Optionally trigger validation for step 1 fields
+      // Trigger validation for step 1 fields
       const step1Fields: (keyof z.infer<typeof signupStep1Schema>)[] = ['firstName', 'lastName', 'country', 'profileType', 'phone'];
       const result = await signupForm.trigger(step1Fields);
       if (result) {
          setSignupStep(2);
       } else {
          // Optionally show a toast or highlight errors
-         console.log("Step 1 validation failed");
+         console.log("Validación del paso 1 fallida");
+         // Show toast for validation errors
+         Object.values(signupForm.formState.errors).forEach(error => {
+            if(error.message) {
+                 toast({ title: "Error de Validación", description: error.message, variant: "destructive" });
+            }
+         });
       }
     };
 
@@ -280,8 +305,8 @@ export default function AppLayout({
 
 
   const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-md p-0">
-       <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]"> {/* Adjusted max-height and removed p-6 */}
+     <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+       <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
            <div className="p-6"> {/* Re-add padding here inside ScrollArea */}
               <DialogHeader className="mb-4">
                 <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
@@ -301,7 +326,14 @@ export default function AppLayout({
                                <FormItem>
                                  <FormLabel>Correo</FormLabel>
                                  <FormControl>
-                                   <Input placeholder="tu@correo.com" {...field} />
+                                   <Input
+                                     placeholder="tu@correo.com"
+                                     {...field}
+                                     onChange={(e) => {
+                                       field.onChange(e);
+                                       setLoginError(null); // Clear error on email change
+                                     }}
+                                   />
                                  </FormControl>
                                  <FormMessage />
                                </FormItem>
@@ -314,14 +346,23 @@ export default function AppLayout({
                                <FormItem>
                                  <FormLabel>Contraseña</FormLabel>
                                  <FormControl>
-                                   <Input type="password" placeholder="Tu contraseña" {...field} />
+                                   <Input
+                                     type="password"
+                                     placeholder="Tu contraseña"
+                                     {...field}
+                                     onChange={(e) => {
+                                        field.onChange(e);
+                                        setLoginError(null); // Clear error on password change
+                                     }}
+                                    />
                                  </FormControl>
+                                 {loginError && <p className="text-sm font-medium text-destructive">{loginError}</p>}
                                  <FormMessage />
                                </FormItem>
                             )}
                           />
                          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1);}} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                             <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); setLoginError(null); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                 ¿No tienes cuenta? Crear una
                              </Button>
                             <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
@@ -332,7 +373,11 @@ export default function AppLayout({
                    </Form>
                 ) : (
                    <Form {...signupForm}>
-                     <form onSubmit={signupForm.handleSubmit(handleSignupSubmit)} className="space-y-4">
+                     <form
+                        // Only submit on the final step
+                        onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
+                        className="space-y-4"
+                      >
                          {/* Step 1 Fields */}
                          {signupStep === 1 && (
                            <div className="space-y-4">
@@ -370,7 +415,7 @@ export default function AppLayout({
                                       <FormControl>
                                         <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
                                           <CalendarIcon className="mr-2 h-4 w-4"/>
-                                          {field.value ? format(field.value, "PPP", { locale: require('date-fns/locale/es') }) : <span>Elige una fecha</span>}
+                                          {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elige una fecha</span>}
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
@@ -403,7 +448,7 @@ export default function AppLayout({
                          )}
 
                           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1);}} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                             <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                 {signupStep === 1 ? '¿Ya tienes cuenta? Ingresar' : '' /* Hide on step 2 */}
                              </Button>
                              <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto justify-end">
@@ -441,7 +486,7 @@ export default function AppLayout({
          <p className="text-sm text-muted-foreground">
            {user ? `Bienvenido/a, ${user.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.` : 'Inicia sesión para ver tu perfil.'}
          </p>
-         {user && <p className="text-sm mt-2">Email: {user.name.toLowerCase().replace(' ', '.')}@ejemplo.com</p> }
+         {user && <p className="text-sm mt-2">Email: {user.email}</p> }
        </div>
        <DialogFooter className="gap-2 sm:gap-0 justify-between">
          {user ? (
@@ -462,9 +507,9 @@ export default function AppLayout({
       <SidebarProvider>
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
-             <Sidebar className="hidden md:flex flex-col flex-shrink-0" side="left" variant="sidebar" collapsible="icon">
-               <SidebarHeader className="p-4 border-b flex items-center justify-center flex-shrink-0 h-14">
-                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold group-data-[collapsible=icon]:mx-auto flex-shrink-0">
+             <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
+               <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
+                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
                      SO
                    </div>
                  <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
@@ -491,20 +536,20 @@ export default function AppLayout({
                  </SidebarMenu>
                </SidebarContent>
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                 <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+                  <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    <DialogTrigger asChild>
                      {user ? (
-                       <Button variant="ghost" onClick={() => setShowProfileDialog(true)} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                       <Button variant="ghost" onClick={() => setShowProfileDialog(true)} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                            <AvatarFallback>{user.initials}</AvatarFallback>
                          </Avatar>
-                         <div className="flex flex-col text-sm transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                         <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            <span className="font-semibold truncate">{user.name}</span>
                          </div>
                        </Button>
                      ) : (
-                       <Button variant="ghost" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); }} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                       <Button variant="ghost" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); }} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            Ingresar / Crear Cuenta
@@ -530,11 +575,12 @@ export default function AppLayout({
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                            <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                              <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
-                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">SO</div>
+                             {/* Use DialogTitle within SheetHeader for accessibility */}
+                             <DialogTitle className="sr-only">Menú principal</DialogTitle>
+                               <div className="flex items-center gap-2 text-lg font-semibold">
+                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                 <span className="whitespace-nowrap">sportoffice</span>
-                              </SheetTitle>
-                               <SheetDescription className="sr-only">Menú principal</SheetDescription>
+                              </div>
                            </SheetHeader>
                          <SidebarContent className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
@@ -557,7 +603,7 @@ export default function AppLayout({
                               <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                 <DialogTrigger asChild>
                                   {user ? (
-                                    <Button variant="ghost" onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded-md w-full text-left">
+                                    <Button variant="ghost" onClick={() => { setShowProfileDialog(true); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
                                       <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
                                         <AvatarFallback>{user.initials}</AvatarFallback>
@@ -567,7 +613,7 @@ export default function AppLayout({
                                       </div>
                                     </Button>
                                   ) : (
-                                    <Button variant="outline" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); setIsMobileSheetOpen(false); }} className="w-full justify-start">
+                                    <Button variant="outline" onClick={() => { setCurrentView('login'); setShowLoginDialog(true); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
                                       <LogIn className="mr-2 h-4 w-4" />
                                       Ingresar / Crear Cuenta
                                     </Button>
@@ -617,5 +663,3 @@ export default function AppLayout({
       </SidebarProvider>
   );
 }
-
-    
