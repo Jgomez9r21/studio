@@ -19,12 +19,14 @@ interface User {
 }
 
 // Dummy user data for demonstration
+const DUMMY_EMAIL = "user@ejemplo.com";
+const DUMMY_PASSWORD = "user12345";
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",
   initials: "UE",
   avatarUrl: "https://picsum.photos/50/50?random=user",
-  email: "usuario@ejemplo.com",
+  email: DUMMY_EMAIL, // Use the constant
   phone: "+1234567890",
   country: "CO",
   dob: new Date(1990, 5, 15).toISOString(), // Example date as ISO string
@@ -115,20 +117,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
-    if (credentials.email === dummyUser.email && credentials.password === "password") { // Check against dummy user data
+    // Check against the dummyUser email and the defined password
+    if (credentials.email === dummyUser.email && credentials.password === DUMMY_PASSWORD) {
       setUser(dummyUser);
       setIsLoggedIn(true);
       setShowLoginDialog(false);
       toast({ title: "Ingreso exitoso", description: `Bienvenido/a, ${dummyUser.name}!` });
     } else {
       const errorMessage = "Correo o contraseña incorrectos.";
-      setLoginError(errorMessage);
-      toast({ title: "Error de Ingreso", description: errorMessage, variant: "destructive" });
+      setLoginError(errorMessage); // Set error state
+      // toast is handled by the form component now based on loginError state
     }
     setIsLoading(false);
     // --- END SIMULATED LOGIN LOGIC ---
     // TODO: Replace with actual backend call
-  }, [toast]);
+  }, [toast]); // Removed dummyUser from dependency array as it's constant
+
 
    const signup = useCallback(async (details: SignupValues) => {
     // --- SIMULATED SIGNUP LOGIC ---
@@ -196,15 +200,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [handleOpenChange]);
 
   // Wrap form submissions to interact with context state
-   const handleLoginSubmit = useCallback((data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
-        login(data).then(() => {
-            // Only reset form if login was successful (no error)
-            if (!loginError) {
-                resetForm();
-            }
-        }).catch(() => {
-           // Error handling is done within the login function itself via toast
-        });
+   const handleLoginSubmit = useCallback(async (data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
+        await login(data);
+        // Reset form only if login was successful (user state is updated)
+        // The login function now sets the loginError state which can be checked after await
+        // Checking isLoggedIn state directly might have timing issues
+        // We rely on the fact that loginError is set only on failure
+         // Wait a tick to allow state update before checking loginError
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (!loginError) {
+             resetForm();
+        }
+        // Error toast is now handled within the login function or based on loginError in the form component
    }, [login, loginError]); // Add loginError dependency
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
