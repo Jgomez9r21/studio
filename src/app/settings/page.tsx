@@ -146,7 +146,11 @@ function ProfileForm() {
          ...form.getValues(), // Keep current form values (could be slightly out of sync if API updates differently)
          avatarFile: null, // Clear the file input value in the form state
        });
+       if (fileInputRef.current) {
+          fileInputRef.current.value = ''; // Clear the actual file input element
+       }
        // The preview will reflect the user.avatarUrl after context update if successful
+       // The useEffect hook listening to 'user' will set the preview
      } catch (error) {
        console.error("Failed to update profile:", error);
        // Toast handled within updateUser context function
@@ -154,6 +158,11 @@ function ProfileForm() {
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Reset input value first to allow re-selecting the same file
+    if (e.target) {
+        e.target.value = '';
+    }
+
     const file = e.target.files?.[0];
     if (file) {
        // Validate file using the schema before setting
@@ -210,7 +219,7 @@ function ProfileForm() {
             <FormField
               control={form.control}
               name="avatarFile"
-              render={({ field }) => (
+              render={({ field: { ref, name, onBlur, onChange } }) => ( // Destructure to only use what's needed for control, exclude 'value'
                 <FormItem className="sr-only">
                   <FormLabel htmlFor="avatar-upload">Cambiar foto de perfil</FormLabel>
                   <FormControl>
@@ -218,12 +227,12 @@ function ProfileForm() {
                        id="avatar-upload"
                        type="file"
                        accept="image/jpeg,image/png,image/webp,image/jpg"
-                       ref={fileInputRef}
-                       onChange={handleFileChange}
+                       ref={fileInputRef} // Use the dedicated ref for direct manipulation
+                       name={name} // Keep name for form state
+                       onBlur={onBlur} // Keep onBlur for form state
+                       onChange={handleFileChange} // Use custom handler
                        className="hidden"
-                       // No need to manage value directly here, let the ref and onChange handle it
-                       {...field} // Pass necessary field props
-                       value={undefined} // Ensure input is fully controlled by onChange
+                       // value={undefined} // Don't control the value prop for file inputs
                     />
                   </FormControl>
                   <FormMessage /> {/* Show validation errors */}
