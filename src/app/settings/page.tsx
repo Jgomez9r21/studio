@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -17,7 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"; // Keep Label for non-form elements if needed
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -38,6 +39,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { RecaptchaVerifier } from 'firebase/auth'; // Import RecaptchaVerifier
+
 
 // Zod schema for single file validation
 const fileSchema = z.instanceof(File)
@@ -49,11 +52,14 @@ const fileSchema = z.instanceof(File)
   .optional()
   .nullable();
 
-// Phone validation regex
+// Phone validation regex (more specific for E.164 format starting with +)
 const phoneRegex = new RegExp(
-  /^([+]?[\s0-9]+)?(\d{3}|[(]?[0-9]+[)])?([-]?[\s]?[0-9])+$/
+  /^\+[1-9]\d{1,14}$/
 );
-const phoneValidation = z.string().regex(phoneRegex, 'Número de teléfono inválido.').optional().or(z.literal(""));
+const phoneValidation = z.string()
+  .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
+  .optional()
+  .or(z.literal(""));
 
 // Define the form schema using Zod
 const profileFormSchema = z.object({
@@ -63,7 +69,7 @@ const profileFormSchema = z.object({
   country: z.string().min(1, "Selecciona un país."),
   dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), // Allow null
   email: z.string().email("Correo electrónico inválido."),
-  avatarFile: fileSchema, // Use the defined file schema
+  avatarFile: fileSchema,
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -74,7 +80,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   lastName: "",
   phone: "",
   country: "",
-  dob: null, // Initialize date as null
+  dob: null,
   email: "",
   avatarFile: null,
 };
@@ -93,21 +99,30 @@ const countries = [
   { code: "VE", name: "Venezuela" },
 ];
 
-const DUMMY_VERIFICATION_CODE = "123456"; // For simulation
 
 function ProfileForm() {
    const { toast } = useToast();
-   const { user, updateUser, isLoading: authLoading } = useAuth();
+   const {
+      user,
+      updateUser,
+      isLoading: authLoading,
+      sendVerificationCode,
+      verifyCode,
+      phoneVerificationError,
+      isVerificationSent,
+      isVerifyingCode,
+      resetPhoneVerification,
+      setIsVerificationSent // Needed to manually reset UI after update
+    } = useAuth();
    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
    const fileInputRef = useRef<HTMLInputElement>(null);
+   const recaptchaContainerRef = useRef<HTMLDivElement>(null); // Ref for reCAPTCHA container
+   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null); // Ref to store reCAPTCHA instance
 
-   // Phone Verification State
-   const [originalPhoneNumber, setOriginalPhoneNumber] = useState<string | undefined>(undefined);
-   const [isPhoneVerified, setIsPhoneVerified] = useState(true); // Assume verified initially if user exists with phone
-   const [isVerificationSent, setIsVerificationSent] = useState(false);
+   // Phone Verification State (mostly managed by AuthContext now)
    const [verificationCode, setVerificationCode] = useState("");
-   const [verificationError, setVerificationError] = useState<string | null>(null);
-   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+   const [originalPhoneNumber, setOriginalPhoneNumber] = useState<string | undefined>(undefined);
+
 
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -118,7 +133,45 @@ function ProfileForm() {
   const currentPhoneNumber = form.watch("phone");
   const isPhoneValid = phoneValidation.safeParse(currentPhoneNumber).success;
   const isPhoneDifferent = currentPhoneNumber !== originalPhoneNumber;
+  // User's phone verification status comes from AuthContext
+  const isPhoneVerified = user?.isPhoneVerified ?? false;
   const canSendVerification = isPhoneValid && isPhoneDifferent && !isPhoneVerified;
+
+   // Initialize reCAPTCHA Verifier
+   useEffect(() => {
+       if (recaptchaContainerRef.current && !recaptchaVerifierRef.current) {
+           recaptchaVerifierRef.current = new RecaptchaVerifier(firebaseAuth, recaptchaContainerRef.current, {
+               'size': 'invisible', // Use invisible reCAPTCHA
+               'callback': (response: any) => {
+                   // reCAPTCHA solved, allow send SMS
+                   console.log("reCAPTCHA solved:", response);
+               },
+               'expired-callback': () => {
+                   // Response expired. Ask user to solve reCAPTCHA again.
+                   console.log("reCAPTCHA expired");
+                   toast({ title: "reCAPTCHA Expirado", description: "Por favor, intenta verificar de nuevo.", variant: "destructive" });
+                   resetPhoneVerification(); // Reset flow if reCAPTCHA expires
+                   if (recaptchaVerifierRef.current) {
+                       recaptchaVerifierRef.current.render().then((widgetId) => {
+                           // Optional: reset widget if needed, check Firebase docs
+                       });
+                   }
+               }
+           });
+            recaptchaVerifierRef.current.render().catch(err => {
+                console.error("reCAPTCHA render error:", err);
+                toast({ title: "Error de reCAPTCHA", description: "No se pudo inicializar la verificación reCAPTCHA.", variant: "destructive" });
+            }); // Render the invisible reCAPTCHA
+       }
+        // Cleanup function to clear reCAPTCHA on unmount
+        return () => {
+            if (recaptchaVerifierRef.current) {
+                recaptchaVerifierRef.current.clear();
+                recaptchaVerifierRef.current = null;
+            }
+        };
+   }, [firebaseAuth, toast, resetPhoneVerification]);
+
 
   // Populate form and phone verification state
   useEffect(() => {
@@ -129,97 +182,55 @@ function ProfileForm() {
         lastName: user.name.split(' ').slice(1).join(' ') || '',
         phone: initialPhone,
         country: user.country || '',
-        dob: user.dob ? new Date(user.dob) : null, // Ensure dob is Date or null
+        dob: user.dob ? new Date(user.dob) : null,
         email: user.email || '',
-        avatarFile: null, // Always reset file input on user change
+        avatarFile: null,
       });
       setAvatarPreview(user.avatarUrl || null);
       setOriginalPhoneNumber(initialPhone);
-      // If the user has a phone number loaded, assume it's verified for this demo
-      // In a real app, this status would come from the backend/user data
-      setIsPhoneVerified(!!initialPhone);
-      setIsVerificationSent(false); // Reset verification flow on user change
-      setVerificationCode("");
-      setVerificationError(null);
+      // Reset UI specific state if phone matches original or is verified
+      if (!isPhoneDifferent || isPhoneVerified) {
+         resetPhoneVerification(); // Clear any pending verification UI
+         setVerificationCode(""); // Clear code input
+      }
     } else {
       form.reset(defaultValues);
       setAvatarPreview(null);
       setOriginalPhoneNumber(undefined);
-      setIsPhoneVerified(false);
-      setIsVerificationSent(false);
-      setVerificationCode("");
-       setVerificationError(null);
+      resetPhoneVerification();
+       setVerificationCode("");
     }
-  }, [user, form.reset]);
-
-  // Reset verification state if phone number changes back to original or becomes invalid
-  useEffect(() => {
-    if (!isPhoneDifferent) {
-      setIsPhoneVerified(true); // If it matches original, it's considered verified (or doesn't need verification)
-      setIsVerificationSent(false);
-      setVerificationCode("");
-      setVerificationError(null);
-    } else if (isPhoneDifferent) {
-        setIsPhoneVerified(false); // If it's different, it's not verified yet
-        // Don't automatically reset isVerificationSent here, allow user to retry verification if needed
-    }
-     if (!isPhoneValid && isVerificationSent) {
-        // If phone becomes invalid after sending code, reset verification
-         setIsVerificationSent(false);
-         setVerificationCode("");
-         setVerificationError("Número de teléfono inválido. No se puede verificar.");
-     }
-
-  }, [currentPhoneNumber, originalPhoneNumber, isPhoneDifferent, isPhoneValid, isVerificationSent]);
+    // No direct dependency on isPhoneDifferent/isPhoneVerified here,
+    // rely on their updates triggering re-renders which call this effect.
+  }, [user, form.reset, resetPhoneVerification]);
 
 
-  // Simulate sending verification code
-  const handleSendVerificationCode = useCallback(async () => {
-     if (!canSendVerification) return;
-     setIsVerificationSent(true);
-     setVerificationError(null); // Clear previous errors
-     setVerificationCode(""); // Clear old code input
-     toast({
-       title: "Código Enviado (Simulado)",
-       description: `Se envió un código de verificación a ${currentPhoneNumber}.`,
-     });
-     // In real app: await sendVerificationCodeApi(currentPhoneNumber);
-     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-  }, [currentPhoneNumber, toast, canSendVerification]);
+  const handleSendVerification = useCallback(async () => {
+     if (!canSendVerification || !currentPhoneNumber || !recaptchaVerifierRef.current) {
+        if (!isPhoneValid) {
+             toast({ title: "Error", description: "Número de teléfono inválido.", variant: "destructive" });
+        }
+         return;
+     };
+     await sendVerificationCode(currentPhoneNumber, recaptchaVerifierRef.current);
+  }, [canSendVerification, currentPhoneNumber, sendVerificationCode, isPhoneValid, toast]);
 
-  // Simulate verifying the code
+
   const handleVerifyCode = useCallback(async () => {
-    if (!verificationCode) {
-        setVerificationError("Ingresa el código de verificación.");
+    if (!verificationCode || verificationCode.length !== 6) {
+        toast({ title: "Error", description: "Ingresa un código de 6 dígitos.", variant: "destructive" });
         return;
     }
-    setIsVerifyingCode(true);
-    setVerificationError(null);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
-
-    if (verificationCode === DUMMY_VERIFICATION_CODE) {
-      setIsPhoneVerified(true);
-      setIsVerificationSent(false); // Hide code input
-      setOriginalPhoneNumber(currentPhoneNumber); // Update original number upon successful verification
-      toast({
-        title: "Teléfono Verificado",
-        description: "Tu número de teléfono ha sido verificado.",
-      });
-    } else {
-      setVerificationError("Código de verificación incorrecto.");
-      toast({
-        title: "Error de Verificación",
-        description: "El código ingresado es incorrecto.",
-        variant: "destructive",
-      });
-    }
-    setIsVerifyingCode(false);
-  }, [verificationCode, toast, currentPhoneNumber]);
+    await verifyCode(verificationCode);
+    setVerificationCode(""); // Clear code on attempt (success or fail)
+  }, [verificationCode, verifyCode, toast]);
 
 
   async function onSubmit(data: ProfileFormValues) {
-     // Check if phone is different and not verified
-     if (isPhoneDifferent && !isPhoneVerified) {
+     // Check if phone is different and not verified *before* calling updateUser
+     const isSubmittingDifferentUnverifiedPhone = isPhoneDifferent && !isPhoneVerified;
+
+     if (isSubmittingDifferentUnverifiedPhone) {
          toast({
              title: "Verificación Requerida",
              description: "Debes verificar tu nuevo número de teléfono antes de actualizar el perfil.",
@@ -228,55 +239,47 @@ function ProfileForm() {
          return; // Prevent submission
      }
 
-    // Pass the entire data object, including avatarFile, to updateUser
-    const updateData = {
+    const updateData: UpdateProfileData = {
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone, // Send the (potentially new and verified) phone number
+        phone: data.phone,
         country: data.country,
-        dob: data.dob, // Pass Date object or null
-        avatarFile: data.avatarFile, // Pass the File object or null
+        dob: data.dob,
+        avatarFile: data.avatarFile,
     };
 
      try {
        await updateUser(updateData);
-       // Reset the form with potentially updated values (or keep existing if no feedback)
-       // Clearing the avatarFile is crucial after successful submission
-        form.reset({
+       // updateUser now handles success toast and resets phone verification state if needed.
+       // Reset form state locally:
+       form.reset({
          ...form.getValues(), // Keep current form values
          avatarFile: null, // Clear the file input value in the form state
        });
        if (fileInputRef.current) {
           fileInputRef.current.value = ''; // Clear the actual file input element
        }
-        // Reset verification state *after* successful profile update
-        // Update original number state to reflect the newly saved number
-       setOriginalPhoneNumber(data.phone || '');
-       setIsPhoneVerified(!!data.phone); // Consider it verified if saved
-       setIsVerificationSent(false);
-       setVerificationCode("");
-       setVerificationError(null);
+       setOriginalPhoneNumber(data.phone || ''); // Update original phone after successful save
        // The avatar preview should update automatically via the useEffect hook reacting to the user state change
      } catch (error) {
        console.error("Failed to update profile:", error);
-       // Toast handled within updateUser context function
+       // Toast for specific update errors (if not handled in updateUser)
+        toast({ title: "Error", description: "No se pudo actualizar el perfil.", variant: "destructive" });
      }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-       // Validate file using the schema before setting
        const validationResult = fileSchema.safeParse(file);
        if (validationResult.success) {
          form.setValue("avatarFile", file, { shouldValidate: true });
          const reader = new FileReader();
          reader.onloadend = () => {
-           setAvatarPreview(reader.result as string); // Update preview
+           setAvatarPreview(reader.result as string);
          };
          reader.readAsDataURL(file);
        } else {
-           // Show validation errors from Zod
             (validationResult.error.errors || []).forEach(err => {
                  toast({
                     title: "Error de Archivo",
@@ -284,19 +287,16 @@ function ProfileForm() {
                     variant: "destructive",
                 });
             });
-            // Reset file input and preview if validation fails
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
             form.setValue("avatarFile", null, { shouldValidate: true });
-            setAvatarPreview(user?.avatarUrl || null); // Revert preview
+            setAvatarPreview(user?.avatarUrl || null);
        }
     } else {
          form.setValue("avatarFile", null, { shouldValidate: true });
-         setAvatarPreview(user?.avatarUrl || null); // Revert preview if no file selected
+         setAvatarPreview(user?.avatarUrl || null);
     }
-     // Ensure the actual input element value is cleared if no file is selected or if validation fails
-     // This allows re-selecting the same file after an error or cancellation.
      if (!file || !fileSchema.safeParse(file).success) {
          if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -304,11 +304,20 @@ function ProfileForm() {
      }
   };
 
-
   const currentYear = getYear(new Date());
+
+  // Determine if the submit button should be disabled
+  const isSubmitDisabled = !form.formState.isDirty || // No changes made
+                           form.formState.isSubmitting || // Form is submitting
+                           authLoading || // Auth context is loading (e.g., during verification)
+                           (isPhoneDifferent && !isPhoneVerified); // Phone changed but not verified
+
 
   return (
     <Form {...form}>
+       {/* reCAPTCHA Container (invisible) */}
+       <div ref={recaptchaContainerRef} id="recaptcha-container"></div>
+
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
 
          {/* Avatar Section */}
@@ -327,7 +336,7 @@ function ProfileForm() {
             <FormField
               control={form.control}
               name="avatarFile"
-              render={({ field: { ref, name, onBlur } }) => ( // Destructure to only use what's needed for control, exclude 'value' and 'onChange'
+              render={({ field: { ref, name, onBlur } }) => (
                 <FormItem className="sr-only">
                   <FormLabel htmlFor="avatar-upload">Cambiar foto de perfil</FormLabel>
                   <FormControl>
@@ -335,16 +344,14 @@ function ProfileForm() {
                        id="avatar-upload"
                        type="file"
                        accept="image/jpeg,image/png,image/webp,image/jpg"
-                       ref={fileInputRef} // Use the dedicated ref for direct manipulation
-                       name={name} // Keep name for form state
-                       onBlur={onBlur} // Keep onBlur for form state
-                       onChange={handleFileChange} // Use custom handler
+                       ref={fileInputRef}
+                       name={name}
+                       onBlur={onBlur}
+                       onChange={handleFileChange}
                        className="hidden"
-                       // Do NOT control the value prop for file inputs
-                       // value={undefined}
                     />
                   </FormControl>
-                  <FormMessage /> {/* Show validation errors */}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -385,34 +392,34 @@ function ProfileForm() {
             )}
           />
 
-          {/* Phone */}
-          <FormField
+         {/* Phone */}
+         <FormField
             control={form.control}
             name="phone"
             render={({ field }) => (
-              <FormItem className="md:col-span-2"> {/* Span across columns */}
+                <FormItem className="md:col-span-2">
                 <FormLabel>Teléfono</FormLabel>
                  <div className="flex items-center gap-2 flex-wrap">
-                  <FormControl className="flex-1 min-w-[150px]">
-                    <Input type="tel" placeholder="+1234567890" {...field} />
-                  </FormControl>
-                  {isPhoneDifferent && !isPhoneVerified && !isVerificationSent && (
-                      <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleSendVerificationCode}
-                          disabled={!canSendVerification || authLoading}
-                       >
-                          Verificar Número
-                       </Button>
-                   )}
-                    {isPhoneVerified && <span className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Verificado</span>}
-                     {!isPhoneVerified && !isPhoneDifferent && currentPhoneNumber && <span className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Verificado</span>}
-                     {isPhoneDifferent && !isPhoneVerified && isVerificationSent && !isPhoneVerified && (
-                         <span className="text-sm text-orange-600 flex items-center gap-1"><ShieldAlert className="h-4 w-4"/> Verificación pendiente</span>
-                     )}
+                    <FormControl className="flex-1 min-w-[150px]">
+                        <Input type="tel" placeholder="+573001234567" {...field} />
+                    </FormControl>
+                    {isPhoneDifferent && !isPhoneVerified && !isVerificationSent && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleSendVerification}
+                            disabled={!canSendVerification || authLoading}
+                        >
+                            Verificar Número
+                        </Button>
+                    )}
+                     {isPhoneVerified && <span className="text-sm text-green-600 flex items-center gap-1"><CheckCircle className="h-4 w-4"/> Verificado</span>}
+                      {isPhoneDifferent && !isPhoneVerified && isVerificationSent && (
+                          <span className="text-sm text-orange-600 flex items-center gap-1"><ShieldAlert className="h-4 w-4"/> Verificación pendiente</span>
+                      )}
                  </div>
                 <FormMessage /> {/* Shows Zod validation errors */}
+                 {phoneVerificationError && !isVerificationSent && <p className="text-sm font-medium text-destructive mt-1">{phoneVerificationError}</p>} {/* Show general verification errors */}
 
                  {/* Verification Code Input Section */}
                  {isVerificationSent && !isPhoneVerified && (
@@ -436,22 +443,23 @@ function ProfileForm() {
                                 {isVerifyingCode ? "Verificando..." : "Confirmar"}
                              </Button>
                          </div>
-                          {verificationError && <p className="text-sm font-medium text-destructive">{verificationError}</p>}
-                           <Button
+                          {phoneVerificationError && <p className="text-sm font-medium text-destructive mt-1">{phoneVerificationError}</p>}
+                           {/* Optionally add resend button, needs rate limiting in real app */}
+                           {/* <Button
                              type="button"
                              variant="link"
                              size="sm"
-                             onClick={handleSendVerificationCode}
-                             disabled={!canSendVerification || authLoading}
+                             onClick={handleSendVerification}
+                             disabled={!canSendVerification || authLoading} // Reuse canSendVerification logic potentially
                              className="p-0 h-auto text-xs"
                            >
                              Reenviar código
-                           </Button>
+                           </Button> */}
                      </div>
                  )}
-              </FormItem>
+                </FormItem>
             )}
-          />
+            />
 
 
             {/* Country */}
@@ -482,7 +490,7 @@ function ProfileForm() {
 
 
            {/* Date of Birth */}
-          <FormField
+           <FormField
             control={form.control}
             name="dob"
             render={({ field }) => (
@@ -499,7 +507,7 @@ function ProfileForm() {
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP", { locale: es })
+                          format(new Date(field.value), "PPP", { locale: es }) // Ensure it's a Date object for formatting
                         ) : (
                           <span>Elige una fecha</span>
                         )}
@@ -510,7 +518,7 @@ function ProfileForm() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value ?? undefined} // Pass undefined if null
+                      selected={field.value ? new Date(field.value) : undefined} // Pass Date or undefined
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date() || date < new Date("1900-01-01")
@@ -549,11 +557,8 @@ function ProfileForm() {
         </div>
 
 
-        <Button
-             type="submit"
-             disabled={!form.formState.isDirty || form.formState.isSubmitting || authLoading || (isPhoneDifferent && !isPhoneVerified)}
-         >
-             {form.formState.isSubmitting || authLoading ? "Actualizando..." : "Actualizar Perfil"}
+         <Button type="submit" disabled={isSubmitDisabled}>
+             {authLoading ? "Actualizando..." : "Actualizar Perfil"}
          </Button>
 
       </form>
@@ -590,5 +595,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
-    

@@ -1,10 +1,19 @@
+
 "use client";
 
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import * as z from "zod"; // Import z explicitly
+import { z } from "zod"; // Import z explicitly
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
+import {
+  getAuth,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
+  type ConfirmationResult,
+  type Auth
+} from 'firebase/auth';
+import { auth as firebaseAuth } from '@/lib/firebase'; // Import initialized auth
 
 
 // Define user type
@@ -17,20 +26,22 @@ interface User {
   phone?: string;
   country?: string;
   dob?: Date | string | null; // Allow null
+  isPhoneVerified?: boolean; // Add flag for phone verification status
 }
 
-// Dummy user data
+// Dummy user data (Keep for initial login simulation, phone verification will override)
 const DUMMY_EMAIL = "user@ejemplo.com";
-const DUMMY_PASSWORD = "user12345"; // Changed to match login check
+const DUMMY_PASSWORD = "user12345";
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",
   initials: "UE",
   avatarUrl: "https://picsum.photos/50/50?random=user", // Placeholder/default
   email: DUMMY_EMAIL,
-  phone: "+1234567890",
+  phone: "+1234567890", // Example phone number
   country: "CO",
   dob: new Date(1990, 5, 15).toISOString(),
+  isPhoneVerified: true, // Assume verified initially for dummy user
 };
 
 // Zod Schemas for Login and Signup
@@ -44,7 +55,7 @@ const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Updated validation
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido. Incluye el código de país (ej: +57...).").optional().or(z.literal("")), // Updated validation with example
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
@@ -61,15 +72,13 @@ const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
 // Define the profile update data type (align with form values)
-// Add avatarFile to accept the actual file
 type UpdateProfileData = {
   firstName?: string;
   lastName?: string;
   phone?: string;
   country?: string;
   dob?: Date | null;
-  avatarFile?: File | null; // Accept the actual File object or null
-  // Removed avatarUrl, we'll handle URL generation after upload simulation
+  avatarFile?: File | null;
 };
 
 interface AuthContextType {
@@ -81,10 +90,13 @@ interface AuthContextType {
   currentView: 'login' | 'signup';
   signupStep: number;
   loginError: string | null;
+  phoneVerificationError: string | null;
+  isVerificationSent: boolean; // Track if code has been sent
+  isVerifyingCode: boolean; // Track if code verification is in progress
   login: (credentials: LoginValues) => Promise<void>;
   signup: (details: SignupValues) => Promise<void>;
   logout: () => void;
-  updateUser: (data: UpdateProfileData) => Promise<void>; // Update signature
+  updateUser: (data: UpdateProfileData) => Promise<void>;
   handleOpenChange: (open: boolean) => void;
   openLoginDialog: () => void;
   openProfileDialog: () => void;
@@ -95,6 +107,10 @@ interface AuthContextType {
   handleNextStep: (trigger: UseFormTrigger<SignupValues>, errors: FieldErrors<SignupValues>, toast: ReturnType<typeof useToast>['toast']) => Promise<void>;
   handlePrevStep: () => void;
   handleLogout: () => void;
+  sendVerificationCode: (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => Promise<void>; // Firebase integration
+  verifyCode: (code: string) => Promise<void>; // Firebase integration
+  setIsVerificationSent: (sent: boolean) => void; // To reset UI state
+  resetPhoneVerification: () => void; // To clear errors etc.
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -110,19 +126,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loginError, setLoginError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Phone Verification State
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [phoneVerificationError, setPhoneVerificationError] = useState<string | null>(null);
+  const [isVerificationSent, setIsVerificationSent] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+
+
   // Simulate checking auth status on mount
   useEffect(() => {
     const checkAuth = async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       // For demo: Assume logged in initially for testing settings page
-      // Uncomment below to test logged out state
-      // setUser(null);
-      // setIsLoggedIn(false);
-
-      // Comment out below to test logged out state
-      // setUser(dummyUser);
-      // setIsLoggedIn(true);
-
+      setUser(dummyUser);
+      setIsLoggedIn(true);
       setIsLoading(false);
     };
     checkAuth();
@@ -133,8 +150,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
-    if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) { // Correct check
-      const loggedInUser = { ...dummyUser }; // Use a copy
+    if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
+      const loggedInUser = { ...dummyUser };
       setUser(loggedInUser);
       setIsLoggedIn(true);
       setShowLoginDialog(false);
@@ -160,7 +177,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: details.email,
         phone: details.phone || undefined,
         country: details.country || undefined,
-        dob: details.dob?.toISOString() || null, // Store as ISO string or null
+        dob: details.dob?.toISOString() || null,
+        isPhoneVerified: false, // New accounts need phone verification
     };
 
     setUser(newUser);
@@ -184,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout();
   }, [logout]);
 
-  // Updated updateUser function to handle file and simulate upload
+  // Updated updateUser function
   const updateUser = useCallback(async (data: UpdateProfileData) => {
       if (!user) {
             toast({
@@ -198,23 +216,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(true);
       await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
 
-      let newAvatarUrl = user.avatarUrl; // Start with the current URL
+      let newAvatarUrl = user.avatarUrl;
 
-      // Simulate file upload if a file is provided
       if (data.avatarFile) {
           console.log("Simulating avatar upload for:", data.avatarFile.name);
-          // --- BACKEND INTEGRATION NEEDED ---
-          // In a real app, you would upload data.avatarFile here to a storage service (e.g., Firebase Storage)
-          // const uploadedUrl = await uploadFile(data.avatarFile);
-          // For simulation, we'll generate a temporary URL (like a data URI or a new Picsum URL)
-          // To keep the visual feedback immediate, we read the file as a data URL for the preview.
-          // In a real scenario, you'd likely get a permanent URL back from the upload service.
           try {
               newAvatarUrl = await new Promise((resolve, reject) => {
                   const reader = new FileReader();
                   reader.onloadend = () => resolve(reader.result as string);
                   reader.onerror = reject;
-                  reader.readAsDataURL(data.avatarFile!); // Non-null assertion as we checked before
+                  reader.readAsDataURL(data.avatarFile!);
               });
               console.log("Simulation: Using generated data URI for avatar preview.");
           } catch (error) {
@@ -224,10 +235,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     description: "No se pudo generar la vista previa de la imagen.",
                     variant: "destructive",
                  });
-                 // Keep the old avatar URL if preview generation fails
                  newAvatarUrl = user.avatarUrl;
           }
-          // newAvatarUrl = uploadedUrl; // In real app, use the URL returned from upload service
       }
 
 
@@ -236,25 +245,115 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedName = `${updatedFirstName} ${updatedLastName}`;
       const updatedInitials = `${updatedFirstName[0]}${updatedLastName[0]}`;
 
+      // Determine if phone number is being updated and needs verification
+      const newPhone = data.phone !== undefined ? data.phone : user.phone;
+      const isPhoneUpdated = newPhone !== user.phone;
+      const needsVerification = isPhoneUpdated && !!newPhone; // Needs verification if phone changed and is not empty
 
       const updatedUser: User = {
           ...user,
           name: updatedName,
           initials: updatedInitials,
-          phone: data.phone !== undefined ? data.phone : user.phone,
+          phone: newPhone, // Update phone number
           country: data.country !== undefined ? data.country : user.country,
-          dob: data.dob !== undefined ? (data.dob instanceof Date ? data.dob.toISOString() : data.dob) : user.dob, // Store as ISO string or keep existing string/null
-          avatarUrl: newAvatarUrl, // Update with the new URL (simulated or real)
+          dob: data.dob !== undefined ? (data.dob instanceof Date ? data.dob.toISOString() : data.dob) : user.dob,
+          avatarUrl: newAvatarUrl,
+          isPhoneVerified: needsVerification ? false : user.isPhoneVerified, // Reset verification status if phone changes
       };
 
       setUser(updatedUser); // Update the user state
-      toast({
-          title: "Perfil Actualizado",
-          description: "Tus datos han sido guardados correctamente.",
-      });
+      if (!needsVerification) { // Only toast success if phone doesn't need verification
+        toast({
+            title: "Perfil Actualizado",
+            description: "Tus datos han sido guardados correctamente.",
+        });
+      } else {
+         toast({
+              title: "Verificación Requerida",
+              description: "Tu número de teléfono ha cambiado. Por favor verifica tu nuevo número.",
+              variant: "default", // Use default or warning variant
+         });
+         // Reset verification flow state for the new number
+         resetPhoneVerification();
+      }
+
 
       setIsLoading(false);
   }, [user, toast]);
+
+  // --- Firebase Phone Auth Functions ---
+   const sendVerificationCode = useCallback(async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => {
+       setPhoneVerificationError(null);
+       setIsLoading(true); // Indicate loading state
+       try {
+           const result = await signInWithPhoneNumber(firebaseAuth, phoneNumber, recaptchaVerifier);
+           setConfirmationResult(result);
+           setIsVerificationSent(true);
+           toast({
+               title: "Código Enviado",
+               description: `Se envió un código de verificación a ${phoneNumber}.`,
+           });
+       } catch (error: any) {
+           console.error("Error sending verification code:", error);
+           // Handle specific Firebase errors
+           let errorMessage = "No se pudo enviar el código de verificación. Inténtalo de nuevo.";
+           if (error.code === 'auth/invalid-phone-number') {
+               errorMessage = "El número de teléfono proporcionado no es válido.";
+           } else if (error.code === 'auth/too-many-requests') {
+               errorMessage = "Demasiadas solicitudes. Inténtalo más tarde.";
+           } else if (error.code === 'auth/missing-phone-number') {
+                errorMessage = "Ingresa un número de teléfono.";
+           }
+           setPhoneVerificationError(errorMessage);
+           toast({ title: "Error", description: errorMessage, variant: "destructive" });
+           setIsVerificationSent(false); // Reset verification state on error
+       } finally {
+           setIsLoading(false); // Clear loading state
+       }
+   }, [toast]);
+
+   const verifyCode = useCallback(async (code: string) => {
+       if (!confirmationResult) {
+           setPhoneVerificationError("No se ha enviado un código de verificación.");
+           return;
+       }
+       setPhoneVerificationError(null);
+       setIsVerifyingCode(true);
+       setIsLoading(true);
+       try {
+           await confirmationResult.confirm(code);
+           // Phone number verified successfully!
+           if (user) {
+               const updatedUser = { ...user, isPhoneVerified: true };
+               setUser(updatedUser); // Update user state locally
+               // TODO: Update user profile in your backend to mark phone as verified
+           }
+           setConfirmationResult(null); // Clear confirmation result
+           setIsVerificationSent(false); // Hide code input
+           toast({ title: "Teléfono Verificado", description: "Tu número de teléfono ha sido verificado correctamente." });
+
+       } catch (error: any) {
+           console.error("Error verifying code:", error);
+           let errorMessage = "El código ingresado es incorrecto o ha expirado.";
+           if (error.code === 'auth/invalid-verification-code') {
+               errorMessage = "El código de verificación no es válido.";
+           } else if (error.code === 'auth/code-expired') {
+               errorMessage = "El código de verificación ha expirado. Solicita uno nuevo.";
+           }
+           setPhoneVerificationError(errorMessage);
+           toast({ title: "Error de Verificación", description: errorMessage, variant: "destructive" });
+       } finally {
+           setIsVerifyingCode(false);
+           setIsLoading(false);
+       }
+   }, [confirmationResult, toast, user]);
+
+  const resetPhoneVerification = useCallback(() => {
+      setConfirmationResult(null);
+      setPhoneVerificationError(null);
+      setIsVerificationSent(false);
+      setIsVerifyingCode(false);
+  }, []);
 
 
   const handleOpenChange = useCallback((open: boolean) => {
@@ -264,42 +363,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentView('login');
       setSignupStep(1);
       setLoginError(null);
+      resetPhoneVerification(); // Reset phone verification on dialog close
     }
-    // // If opening, but already logged in, default to profile dialog instead of login
-    // if (open && isLoggedIn) {
-    //     // This logic is moved to openLoginDialog/openProfileDialog callers
-    // } else if (open && !isLoggedIn) {
-    //     setShowLoginDialog(true);
-    // }
-
-  }, []); // Removed isLoggedIn dependency as it's handled differently
+  }, [resetPhoneVerification]);
 
 
   const openLoginDialog = useCallback(() => {
      if (isLoggedIn) {
-         setShowProfileDialog(true); // Open profile if logged in
+         setShowProfileDialog(true);
      } else {
-        setShowLoginDialog(true); // Open login if not logged in
-        setShowProfileDialog(false); // Ensure profile dialog is closed
-        setCurrentView('login'); // Reset view
-        setSignupStep(1); // Reset step
-        setLoginError(null); // Reset error
+        setShowLoginDialog(true);
+        setShowProfileDialog(false);
+        setCurrentView('login');
+        setSignupStep(1);
+        setLoginError(null);
+        resetPhoneVerification();
      }
-  }, [isLoggedIn]); // Add dependency
+  }, [isLoggedIn, resetPhoneVerification]);
 
 
   const openProfileDialog = useCallback(() => {
     if (isLoggedIn) {
         setShowProfileDialog(true);
-        setShowLoginDialog(false); // Ensure login dialog is closed
+        setShowLoginDialog(false);
+        resetPhoneVerification(); // Also reset when opening profile directly
     } else {
-        openLoginDialog(); // Redirect to login if not logged in
+        openLoginDialog();
     }
-  }, [isLoggedIn, openLoginDialog]); // Add dependencies
+  }, [isLoggedIn, openLoginDialog, resetPhoneVerification]);
 
    const handleLoginSubmit = useCallback(async (data: LoginValues, resetForm: UseFormReset<LoginValues>) => {
         await login(data);
-        // Reset only on successful login (handled inside `login` now)
+        // Logic inside login now handles success/failure reset
    }, [login]);
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
@@ -342,6 +437,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentView,
     signupStep,
     loginError,
+    phoneVerificationError, // Expose phone verification error
+    isVerificationSent,
+    isVerifyingCode,
     login,
     signup,
     logout,
@@ -356,6 +454,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleNextStep,
     handlePrevStep,
     handleLogout,
+    sendVerificationCode, // Expose Firebase function
+    verifyCode,           // Expose Firebase function
+    setIsVerificationSent,
+    resetPhoneVerification,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
