@@ -21,7 +21,7 @@ interface User {
 
 // Dummy user data for demonstration
 const DUMMY_EMAIL = "user@ejemplo.com";
-const DUMMY_PASSWORD = "user12345";
+const DUMMY_PASSWORD = "user12345"; // Ensure this matches the login check
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",
@@ -63,9 +63,10 @@ const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
 // Define the profile update data type
-type UpdateProfileData = Omit<User, 'id' | 'email' | 'avatarUrl' | 'initials'> & {
-  firstName: string;
-  lastName: string;
+type UpdateProfileData = Omit<Partial<User>, 'id' | 'email' | 'initials'> & {
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string; // Add optional avatarUrl (string for data URI in simulation)
 };
 
 
@@ -114,6 +115,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 500));
       // For demo: assume not logged in initially
+      // Set user to dummy user for testing logged-in state initially
+      // setUser(dummyUser);
+      // setIsLoggedIn(true);
       setIsLoading(false);
     };
     checkAuth();
@@ -121,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async (credentials: LoginValues) => {
     // --- SIMULATED LOGIN LOGIC ---
-    setLoginError(null);
+    setLoginError(null); // Clear previous errors
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
@@ -139,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
     // --- END SIMULATED LOGIN LOGIC ---
     // TODO: Replace with actual backend call
-  }, [toast]); // Removed dummyUser from dependency array as it's constant
+  }, [toast]);
 
 
    const signup = useCallback(async (details: SignupValues) => {
@@ -193,12 +197,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
           const updatedUser: User = {
               ...user,
-              name: `${data.firstName} ${data.lastName}`,
-              initials: `${data.firstName[0]}${data.lastName[0]}`,
+              name: (data.firstName && data.lastName) ? `${data.firstName} ${data.lastName}` : user.name,
+              initials: (data.firstName && data.lastName) ? `${data.firstName[0]}${data.lastName[0]}` : user.initials,
               phone: data.phone || user.phone,
               country: data.country || user.country,
               dob: data.dob || user.dob,
-              // Email cannot be changed here
+              avatarUrl: data.avatarUrl || user.avatarUrl, // Update avatarUrl if provided
           };
           setUser(updatedUser); // Update the user state
            toast({
@@ -244,11 +248,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await login(data);
         // Reset form only if login was successful (no error)
         // Wait a tick to allow state update before checking loginError
-        await new Promise(resolve => setTimeout(resolve, 0));
-        if (!loginError) {
-             resetForm();
-        }
-   }, [login, loginError]); // Add loginError dependency
+        // Removed timeout and direct check of loginError as it might not update in time
+        // Error display is now handled directly in the form based on loginError state.
+   }, [login]); // Removed loginError dependency
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
        signup(data).then(() => {
