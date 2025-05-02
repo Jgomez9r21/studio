@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import type React from "react";
@@ -25,12 +23,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger, // Import DialogTrigger
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { es } from 'date-fns/locale'; // Import Spanish locale
 import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -62,10 +61,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn } from "lucide-react";
-import { SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Toaster } from "@/components/ui/toaster";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 
 // Define Category types with explicit icon typing
@@ -77,7 +73,7 @@ interface Category {
 // Service Categories
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Reserva Deportiva', icon: Dumbbell },
+  { name: 'Instalación Deportiva', icon: Dumbbell }, // Changed from Reserva Deportiva
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -89,7 +85,7 @@ const categorias: Category[] = [
   { name: 'Redacción & Traducción', icon: Edit },
   { name: 'Música & Audio', icon: Music },
   { name: 'Finanzas', icon: DollarSign },
-  { name: 'Servicios de IA', icon: Bot },
+  // { name: 'Servicios de IA', icon: Bot }, // Removed as icon might not exist
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
@@ -99,44 +95,10 @@ const categorias: Category[] = [
 // Featured Services for Carousel
 const featuredServices = [
   { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1', dataAiHint: "web development code" },
-  { id: 'f2', title: 'Reserva de Cancha de Tenis', description: 'Encuentra y reserva tu hora.', category: 'Reserva Deportiva', image: 'https://picsum.photos/400/300?random=2', dataAiHint: "tennis court" },
+  { id: 'f2', title: 'Reserva de Cancha de Tenis', description: 'Encuentra y reserva tu hora.', category: 'Instalación Deportiva', image: 'https://picsum.photos/400/300?random=2', dataAiHint: "tennis court" },
   { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3', dataAiHint: "logo design graphic" },
   { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4', dataAiHint: "language class conversation" },
   { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5', dataAiHint: "electrician repair home" },
-];
-
-// Navigation Items (centralized) - Also used in LandingPage for mobile sidebar
-const navegacion = [
-  {
-    title: "Inicio",
-    href: "/",
-    icon: Home,
-  },
-  {
-    title: "Buscar Talento",
-    href: "/find-talents",
-    icon: Users,
-  },
-  {
-    title: "Publicar un Trabajo",
-    href: "/post-job",
-    icon: UserPlus,
-  },
-  {
-    title: "Reservar un Servicio",
-    href: "/book-service",
-    icon: Briefcase,
-  },
-  {
-    title: "Facturación",
-    href: "/billing",
-    icon: CreditCard,
-  },
-  {
-    title: "Configuración",
-    href: "/settings",
-    icon: Settings,
-  },
 ];
 
 
@@ -160,7 +122,7 @@ function LandingPageContent() {
         }));
         setListings(updatedData);
       } catch (error) {
-        console.error("Failed to fetch service listings:", error);
+        console.error("Fallo al obtener listados de servicios:", error);
       }
     };
 
@@ -198,33 +160,42 @@ function LandingPageContent() {
       {/* Featured Services Carousel */}
       <section className="mb-8 px-4 md:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold mb-4">Servicios Destacados</h2>
-        <Carousel
+         <Carousel
           opts={{
             align: "start",
-            loop: true,
+             loop: true, // Enable looping
           }}
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {featuredServices.map((service) => (
-              <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"> {/* Adjust basis for responsiveness */}
                 <div className="p-1">
-                  <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                  <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col"> {/* Ensure cards have height */}
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
                        <img src={service.image} alt={service.title} className="object-cover w-full h-full" data-ai-hint={service.dataAiHint} />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                        <div className="absolute bottom-0 left-0 p-4">
                          <CardTitle className="text-lg font-semibold text-white mb-1">{service.title}</CardTitle>
-                         <CardDescription className="text-sm text-primary-foreground/80">{service.description}</CardDescription>
+                         <CardDescription className="text-sm text-primary-foreground/80 line-clamp-2">{service.description}</CardDescription> {/* Added line-clamp */}
                        </div>
                     </CardContent>
+                    {/* Optional: Add a footer or actions if needed */}
+                    {/* <CardFooter className="p-2 pt-2 border-t">
+                      <Button size="sm" variant="secondary" className="w-full">Ver Más</Button>
+                    </CardFooter> */}
                   </Card>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
-          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+           {/* Add controls only if there are enough items to scroll */}
+           {featuredServices.length > 1 && (
+             <>
+              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+             </>
+           )}
         </Carousel>
       </section>
 
@@ -253,7 +224,7 @@ function LandingPageContent() {
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
           <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
-              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid for responsiveness */}
                 {filteredListings.map(listing => (
                   <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
                     <CardHeader>
@@ -303,7 +274,7 @@ function LandingPageContent() {
                                     )}
                                   >
                                     <CalendarIcon className="mr-2 h-4 w-4"/>
-                                    {date ? format(date, "PPP") : <span>Elige una fecha</span>}
+                                    {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
                                   </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="start">
@@ -316,6 +287,7 @@ function LandingPageContent() {
                                      captionLayout="dropdown-buttons" // Ensure dropdowns are enabled
                                      fromYear={1900}
                                      toYear={new Date().getFullYear()}
+                                     locale={es} // Set locale to Spanish
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -372,7 +344,7 @@ export default function Page() {
   return (
     <AppLayout>
       <LandingPageContent />
+       <Toaster /> {/* Ensure Toaster is included */}
     </AppLayout>
   );
 }
-

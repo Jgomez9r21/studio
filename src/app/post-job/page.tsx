@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import type React from 'react';
@@ -38,7 +36,7 @@ interface Category {
 
 // Service Categories - Reuse from page.tsx for consistency
 const categorias: Category[] = [
-  { name: 'Reserva Deportiva', icon: Dumbbell },
+  { name: 'Instalación Deportiva', icon: Dumbbell },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -173,7 +171,7 @@ function ServicePublicationForm() {
         Promise.all(newFiles.map(readFile)).then(previews => {
             setPreviewImages(previews);
         }).catch(error => {
-             console.error("Error generating image previews:", error);
+             console.error("Error generando vistas previas de imágenes:", error);
              toast({ title: "Error", description: "No se pudieron generar las vistas previas de las imágenes.", variant: "destructive" });
         });
     };
@@ -407,4 +405,3 @@ const PostJob = () => {
 };
 
 export default PostJob;
-

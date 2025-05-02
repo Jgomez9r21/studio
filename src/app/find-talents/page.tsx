@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -101,7 +100,7 @@ const dummyTalents = [
 
 // Available categories for filtering (reuse from other pages if possible)
 const categories = [
-  'Todos', 'Entrenador Personal', 'Tecnología', 'Profesores', 'Contratista', 'Diseñadores', 'Mantenimiento Hogar', 'Marketing Digital', 'Video & Animación', 'Redacción & Traducción', 'Música & Audio', 'Finanzas', 'Crecimiento Personal', 'Datos', 'Fotografía',
+  'Todos', 'Instalación Deportiva', 'Entrenador Personal', 'Tecnología', 'Profesores', 'Contratista', 'Diseñadores', 'Mantenimiento Hogar', 'Marketing Digital', 'Video & Animación', 'Redacción & Traducción', 'Música & Audio', 'Finanzas', 'Crecimiento Personal', 'Datos', 'Fotografía',
 ];
 
 
@@ -302,4 +301,3 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
-

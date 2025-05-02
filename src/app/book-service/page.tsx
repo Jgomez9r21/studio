@@ -1,6 +1,5 @@
 
-
-import React from 'react';
+import type React from 'react';
 import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 
 const BookServiceContent = () => {
@@ -22,4 +21,3 @@ const BookService = () => {
 };
 
 export default BookService;
-

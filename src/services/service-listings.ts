@@ -1,33 +1,33 @@
 /**
- * Represents a service listing with details like description, rates, and availability.
+ * Representa un listado de servicio con detalles como descripción, tarifas y disponibilidad.
  */
 export interface ServiceListing {
   /**
-   * The unique identifier for the service listing.
+   * El identificador único para el listado de servicio.
    */
   id: string;
   /**
-   * The title or name of the service.
+   * El título o nombre del servicio.
    */
   title: string;
   /**
-   * A detailed description of the service.
+   * Una descripción detallada del servicio.
    */
   description: string;
   /**
-   * The hourly or fixed rate for the service.
+   * La tarifa por hora o fija del servicio.
    */
   rate: number;
   /**
-   * An array of available time slots for booking the service.
+   * Un array de horarios disponibles para reservar el servicio.
    */
   availability: string[];
   /**
-   * The category of the service (e.g., 'Fitness', 'Tutoring', 'Home Maintenance').
+   * La categoría del servicio (e.g., 'Fitness', 'Tutoría', 'Mantenimiento del Hogar').
    */
   category: string;
   /**
-   * The location where the service is provided.
+   * La ubicación donde se provee el servicio.
    */
   location: string;
 }
@@ -49,7 +49,7 @@ export async function getServiceListings(category?: string, location?: string): 
       description: 'Sesiones de entrenamiento personalizadas para ayudarte a alcanzar tus metas de fitness.',
       rate: 50,
       availability: ['Lunes 9:00-10:00', 'Miércoles 18:00-19:00'],
-      category: 'Reserva Deportiva', // Changed from 'Deporte'
+      category: 'Instalación Deportiva', // Changed from 'Deporte'
       location: 'Gimnasio Local'
     },
     {
@@ -121,7 +121,7 @@ export async function getServiceListings(category?: string, location?: string): 
         description: 'Alquila una cancha de césped sintético para tu partido con amigos.',
         rate: 45,
         availability: ['Martes 20:00-21:00', 'Jueves 21:00-22:00', 'Sábado 16:00-17:00'],
-        category: 'Reserva Deportiva',
+        category: 'Instalación Deportiva',
         location: 'Complejo Deportivo Norte'
      },
     // Add more listings for other categories as needed

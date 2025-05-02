@@ -1,7 +1,9 @@
+
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import { Body } from '@/layout/app';
+import { SidebarProvider } from '@/components/ui/sidebar'; // Import SidebarProvider
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -15,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'sportoffice', // Changed from SkillHub Connect
-  description: 'Connect with local service providers and book services with ease.',
+  description: 'Conéctate con proveedores de servicios locales y reserva servicios con facilidad.', // Translated description
 };
 
 export default function RootLayout({
@@ -24,11 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es"> {/* Changed language to Spanish */}
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <Body>
-            {children}
-        </Body>
+       <SidebarProvider> {/* Wrap with SidebarProvider */}
+          <Body>
+              {children}
+          </Body>
+        </SidebarProvider>
       </body>
     </html>
   );

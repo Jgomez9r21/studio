@@ -1,6 +1,5 @@
 
-
-import React from 'react';
+import type React from 'react';
 import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 
 const BillingContent = () => {
@@ -23,4 +22,3 @@ const Billing = () => {
 };
 
 export default Billing;
-

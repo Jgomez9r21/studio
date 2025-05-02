@@ -1,7 +1,7 @@
 "use client";
 
 import type React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +27,7 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns"; // Import getYear
+import { es } from 'date-fns/locale'; // Import Spanish locale
 import {
   Select,
   SelectContent,
@@ -41,7 +42,7 @@ const profileFormSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(50, "El nombre no puede tener más de 50 caracteres."),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres.").max(50, "El apellido no puede tener más de 50 caracteres."),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Basic phone validation, allow empty
-  country: z.string().min(2, "Selecciona un país."),
+  country: z.string().min(1, "Selecciona un país."), // Require country selection
   dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
   email: z.string().email("Correo electrónico inválido."),
 });
@@ -81,7 +82,27 @@ function ProfileForm() {
     mode: "onChange",
   });
 
-  // TODO: Add useEffect here to fetch user data and populate the form if the user is logged in
+  // Simulate fetching user data after mount
+  useEffect(() => {
+    // In a real app, fetch user data from your backend/auth provider
+    const fetchUserData = async () => {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Dummy data for demonstration
+      const userData: ProfileFormValues = {
+        firstName: "Usuario",
+        lastName: "Ejemplo",
+        phone: "+1234567890",
+        country: "CO", // Example: Colombia
+        dob: new Date(1990, 5, 15), // Example date
+        email: "usuario@ejemplo.com",
+      };
+      // Populate the form with fetched data
+      form.reset(userData);
+    };
+
+    fetchUserData();
+  }, [form]); // Dependency array includes form to ensure reset works correctly
 
   function onSubmit(data: ProfileFormValues) {
      // TODO: Implement actual data saving logic here
@@ -151,7 +172,7 @@ function ProfileForm() {
                 render={({ field }) => (
                 <FormItem>
                     <FormLabel>País</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}> {/* Use value prop for controlled Select */}
                     <FormControl>
                         <SelectTrigger>
                         <SelectValue placeholder="Selecciona tu país" />
@@ -190,7 +211,7 @@ function ProfileForm() {
                         )}
                       >
                         {field.value ? (
-                          format(field.value, "PPP")
+                          format(field.value, "PPP", { locale: es }) // Format date in Spanish
                         ) : (
                           <span>Seleccionar fecha</span> // Updated placeholder
                         )}
@@ -210,6 +231,7 @@ function ProfileForm() {
                       captionLayout="dropdown-buttons" // Enable dropdowns
                       fromYear={1900} // Set the start year
                       toYear={currentYear} // Set the end year to the current year
+                      locale={es} // Set locale to Spanish
                     />
                   </PopoverContent>
                 </Popover>
@@ -238,7 +260,10 @@ function ProfileForm() {
         </div>
 
 
-        <Button type="submit">Actualizar Perfil</Button>
+        <Button type="submit" disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+             {form.formState.isSubmitting ? "Actualizando..." : "Actualizar Perfil"}
+         </Button>
+
       </form>
     </Form>
   );
