@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
 
     // Check against the dummyUser email and the defined password
-    if (credentials.email === dummyUser.email && credentials.password === DUMMY_PASSWORD) {
+    if (credentials.email === DUMMY_EMAIL && credentials.password === DUMMY_PASSWORD) {
       setUser(dummyUser);
       setIsLoggedIn(true);
       setShowLoginDialog(false);
