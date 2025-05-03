@@ -12,7 +12,7 @@ import {
   type ConfirmationResult,
   type Auth
 } from 'firebase/auth';
-//import { auth as firebaseAuth } from '@/lib/firebase'; // Import initialized auth
+import { auth as firebaseAuth } from '@/lib/firebase'; // Import initialized auth
 
 // Define user type
 interface User {
@@ -545,3 +545,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+    
