@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { z } from "zod";
 import {
   Sidebar,
   SidebarContent,
@@ -70,9 +70,9 @@ const navegacion = [
     icon: UserPlus,
   },
   {
-    title: "Reservar Servicio",
+    title: "Servicios Pendientes", // Changed from "Reservar Servicio"
     href: "/book-service",
-    icon: Briefcase,
+    icon: Briefcase, // Keep Briefcase or change if needed
   },
   {
     title: "Facturación",
@@ -129,9 +129,9 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
-  lastName: z.string().min(2, "Apellido debe tener al least 2 caracteres."),
+  lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número de teléfono inválido.").optional().or(z.literal("")), // Updated validation
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")), // Updated validation
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
@@ -238,8 +238,8 @@ export default function AppLayout({
      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
            <div className="p-6"> {/* Padding inside ScrollArea */}
-              <DialogHeader className="mb-4">
-                <DialogTitle>{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
+              <DialogHeader className="mb-4 text-center">
+                <DialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
                 <DialogDescription>
                   {currentView === 'login'
                     ? 'Ingresa tu correo y contraseña para continuar.'
@@ -259,10 +259,6 @@ export default function AppLayout({
                                    <Input
                                      placeholder="tu@correo.com"
                                      {...field}
-                                     onChange={(e) => {
-                                        field.onChange(e);
-                                        // Clear error on change - handled in context now
-                                     }}
                                    />
                                  </FormControl>
                                  <FormMessage />
@@ -280,10 +276,6 @@ export default function AppLayout({
                                      type="password"
                                      placeholder="Tu contraseña"
                                      {...field}
-                                       onChange={(e) => {
-                                        field.onChange(e);
-                                        // Clear error on change - handled in context now
-                                     }}
                                     />
                                  </FormControl>
                                  {loginError && <p className="text-sm font-medium text-destructive">{loginError}</p>}
@@ -414,7 +406,7 @@ export default function AppLayout({
 
                           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
                              <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
-                                {signupStep === 1 ? '¿Ya tienes cuenta? Ingresar' : '' /* Hide on step 2 */}
+                                ¿Ya tienes cuenta? Ingresar
                              </Button>
                              <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto justify-end">
                                  {signupStep === 2 && (
