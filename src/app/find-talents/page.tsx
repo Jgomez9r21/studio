@@ -191,7 +191,7 @@ const FindTalentsContent = () => {
              // setMinRating(0);
              // setMaxRate(200);
              setIsFiltersOpen(false); // Close sheet after applying/viewing
-         }} className="w-full md:hidden">
+         }} className="w-full md:hidden"> {/* Keep hidden on desktop inside the sheet */}
              Mostrar Resultados
          </Button>
      </div>
@@ -213,14 +213,16 @@ const FindTalentsContent = () => {
                 />
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             </div>
-             {/* Mobile Filters Trigger */}
+             {/* Filters Trigger (visible on all screens, functionality tied to Sheet on mobile) */}
              <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
                  <SheetTrigger asChild>
-                    <Button variant="outline" className="md:hidden w-full">
+                    {/* Adjusted width for mobile, kept md:w-auto */}
+                    <Button variant="outline" className="w-full md:w-auto flex-shrink-0">
                        <Filter className="mr-2 h-4 w-4" /> Filtros
                      </Button>
                  </SheetTrigger>
-                 <SheetContent side="left" className="w-full max-w-xs p-0">
+                 {/* Sheet content remains mobile-specific in effect because desktop has the aside */}
+                 <SheetContent side="left" className="w-full max-w-xs p-0 md:hidden"> {/* Explicitly hide sheet content on desktop */}
                     <SheetHeader className='p-4 border-b'>
                       <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
