@@ -107,7 +107,7 @@ const categories = [
 
 const FindTalentsContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Todos'); // Default to 'Todos'
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
   const [maxRate, setMaxRate] = useState(200); // Example max rate
@@ -117,7 +117,8 @@ const FindTalentsContent = () => {
   // Filter logic - kept as is
   const filteredTalents = dummyTalents.filter(talent => {
     const matchesCategory = selectedCategory === 'Todos' || talent.category === selectedCategory;
-    const matchesSearch = talent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = searchQuery === '' || // Show all if search is empty
+                          talent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           talent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           talent.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesLocation = locationFilter === '' || talent.location.toLowerCase().includes(locationFilter.toLowerCase());
@@ -127,7 +128,7 @@ const FindTalentsContent = () => {
     return matchesCategory && matchesSearch && matchesLocation && matchesRating && matchesRate;
   });
 
-  // Component for rendering filters content (used in sheet and sidebar)
+  // Component for rendering filters content (used in sheet)
   const FiltersContent = () => (
      <div className="space-y-6 p-4"> {/* Adjusted padding */}
          <div>
@@ -187,46 +188,53 @@ const FindTalentsContent = () => {
                  className="w-full mt-1"
              />
          </div>
-          {/* Apply Filters button for larger screens (optional, clicking outside sheet also works) */}
-          {/* <Button className="w-full hidden md:block" onClick={() => setIsFiltersOpen(false)}>Aplicar Filtros</Button> */}
+         {/* Removed the extra close button from here */}
      </div>
   );
 
 
   return (
     <div className="flex flex-col md:flex-row h-full">
-      {/* Filters Sidebar/Sheet Trigger Area */}
-      <div className="sticky top-0 z-10 md:static md:z-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b md:border-b-0 md:border-r p-4 flex items-center justify-between md:hidden">
-        <h1 className="text-xl font-semibold">Buscar Talento</h1>
-        {/* Filters Trigger - Only on mobile */}
-        <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
-              <Filter className="mr-2 h-4 w-4" /> Filtros
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-            <SheetHeader className='p-4 border-b flex-shrink-0'>
-              <SheetTitle>Filtros</SheetTitle>
-            </SheetHeader>
-            <ScrollArea className="flex-grow">
-              <FiltersContent />
-            </ScrollArea>
-             {/* Close button for mobile sheet - Moved here, outside FiltersContent */}
-             <div className="p-4 border-t mt-auto">
-               <SheetClose asChild>
-                 <Button className="w-full">Mostrar Resultados</Button>
-               </SheetClose>
-             </div>
-          </SheetContent>
-        </Sheet>
-      </div>
 
-      {/* Desktop Filters Sidebar */}
-      <aside className="hidden md:block w-64 lg:w-72 border-r p-4 lg:p-6 overflow-y-auto flex-shrink-0 bg-muted/40">
-          <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-           <FiltersContent />
-      </aside>
+       {/* Moved Sheet component outside of the mobile-only header */}
+       <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+           {/* Desktop Filters Sidebar Button */}
+           <aside className="hidden md:block w-auto border-r p-4 lg:p-6 flex-shrink-0 bg-muted/40">
+               <SheetTrigger asChild>
+                   <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                       <Filter className="h-4 w-4" />
+                       <span>Filtros</span>
+                   </Button>
+               </SheetTrigger>
+           </aside>
+
+           {/* Sheet Content - Used for both mobile and desktop triggers */}
+           <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+               <SheetHeader className='p-4 border-b flex-shrink-0'>
+                   <SheetTitle>Filtros</SheetTitle>
+               </SheetHeader>
+               <ScrollArea className="flex-grow">
+                   <FiltersContent />
+               </ScrollArea>
+               <div className="p-4 border-t mt-auto">
+                   <SheetClose asChild>
+                       <Button className="w-full">Mostrar Resultados</Button>
+                   </SheetClose>
+               </div>
+           </SheetContent>
+       </Sheet>
+
+
+      {/* Mobile Header / Sheet Trigger Area */}
+       <div className="sticky top-0 z-10 md:static md:z-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b md:border-b-0 md:border-r p-4 flex items-center justify-between md:hidden">
+           <h1 className="text-xl font-semibold">Buscar Talento</h1>
+           {/* Mobile Filters Trigger */}
+           <SheetTrigger asChild>
+               <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
+                   <Filter className="mr-2 h-4 w-4" /> Filtros
+               </Button>
+           </SheetTrigger>
+       </div>
 
       {/* Talent Results Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
