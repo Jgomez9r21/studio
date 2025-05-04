@@ -111,7 +111,8 @@ const FindTalentsContent = () => {
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState<number>(0);
   const [maxRate, setMaxRate] = useState<number>(200); // Example max rate
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false); // For mobile filters sheet
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false); // For filters sheet
+
 
   // Filter logic - kept as is
   const filteredTalents = dummyTalents.filter(talent => {
@@ -126,10 +127,9 @@ const FindTalentsContent = () => {
     return matchesCategory && matchesSearch && matchesLocation && matchesRating && matchesRate;
   });
 
-  // Component for rendering filters content (used in sidebar and mobile sheet)
-  // Removed the `isMobile` prop as the button is removed
+  // Component for rendering filters content (used in sheet)
   const FiltersContent = () => (
-     <div className="space-y-6 p-4 md:p-0"> {/* Adjusted padding */}
+     <div className="space-y-6 p-4"> {/* Adjusted padding */}
          <div>
            <Label htmlFor="category-filter" className="text-sm font-medium">Categoría</Label> {/* Styled label */}
            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -186,8 +186,10 @@ const FindTalentsContent = () => {
                  className="w-full mt-1"
              />
          </div>
-
-         {/* Removed the conditional "Mostrar Resultados" button */}
+         {/* Close button for mobile sheet */}
+          <SheetClose asChild>
+             <Button className="w-full">Mostrar Resultados</Button>
+         </SheetClose>
      </div>
   );
 
@@ -195,9 +197,9 @@ const FindTalentsContent = () => {
   return (
     <div className="flex flex-col h-full">
         {/* Search Header */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-4 md:p-6 flex flex-col md:flex-row items-center gap-2 md:gap-4"> {/* Adjusted gap */}
-            <h1 className="text-xl md:text-2xl font-semibold hidden md:block mr-4">Buscar Talento</h1> {/* Adjusted size */}
-            <div className="relative w-full md:flex-1">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b p-4 md:p-6 flex items-center gap-2 md:gap-4"> {/* Adjusted gap */}
+            <h1 className="text-xl md:text-2xl font-semibold hidden md:block mr-4 flex-shrink-0">Buscar Talento</h1> {/* Adjusted size */}
+            <div className="relative flex-1">
                 <Input
                 type="search"
                 placeholder="Buscar por nombre, título o habilidad..."
@@ -207,82 +209,80 @@ const FindTalentsContent = () => {
                 />
                 <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" /> {/* Adjusted size */}
             </div>
-             {/* Filters Trigger */}
+             {/* Filters Trigger - Visible on all screens */}
              <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
                  <SheetTrigger asChild>
-                    <Button variant="outline" className="w-full mt-2 md:mt-0 md:w-auto flex-shrink-0 h-9 md:h-10 text-xs sm:text-sm px-3 md:px-4"> {/* Adjusted size, text, padding */}
+                    <Button variant="outline" className="flex-shrink-0 h-9 md:h-10 text-xs sm:text-sm px-3 md:px-4"> {/* Adjusted size, text, padding, removed width constraints */}
                        <Filter className="mr-2 h-4 w-4" /> Filtros
                      </Button>
                  </SheetTrigger>
-                 {/* Sheet content for mobile */}
-                 <SheetContent side="left" className="w-[280px] p-0 md:hidden"> {/* Adjusted width, hide on md+, padding removed */}
+                 {/* Sheet content for filters */}
+                 <SheetContent side="left" className="w-[280px] p-0"> {/* Adjusted width, padding removed */}
                     <SheetHeader className='p-4 border-b'>
                       <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100%-4rem)]"> {/* Adjust height based on header */}
-                        <FiltersContent /> {/* Render filters without props */}
+                        <FiltersContent /> {/* Render filters */}
                     </ScrollArea>
                  </SheetContent>
             </Sheet>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
-            {/* Desktop Filters Sidebar */}
-            <aside className="hidden md:block w-64 lg:w-72 border-r p-4 lg:p-6 overflow-y-auto flex-shrink-0 bg-muted/40"> {/* Added background */}
-                <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-                 <FiltersContent /> {/* Render filters */}
-            </aside>
+        {/* Removed Desktop Filters Sidebar */}
+        {/* <aside className="hidden md:block w-64 lg:w-72 border-r p-4 lg:p-6 overflow-y-auto flex-shrink-0 bg-muted/40">
+            <h2 className="text-lg font-semibold mb-4">Filtros</h2>
+             <FiltersContent />
+        </aside> */}
 
-            {/* Talent Results Area */}
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                {filteredTalents.length > 0 ? (
-                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Responsive grid */}
-                    {filteredTalents.map(talent => (
-                    <Card key={talent.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                         <CardHeader className="flex flex-row items-start gap-3 p-4"> {/* Reduced gap */}
-                            <Avatar className="h-12 w-12 border flex-shrink-0"> {/* Adjusted size */}
-                                <AvatarImage src={talent.image} alt={talent.name} data-ai-hint={talent.dataAiHint} />
-                                <AvatarFallback>{talent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                             <div className="flex-1 min-w-0"> {/* Added min-w-0 for text wrap */}
-                                <CardTitle className="text-base md:text-lg truncate">{talent.name}</CardTitle> {/* Added truncate */}
-                                <CardDescription className="text-xs sm:text-sm line-clamp-2">{talent.title}</CardDescription> {/* Added line-clamp */}
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                   <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{talent.location}</span> {/* Added truncate */}
-                                </div>
-                             </div>
-                        </CardHeader>
-                        <CardContent className="px-4 pb-3 flex-grow space-y-2"> {/* Added space-y */}
-                             <div className="flex items-center gap-1">
-                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
-                                <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
-                                <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
-                             </div>
-                            <div className="flex flex-wrap gap-1">
-                                {talent.skills.slice(0, 3).map(skill => ( // Limit visible skills
-                                <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge> // Adjusted font weight
-                                ))}
-                                {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>} {/* Adjusted font weight */}
+        {/* Talent Results Area - Now occupies full width */}
+         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+            {filteredTalents.length > 0 ? (
+             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"> {/* Adjusted grid for more columns */}
+                {filteredTalents.map(talent => (
+                <Card key={talent.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                     <CardHeader className="flex flex-row items-start gap-3 p-4"> {/* Reduced gap */}
+                        <Avatar className="h-12 w-12 border flex-shrink-0"> {/* Adjusted size */}
+                            <AvatarImage src={talent.image} alt={talent.name} data-ai-hint={talent.dataAiHint} />
+                            <AvatarFallback>{talent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                         <div className="flex-1 min-w-0"> {/* Added min-w-0 for text wrap */}
+                            <CardTitle className="text-base md:text-lg truncate">{talent.name}</CardTitle> {/* Added truncate */}
+                            <CardDescription className="text-xs sm:text-sm line-clamp-2">{talent.title}</CardDescription> {/* Added line-clamp */}
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                               <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{talent.location}</span> {/* Added truncate */}
                             </div>
-                            <p className="text-sm text-muted-foreground pt-1"> {/* Added padding-top */}
-                                Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
-                            </p>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-0">
-                             <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button> {/* Adjusted size */}
-                        </CardFooter>
-                    </Card>
-                    ))}
-                </div>
-                ) : (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
-                    <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
-                    <p className="text-lg font-medium">No se encontraron talentos</p>
-                    <p className="text-sm">Intenta ajustar tus filtros o términos de búsqueda.</p>
-                </div>
-                )}
-            </main>
-        </div>
+                         </div>
+                    </CardHeader>
+                    <CardContent className="px-4 pb-3 flex-grow space-y-2"> {/* Added space-y */}
+                         <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                            <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
+                            <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
+                         </div>
+                        <div className="flex flex-wrap gap-1">
+                            {talent.skills.slice(0, 3).map(skill => ( // Limit visible skills
+                            <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge> // Adjusted font weight
+                            ))}
+                            {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>} {/* Adjusted font weight */}
+                        </div>
+                        <p className="text-sm text-muted-foreground pt-1"> {/* Added padding-top */}
+                            Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
+                        </p>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0">
+                         <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button> {/* Adjusted size */}
+                    </CardFooter>
+                </Card>
+                ))}
+            </div>
+            ) : (
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
+                <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
+                <p className="text-lg font-medium">No se encontraron talentos</p>
+                <p className="text-sm">Intenta ajustar tus filtros o términos de búsqueda.</p>
+            </div>
+            )}
+        </main>
     </div>
   );
 };
@@ -298,5 +298,3 @@ const FindTalents = () => {
 
 export default FindTalents;
 
-
-    
