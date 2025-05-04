@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -194,110 +193,109 @@ const FindTalentsContent = () => {
 
 
   return (
-    <div className="flex flex-col md:flex-row h-full">
+    // Wrap the entire layout within the Sheet component
+    <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+      <div className="flex flex-col md:flex-row h-full">
 
-       {/* Moved Sheet component outside of the mobile-only header */}
-       <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-           {/* Desktop Filters Sidebar Button */}
-           <aside className="hidden md:block w-auto border-r p-4 lg:p-6 flex-shrink-0 bg-muted/40">
-               <SheetTrigger asChild>
-                   <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                       <Filter className="h-4 w-4" />
-                       <span>Filtros</span>
-                   </Button>
-               </SheetTrigger>
-           </aside>
+        {/* Desktop Filters Sidebar Button (inside Sheet) */}
+        <aside className="hidden md:block w-auto border-r p-4 lg:p-6 flex-shrink-0 bg-muted/40">
+          <SheetTrigger asChild>
+            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+              <Filter className="h-4 w-4" />
+              <span>Filtros</span>
+            </Button>
+          </SheetTrigger>
+        </aside>
 
-           {/* Sheet Content - Used for both mobile and desktop triggers */}
-           <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-               <SheetHeader className='p-4 border-b flex-shrink-0'>
-                   <SheetTitle>Filtros</SheetTitle>
-               </SheetHeader>
-               <ScrollArea className="flex-grow">
-                   <FiltersContent />
-               </ScrollArea>
-               <div className="p-4 border-t mt-auto">
-                   <SheetClose asChild>
-                       <Button className="w-full">Mostrar Resultados</Button>
-                   </SheetClose>
-               </div>
-           </SheetContent>
-       </Sheet>
+        {/* Mobile Header / Sheet Trigger Area (inside Sheet) */}
+        <div className="sticky top-0 z-10 md:static md:z-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b md:border-b-0 md:border-r p-4 flex items-center justify-between md:hidden">
+          <h1 className="text-xl font-semibold">Buscar Talento</h1>
+          {/* Mobile Filters Trigger (inside Sheet) */}
+          <SheetTrigger asChild>
+            <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
+              <Filter className="mr-2 h-4 w-4" /> Filtros
+            </Button>
+          </SheetTrigger>
+        </div>
 
-
-      {/* Mobile Header / Sheet Trigger Area */}
-       <div className="sticky top-0 z-10 md:static md:z-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b md:border-b-0 md:border-r p-4 flex items-center justify-between md:hidden">
-           <h1 className="text-xl font-semibold">Buscar Talento</h1>
-           {/* Mobile Filters Trigger */}
-           <SheetTrigger asChild>
-               <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
-                   <Filter className="mr-2 h-4 w-4" /> Filtros
-               </Button>
-           </SheetTrigger>
-       </div>
-
-      {/* Talent Results Area */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-         {/* Search Input - Moved here for better layout flow */}
-         <div className="mb-6 relative">
-             <Input
-                 type="search"
-                 placeholder="Buscar por nombre, título o habilidad..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="rounded-md shadow-sm pr-10 h-10 w-full text-sm"
-             />
-             <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-         </div>
+        {/* Talent Results Area (inside Sheet) */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          {/* Search Input - Moved here for better layout flow */}
+          <div className="mb-6 relative">
+            <Input
+              type="search"
+              placeholder="Buscar por nombre, título o habilidad..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="rounded-md shadow-sm pr-10 h-10 w-full text-sm"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          </div>
 
           {filteredTalents.length > 0 ? (
-             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid */}
-                {filteredTalents.map(talent => (
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid */}
+              {filteredTalents.map(talent => (
                 <Card key={talent.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                     <CardHeader className="flex flex-row items-start gap-3 p-4">
-                        <Avatar className="h-12 w-12 border flex-shrink-0">
-                            <AvatarImage src={talent.image} alt={talent.name} data-ai-hint={talent.dataAiHint} />
-                            <AvatarFallback>{talent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                         <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base md:text-lg truncate">{talent.name}</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm line-clamp-2">{talent.title}</CardDescription>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                               <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{talent.location}</span>
-                            </div>
-                         </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pb-3 flex-grow space-y-2">
-                         <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
-                            <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
-                            <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
-                         </div>
-                        <div className="flex flex-wrap gap-1">
-                            {talent.skills.slice(0, 3).map(skill => (
-                            <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge>
-                            ))}
-                            {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>}
-                        </div>
-                        <p className="text-sm text-muted-foreground pt-1">
-                            Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
-                        </p>
-                    </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                         <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button>
-                    </CardFooter>
+                  <CardHeader className="flex flex-row items-start gap-3 p-4">
+                    <Avatar className="h-12 w-12 border flex-shrink-0">
+                      <AvatarImage src={talent.image} alt={talent.name} data-ai-hint={talent.dataAiHint} />
+                      <AvatarFallback>{talent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base md:text-lg truncate">{talent.name}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm line-clamp-2">{talent.title}</CardDescription>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{talent.location}</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="px-4 pb-3 flex-grow space-y-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                      <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
+                      <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {talent.skills.slice(0, 3).map(skill => (
+                        <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge>
+                      ))}
+                      {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>}
+                    </div>
+                    <p className="text-sm text-muted-foreground pt-1">
+                      Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
+                    </p>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button>
+                  </CardFooter>
                 </Card>
-                ))}
+              ))}
             </div>
-            ) : (
+          ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
-                <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
-                <p className="text-lg font-medium">No se encontraron talentos</p>
-                <p className="text-sm">Intenta ajustar tus filtros o términos de búsqueda.</p>
+              <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
+              <p className="text-lg font-medium">No se encontraron talentos</p>
+              <p className="text-sm">Intenta ajustar tus filtros o términos de búsqueda.</p>
             </div>
-            )}
+          )}
         </main>
-    </div>
+      </div>
+
+      {/* Sheet Content - Used for both mobile and desktop triggers */}
+      <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+        <SheetHeader className='p-4 border-b flex-shrink-0'>
+          <SheetTitle>Filtros</SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="flex-grow">
+          <FiltersContent />
+        </ScrollArea>
+        <div className="p-4 border-t mt-auto">
+          <SheetClose asChild>
+            <Button className="w-full">Mostrar Resultados</Button>
+          </SheetClose>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
