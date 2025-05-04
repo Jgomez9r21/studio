@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -126,7 +127,7 @@ const FindTalentsContent = () => {
     return matchesCategory && matchesSearch && matchesLocation && matchesRating && matchesRate;
   });
 
-  // Component for rendering filters content (used in sheet)
+  // Component for rendering filters content (used in sheet and sidebar)
   const FiltersContent = () => (
      <div className="space-y-6 p-4"> {/* Adjusted padding */}
          <div>
@@ -159,9 +160,9 @@ const FindTalentsContent = () => {
          </div>
 
           <div>
-             <Label htmlFor="rating-filter" className="text-sm font-medium">Valoración Mínima ({minRating.toFixed(1)})</Label> {/* Styled label */}
-              <div className="mt-1"> {/* Removed flex, gap and Star icon */}
-                 {/* <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />  Removed */}
+             <Label htmlFor="rating-filter" className="text-sm font-medium">Valoración Mínima</Label> {/* Removed rating display */}
+              <div className="flex items-center gap-2 mt-1"> {/* Added flex and gap */}
+                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" /> {/* Added Star icon */}
                  <Slider
                      id="rating-filter"
                      min={0}
@@ -171,6 +172,7 @@ const FindTalentsContent = () => {
                      onValueChange={(value) => setMinRating(value[0])}
                      className="w-full"
                  />
+                  <span className="text-xs font-medium w-8 text-right">{minRating.toFixed(1)}</span> {/* Display rating */}
              </div>
          </div>
           <div>
@@ -185,12 +187,8 @@ const FindTalentsContent = () => {
                  className="w-full mt-1"
              />
          </div>
-         {/* Close button for mobile sheet - kept outside the immediate form elements for layout */}
-         <SheetClose asChild>
-             <Button className="w-full md:hidden">Mostrar Resultados</Button>{/* Hidden on md and larger */}
-         </SheetClose>
-          {/* Apply Filters button for larger screens */}
-          <Button className="w-full hidden md:block" onClick={() => setIsFiltersOpen(false)}>Aplicar Filtros</Button>
+          {/* Apply Filters button for larger screens (optional, clicking outside sheet also works) */}
+          {/* <Button className="w-full hidden md:block" onClick={() => setIsFiltersOpen(false)}>Aplicar Filtros</Button> */}
      </div>
   );
 
@@ -214,6 +212,12 @@ const FindTalentsContent = () => {
             <ScrollArea className="flex-grow">
               <FiltersContent />
             </ScrollArea>
+             {/* Close button for mobile sheet - Moved here, outside FiltersContent */}
+             <div className="p-4 border-t mt-auto">
+               <SheetClose asChild>
+                 <Button className="w-full">Mostrar Resultados</Button>
+               </SheetClose>
+             </div>
           </SheetContent>
         </Sheet>
       </div>
@@ -299,3 +303,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+    
