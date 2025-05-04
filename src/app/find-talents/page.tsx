@@ -195,41 +195,31 @@ const FindTalentsContent = () => {
   return (
     // Wrap the entire layout within the Sheet component
     <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-      <div className="flex flex-col md:flex-row h-full">
+      <div className="flex flex-col h-full">
 
-        {/* Desktop Filters Sidebar Button (inside Sheet) */}
-        <aside className="hidden md:block w-auto border-r p-4 lg:p-6 flex-shrink-0 bg-muted/40">
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-              <Filter className="h-4 w-4" />
-              <span>Filtros</span>
-            </Button>
-          </SheetTrigger>
-        </aside>
+        {/* Removed Desktop Filters Sidebar Button */}
+        {/* Removed Mobile Header / Sheet Trigger Area */}
 
-        {/* Mobile Header / Sheet Trigger Area (inside Sheet) */}
-        <div className="sticky top-0 z-10 md:static md:z-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b md:border-b-0 md:border-r p-4 flex items-center justify-between md:hidden">
-          <h1 className="text-xl font-semibold">Buscar Talento</h1>
-          {/* Mobile Filters Trigger (inside Sheet) */}
-          <SheetTrigger asChild>
-            <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
-              <Filter className="mr-2 h-4 w-4" /> Filtros
-            </Button>
-          </SheetTrigger>
-        </div>
-
-        {/* Talent Results Area (inside Sheet) */}
+        {/* Talent Results Area */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          {/* Search Input - Moved here for better layout flow */}
-          <div className="mb-6 relative">
-            <Input
-              type="search"
-              placeholder="Buscar por nombre, título o habilidad..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="rounded-md shadow-sm pr-10 h-10 w-full text-sm"
-            />
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          {/* Search Input and Filters Button Container */}
+          <div className="mb-6 flex flex-col sm:flex-row gap-2 sm:gap-4 items-center">
+            <div className="relative flex-grow w-full">
+              <Input
+                type="search"
+                placeholder="Buscar por nombre, título o habilidad..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="rounded-md shadow-sm pr-10 h-10 w-full text-sm"
+              />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            </div>
+            {/* Filters Trigger Button */}
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex-shrink-0 h-10 w-full sm:w-auto text-sm">
+                <Filter className="mr-2 h-4 w-4" /> Filtros
+              </Button>
+            </SheetTrigger>
           </div>
 
           {filteredTalents.length > 0 ? (
@@ -281,7 +271,7 @@ const FindTalentsContent = () => {
         </main>
       </div>
 
-      {/* Sheet Content - Used for both mobile and desktop triggers */}
+      {/* Sheet Content - Used for filters */}
       <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
         <SheetHeader className='p-4 border-b flex-shrink-0'>
           <SheetTitle>Filtros</SheetTitle>
