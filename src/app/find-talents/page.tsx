@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -126,7 +127,8 @@ const FindTalentsContent = () => {
   });
 
   // Component for rendering filters content (used in sidebar and mobile sheet)
-  const FiltersContent = () => (
+  // Added a `isMobile` prop to conditionally render the close button
+  const FiltersContent = ({ isMobile = false }: { isMobile?: boolean }) => (
      <div className="space-y-6 p-4 md:p-0"> {/* Adjusted padding */}
          <div>
            <Label htmlFor="category-filter" className="text-sm font-medium">Categoría</Label> {/* Styled label */}
@@ -185,10 +187,12 @@ const FindTalentsContent = () => {
              />
          </div>
 
-         {/* Close button for mobile sheet */}
-         <SheetClose asChild>
-             <Button className="w-full md:hidden">Mostrar Resultados</Button>
-         </SheetClose>
+         {/* Conditionally render Close button for mobile sheet */}
+         {isMobile && (
+             <SheetClose asChild>
+                 <Button className="w-full md:hidden">Mostrar Resultados</Button>
+             </SheetClose>
+         )}
      </div>
   );
 
@@ -221,7 +225,7 @@ const FindTalentsContent = () => {
                       <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100%-4rem)]"> {/* Adjust height based on header */}
-                        <FiltersContent />
+                        <FiltersContent isMobile={true} /> {/* Pass isMobile=true */}
                     </ScrollArea>
                  </SheetContent>
             </Sheet>
@@ -231,7 +235,7 @@ const FindTalentsContent = () => {
             {/* Desktop Filters Sidebar */}
             <aside className="hidden md:block w-64 lg:w-72 border-r p-4 lg:p-6 overflow-y-auto flex-shrink-0 bg-muted/40"> {/* Added background */}
                 <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-                 <FiltersContent />
+                 <FiltersContent /> {/* Render without close button */}
             </aside>
 
             {/* Talent Results Area */}
@@ -298,3 +302,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+
