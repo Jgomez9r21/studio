@@ -127,8 +127,8 @@ const FindTalentsContent = () => {
   });
 
   // Component for rendering filters content (used in sidebar and mobile sheet)
-  // Added a `isMobile` prop to conditionally render the close button
-  const FiltersContent = ({ isMobile = false }: { isMobile?: boolean }) => (
+  // Removed the `isMobile` prop as the button is removed
+  const FiltersContent = () => (
      <div className="space-y-6 p-4 md:p-0"> {/* Adjusted padding */}
          <div>
            <Label htmlFor="category-filter" className="text-sm font-medium">Categoría</Label> {/* Styled label */}
@@ -187,12 +187,7 @@ const FindTalentsContent = () => {
              />
          </div>
 
-         {/* Conditionally render Close button for mobile sheet */}
-         {isMobile && (
-             <SheetClose asChild>
-                 <Button className="w-full md:hidden">Mostrar Resultados</Button>
-             </SheetClose>
-         )}
+         {/* Removed the conditional "Mostrar Resultados" button */}
      </div>
   );
 
@@ -225,7 +220,7 @@ const FindTalentsContent = () => {
                       <SheetTitle>Filtros</SheetTitle>
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100%-4rem)]"> {/* Adjust height based on header */}
-                        <FiltersContent isMobile={true} /> {/* Pass isMobile=true */}
+                        <FiltersContent /> {/* Render filters without props */}
                     </ScrollArea>
                  </SheetContent>
             </Sheet>
@@ -235,7 +230,7 @@ const FindTalentsContent = () => {
             {/* Desktop Filters Sidebar */}
             <aside className="hidden md:block w-64 lg:w-72 border-r p-4 lg:p-6 overflow-y-auto flex-shrink-0 bg-muted/40"> {/* Added background */}
                 <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-                 <FiltersContent /> {/* Render without close button */}
+                 <FiltersContent /> {/* Render filters */}
             </aside>
 
             {/* Talent Results Area */}
@@ -303,3 +298,5 @@ const FindTalents = () => {
 
 export default FindTalents;
 
+
+    
