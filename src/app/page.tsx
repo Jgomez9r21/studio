@@ -5,13 +5,14 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
-import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
+import AppLayout from '@/layout/AppLayout';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,16 +21,15 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
+  DialogFooter as ShadDialogFooter, // Renamed to avoid conflict
   DialogHeader,
   DialogTitle,
-  DialogTrigger, // Import DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { es } from 'date-fns/locale'; // Import Spanish locale
+import { es } from 'date-fns/locale';
 import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -40,7 +40,6 @@ import {
   Edit,
   Music,
   DollarSign,
-  Bot,
   Lightbulb,
   Database,
   ImageIcon,
@@ -50,7 +49,8 @@ import {
   School2,
   Dumbbell,
   Palette,
-  HomeIcon as LucideHomeIcon // Renamed to avoid conflict
+  HomeIcon as LucideHomeIcon,
+  Info
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -62,7 +62,8 @@ import {
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import Image from 'next/image'; // Import next/image
+import Image from 'next/image';
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 
 // Define Category types with explicit icon typing
@@ -74,7 +75,7 @@ interface Category {
 // Categorías de servicios
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Instalación Deportiva', icon: Dumbbell }, // Cambiado de Reserva Deportiva
+  { name: 'Instalación Deportiva', icon: Dumbbell },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -118,10 +119,10 @@ function LandingPageContent() {
         const data = await getServiceListings();
         const updatedData = data.map(listing => ({
           ...listing,
-          // Ensure category exists, otherwise default to 'Otros'
           category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
-          // Use existing imageUrl or provide a default/random one
-           imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`
+           imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`,
+           // Ensure imageUrls is an array, even if only from imageUrl
+           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : []),
         }));
         setListings(updatedData);
       } catch (error) {
@@ -169,33 +170,28 @@ function LandingPageContent() {
          <Carousel
           opts={{
             align: "start",
-             loop: true, // Enable looping
+             loop: true,
           }}
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {featuredServices.map((service) => (
-              <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4"> {/* Adjust basis for responsiveness */}
+              <CarouselItem key={service.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                 <div className="p-1">
-                  <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col"> {/* Ensure cards have height */}
+                  <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
                         <Image src={service.image} alt={service.title} layout="fill" objectFit="cover" data-ai-hint={service.dataAiHint} />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                        <div className="absolute bottom-0 left-0 p-4">
                          <CardTitle className="text-lg font-semibold text-white mb-1">{service.title}</CardTitle>
-                         <CardDescription className="text-sm text-primary-foreground/80 line-clamp-2">{service.description}</CardDescription> {/* Added line-clamp */}
+                         <CardDescription className="text-sm text-primary-foreground/80 line-clamp-2">{service.description}</CardDescription>
                        </div>
                     </CardContent>
-                    {/* Optional: Add a footer or actions if needed */}
-                    {/* <CardFooter className="p-2 pt-2 border-t">
-                      <Button size="sm" variant="secondary" className="w-full">Ver Más</Button>
-                    </CardFooter> */}
                   </Card>
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-           {/* Add controls only if there are enough items to scroll */}
            {featuredServices.length > 1 && (
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -226,59 +222,90 @@ function LandingPageContent() {
          </ScrollArea>
 
 
-        {/* Representar contenido para la categoría seleccionada*/}
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
           <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
-              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid for responsiveness */}
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
                   <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
-                     {/* Image Section */}
                      <div className="relative aspect-video w-full overflow-hidden">
                        <Image
-                         src={listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`} // Fallback if imageUrl is missing
+                         src={listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`}
                          alt={listing.title}
                          layout="fill"
                          objectFit="cover"
-                         data-ai-hint={`${listing.category} service`} // Generic hint, refine if possible
+                         data-ai-hint={`${listing.category} service`}
                        />
                      </div>
-                    <CardHeader className="p-4 pb-2"> {/* Adjusted padding */}
+                    <CardHeader className="p-4 pb-2">
                       <CardTitle className="text-lg font-semibold">
                         {listing.title}
                       </CardTitle>
                       <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col p-4 pt-0">
-                      <p className="text-sm text-muted-foreground mb-2 flex-grow">
+                      <p className="text-sm text-muted-foreground mb-2 flex-grow line-clamp-3">
                         {listing.description}
                       </p>
                       <p className="text-sm font-medium mb-1">
                         Tarifa: ${listing.rate} por hora
                       </p>
+                      {listing.professionalName && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Profesional: {listing.professionalName}
+                        </p>
+                      )}
                       <p className="text-sm text-muted-foreground mb-4">
                         Disponibilidad: {listing.availability.join(', ')}
                       </p>
 
-                      {/* Booking Dialog */}
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="outline">Reservar Servicio</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
+                        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+                          <DialogHeader className="p-6 pb-0">
                             <DialogTitle>Reservar {listing.title}</DialogTitle>
                             <DialogDescription>
                               Realiza una solicitud de reserva para programar este servicio.
                             </DialogDescription>
                           </DialogHeader>
-                          <div className="grid gap-4 py-4">
+                          <div className="px-6 py-4 space-y-4">
+                            {listing.imageUrls && listing.imageUrls.length > 0 && (
+                              <Carousel className="w-full rounded-md overflow-hidden shadow-md">
+                                <CarouselContent>
+                                  {listing.imageUrls.map((url, index) => (
+                                    <CarouselItem key={index}>
+                                      <AspectRatio ratio={16 / 9} className="bg-muted">
+                                        <Image
+                                          src={url}
+                                          alt={`${listing.title} - Imagen ${index + 1}`}
+                                          layout="fill"
+                                          objectFit="cover"
+                                          data-ai-hint="service booking image"
+                                        />
+                                      </AspectRatio>
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                                {listing.imageUrls.length > 1 && (
+                                  <>
+                                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                  </>
+                                )}
+                              </Carousel>
+                            )}
+                            {listing.professionalName && (
+                                <div className="flex items-center gap-2 pt-2">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={listing.professionalAvatar || `https://picsum.photos/50/50?random=prof-${listing.id}`} alt={listing.professionalName} data-ai-hint="professional avatar" />
+                                        <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
+                                    </Avatar>
+                                    <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
+                                </div>
+                            )}
                             <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                              <Label htmlFor={`name-${listing.id}`} className="text-left text-sm">Nombre</Label>
-                              <Input id={`name-${listing.id}`} placeholder="Tu Nombre"
-                                     className="rounded-md shadow-sm col-span-1"/>
-                            </div>
-                             <div className="grid grid-cols-[auto_1fr] items-center gap-4">
                               <Label htmlFor={`date-${listing.id}`} className="text-left text-sm">Seleccionar Fecha</Label>
                               <Popover>
                                 <PopoverTrigger asChild>
@@ -300,10 +327,10 @@ function LandingPageContent() {
                                     onSelect={setDate}
                                     disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
                                     initialFocus
-                                     captionLayout="dropdown-buttons" // Ensure dropdowns are enabled
-                                     fromYear={1900} // Allow past years
-                                     toYear={currentYear} // Set current year as max
-                                     locale={es} // Set locale to Spanish
+                                     captionLayout="dropdown-buttons"
+                                     fromYear={currentYear}
+                                     toYear={currentYear + 5} // Allow selection up to 5 years in future
+                                     locale={es}
                                   />
                                 </PopoverContent>
                               </Popover>
@@ -325,17 +352,12 @@ function LandingPageContent() {
                                     </SelectContent>
                                 </Select>
                              </div>
-                            <div className="grid grid-cols-[auto_1fr] items-start gap-4">
-                              <Label htmlFor={`comment-${listing.id}`} className="text-left text-sm pt-1.5">Comentario</Label>
-                              <Textarea id={`comment-${listing.id}`} placeholder="Añade detalles sobre tu solicitud..."
-                                        className="rounded-md shadow-sm col-span-1"/>
-                            </div>
                           </div>
-                          <DialogFooter>
-                            <Button type="submit">
+                          <ShadDialogFooter className="p-6 pt-0">
+                            <Button type="submit" className="w-full">
                               Realizar solicitud de reserva
                             </Button>
-                          </DialogFooter>
+                          </ShadDialogFooter>
                         </DialogContent>
                       </Dialog>
                     </CardContent>
@@ -355,13 +377,11 @@ function LandingPageContent() {
 }
 
 
-// Main Page Component wrapping content with AppLayout
 export default function Page() {
   return (
     <AppLayout>
       <LandingPageContent />
-       <Toaster /> {/* Ensure Toaster is included */}
+       <Toaster />
     </AppLayout>
   );
 }
-
