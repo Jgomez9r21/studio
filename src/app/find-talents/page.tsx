@@ -158,7 +158,7 @@ const FiltersContent = ({
     locationFilter, setLocationFilter,
     minRating, setMinRating,
     maxRate, setMaxRate,
-    onApplyFilters // Callback to close sheet on mobile
+    onApplyFilters // Callback to potentially close sheet or trigger filter application
 }: {
     selectedCategory: string; setSelectedCategory: (cat: string) => void;
     locationFilter: string; setLocationFilter: (loc: string) => void;
@@ -203,7 +203,7 @@ const FiltersContent = ({
          <div className="space-y-2">
              <Label htmlFor="rating-slider">Valoración Mínima</Label>
               <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                 <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                  <Slider
                      id="rating-slider"
                      min={0}
@@ -232,11 +232,14 @@ const FiltersContent = ({
 
          {/* Spacer to push button to bottom */}
           <div className="flex-grow"></div>
-
-         {/* Close button for mobile sheet */}
-          <SheetClose asChild>
-              <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>{/* Apply filters and close sheet */}
-          </SheetClose>
+         {/* Close button for mobile sheet - kept outside the immediate form elements for layout */}
+         <SheetClose asChild>
+             <Button className="w-full md:hidden" onClick={onApplyFilters}>Mostrar Resultados</Button>{/* Hidden on md and larger */}
+         </SheetClose>
+          {/* Apply Filters button for larger screens */}
+          {/* <Button className="w-full hidden md:block" onClick={onApplyFilters}>
+            Aplicar Filtros
+          </Button> */}
      </div>
     );
 };
@@ -276,7 +279,7 @@ const FindTalentsContent = () => {
 
          {/* Top Bar with Search and Filter Button */}
          <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6">
-             <h1 className="text-xl font-semibold mr-auto">Buscar Talento</h1>
+            <h1 className="text-xl font-semibold mr-auto">Buscar Talento</h1>
 
              {/* Search Input */}
              <div className="relative w-full max-w-sm sm:max-w-md flex-grow sm:flex-grow-0">
@@ -290,28 +293,28 @@ const FindTalentsContent = () => {
                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              </div>
 
-             {/* Mobile Filters Trigger using Sheet */}
-              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                  <SheetTrigger asChild>
-                      <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
-                          <Filter className="mr-2 h-4 w-4" /> Filtros
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent className="p-0 w-[85%] sm:w-[400px] flex flex-col"> {/* Remove padding, control width */}
-                      <SheetHeader className="p-4 border-b">
-                          <SheetTitle>Filtros</SheetTitle>
-                      </SheetHeader>
-                      <ScrollArea className="flex-grow"> {/* Make ScrollArea take remaining height */}
-                          <FiltersContent
-                              selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-                              locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                              minRating={minRating} setMinRating={setMinRating}
-                              maxRate={maxRate} setMaxRate={setMaxRate}
-                              onApplyFilters={handleApplyFilters}
-                          />
-                      </ScrollArea>
-                  </SheetContent>
-              </Sheet>
+            {/* Mobile Filters Trigger */}
+           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+               <SheetTrigger asChild>
+                   <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
+                       <Filter className="mr-2 h-4 w-4" /> Filtros
+                   </Button>
+               </SheetTrigger>
+               <SheetContent className="p-0 w-[85%] sm:w-[400px] flex flex-col"> {/* Remove padding, control width */}
+                   <SheetHeader className="p-4 border-b">
+                       <SheetTitle>Filtros</SheetTitle>
+                   </SheetHeader>
+                   <ScrollArea className="flex-grow"> {/* Make ScrollArea take remaining height */}
+                       <FiltersContent
+                           selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+                           locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                           minRating={minRating} setMinRating={setMinRating}
+                           maxRate={maxRate} setMaxRate={setMaxRate}
+                           onApplyFilters={handleApplyFilters} // Pass the handler
+                       />
+                   </ScrollArea>
+               </SheetContent>
+            </Sheet>
           </header>
 
 
@@ -347,7 +350,7 @@ const FindTalentsContent = () => {
                         </div>
                          {/* Rating */}
                         <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                           <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                             <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
                             <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
                         </div>
@@ -366,7 +369,7 @@ const FindTalentsContent = () => {
                         </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-0 border-t mt-2"> {/* Added border */}
-                        <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button>
+                        <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Quiero el servicio</Button>
                     </CardFooter>
               </Card>
             ))}
@@ -395,3 +398,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+
