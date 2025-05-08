@@ -16,14 +16,15 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react'; // Added User icon
+import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 const ServiceDetailPageContent = () => {
   const params = useParams();
@@ -41,6 +42,7 @@ const ServiceDetailPageContent = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // State for description expansion
 
   useEffect(() => {
     if (serviceId) {
@@ -188,8 +190,8 @@ const ServiceDetailPageContent = () => {
                       <Image
                         src={imgUrl}
                         alt={`${service.title} - imagen ${index + 1}`}
-                        layout="fill"
-                        objectFit="cover"
+                        fill // Use fill instead of layout="fill"
+                        style={{ objectFit: "cover" }} // Use style object for objectFit
                         className="rounded-t-xl"
                         data-ai-hint={`service image ${index + 1}`}
                         priority={index === 0} // Prioritize loading the first image
@@ -241,11 +243,23 @@ const ServiceDetailPageContent = () => {
             </div>
           </div>
 
-          {/* Description */}
-          <CardDescription className="text-base leading-relaxed text-foreground/80 border-t pt-4 mt-4">
-             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
-            {service.description}
-          </CardDescription>
+          {/* Description with Read More */}
+            <div className="border-t pt-4 mt-4">
+               <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
+               <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && "line-clamp-3")}>
+                 {service.description}
+               </p>
+               {service.description.length > 200 && ( // Show button only if description is long enough
+                 <Button
+                   variant="link"
+                   className="p-0 h-auto text-primary text-sm mt-1"
+                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                 >
+                   {isDescriptionExpanded ? 'Ver menos' : 'Ver más'}
+                 </Button>
+               )}
+            </div>
+
 
            {/* Booking Section: Calendar and Time Slots */}
            <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start pt-6 border-t">
