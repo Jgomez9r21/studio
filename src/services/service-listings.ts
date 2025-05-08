@@ -42,6 +42,14 @@ export interface ServiceListing {
    * Optional text or link to the service policy.
    */
   policyText?: string;
+   /**
+    * Optional name of the professional offering the service.
+    */
+   professionalName?: string;
+   /**
+    * Optional avatar URL for the professional offering the service.
+    */
+   professionalAvatar?: string;
 }
 
 /**
@@ -69,7 +77,9 @@ export async function getServiceListings(category?: string, location?: string): 
         'https://picsum.photos/800/600?random=12',
         'https://picsum.photos/800/600?random=13',
       ],
-      policyText: "Al reservar este servicio, aceptas nuestra política de cancelación con 24 horas de antelación. Las ausencias sin previo aviso no serán reembolsables."
+      policyText: "Al reservar este servicio, aceptas nuestra política de cancelación con 24 horas de antelación. Las ausencias sin previo aviso no serán reembolsables.",
+      professionalName: "Ana García", // Added professional name
+      professionalAvatar: "https://picsum.photos/50/50?random=prof-1", // Added professional avatar
     },
     {
       id: '2',
@@ -84,7 +94,9 @@ export async function getServiceListings(category?: string, location?: string): 
         'https://picsum.photos/800/600?random=21',
         'https://picsum.photos/800/600?random=22',
       ],
-      policyText: "Todos los proyectos de desarrollo web requieren un depósito inicial del 50%. El saldo restante se abona al finalizar y entregar el proyecto."
+      policyText: "Todos los proyectos de desarrollo web requieren un depósito inicial del 50%. El saldo restante se abona al finalizar y entregar el proyecto.",
+      professionalName: "Carlos Rodriguez",
+      professionalAvatar: "https://picsum.photos/50/50?random=prof-2",
     },
      {
       id: '3',
@@ -98,7 +110,9 @@ export async function getServiceListings(category?: string, location?: string): 
       imageUrls: [
          'https://picsum.photos/800/600?random=31',
       ],
-      policyText: "Es obligatorio el uso de guantes y vendas propias por higiene y seguridad. Consulta nuestras opciones de alquiler si es necesario."
+      policyText: "Es obligatorio el uso de guantes y vendas propias por higiene y seguridad. Consulta nuestras opciones de alquiler si es necesario.",
+      professionalName: "Miguel López",
+      professionalAvatar: "https://picsum.photos/50/50?random=prof-3",
     },
     {
       id: '4',
@@ -109,7 +123,9 @@ export async function getServiceListings(category?: string, location?: string): 
       category: 'Contratista',
       location: 'Área Metropolitana',
       imageUrl: 'https://picsum.photos/800/600?random=4', // Added placeholder image URL
-      policyText: "Todos los presupuestos son gratuitos y sin compromiso. Los materiales no están incluidos en la tarifa horaria a menos que se especifique."
+      policyText: "Todos los presupuestos son gratuitos y sin compromiso. Los materiales no están incluidos en la tarifa horaria a menos que se especifique.",
+       professionalName: "Javier Construcciones",
+       professionalAvatar: "https://picsum.photos/50/50?random=prof-4",
     },
     {
       id: '5',
@@ -120,7 +136,9 @@ export async function getServiceListings(category?: string, location?: string): 
       category: 'Mantenimiento Hogar',
       location: 'Ciudad',
       imageUrl: 'https://picsum.photos/800/600?random=5', // Added placeholder image URL
-      policyText: "Garantía de 30 días en todas las reparaciones realizadas. Las visitas de emergencia fuera de horario pueden tener un costo adicional."
+      policyText: "Garantía de 30 días en todas las reparaciones realizadas. Las visitas de emergencia fuera de horario pueden tener un costo adicional.",
+       professionalName: "Repara Hogar Rápido",
+       professionalAvatar: "https://picsum.photos/50/50?random=prof-5",
     },
     {
       id: '6',
@@ -131,7 +149,9 @@ export async function getServiceListings(category?: string, location?: string): 
       category: 'Profesores',
       location: 'Online o Presencial',
       imageUrl: 'https://picsum.photos/800/600?random=6', // Added placeholder image URL
-      policyText: "Se requiere el pago por adelantado de paquetes de clases. Las cancelaciones deben realizarse con al menos 12 horas de anticipación."
+      policyText: "Se requiere el pago por adelantado de paquetes de clases. Las cancelaciones deben realizarse con al menos 12 horas de anticipación.",
+       professionalName: "Elena Martínez",
+       professionalAvatar: "https://picsum.photos/50/50?random=prof-6",
     },
      {
       id: '7',
@@ -148,7 +168,9 @@ export async function getServiceListings(category?: string, location?: string): 
         'https://picsum.photos/800/600?random=73',
         'https://picsum.photos/800/600?random=74',
       ],
-      policyText: "Cada proyecto incluye hasta 2 rondas de revisión. Revisiones adicionales pueden incurrir en costos extra."
+      policyText: "Cada proyecto incluye hasta 2 rondas de revisión. Revisiones adicionales pueden incurrir en costos extra.",
+       professionalName: "Sofía Creativa",
+       professionalAvatar: "https://picsum.photos/50/50?random=prof-7",
     },
      {
       id: '8',
@@ -159,7 +181,9 @@ export async function getServiceListings(category?: string, location?: string): 
       category: 'Marketing Digital',
       location: 'Remoto',
       imageUrl: 'https://picsum.photos/800/600?random=8', // Added placeholder image URL
-      policyText: "Los resultados de las campañas de marketing pueden variar. Se requiere un compromiso mínimo de 3 meses para servicios de SEO."
+      policyText: "Los resultados de las campañas de marketing pueden variar. Se requiere un compromiso mínimo de 3 meses para servicios de SEO.",
+       professionalName: "Impulso Digital Co",
+       professionalAvatar: "https://picsum.photos/50/50?random=prof-8",
     },
      {
         id: '9',
@@ -174,7 +198,10 @@ export async function getServiceListings(category?: string, location?: string): 
             'https://picsum.photos/800/600?random=91',
             'https://picsum.photos/800/600?random=92',
         ],
-        policyText: "El alquiler de la cancha es por hora. Se debe abonar el total al momento de la reserva. No se permiten botines con tapones de metal."
+        policyText: "El alquiler de la cancha es por hora. Se debe abonar el total al momento de la reserva. No se permiten botines con tapones de metal.",
+        // No specific professional for facility booking, but could be facility name
+         professionalName: "Complejo Deportivo Norte",
+         professionalAvatar: "https://picsum.photos/50/50?random=prof-9",
      },
     // Add more listings for other categories as needed
   ];

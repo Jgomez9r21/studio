@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -17,13 +16,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, FileText, Info } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react'; // Added User icon
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar
 
 const ServiceDetailPageContent = () => {
   const params = useParams();
@@ -51,6 +51,13 @@ const ServiceDetailPageContent = () => {
           const fetchedService = await getServiceById(serviceId);
           if (fetchedService) {
             setService(fetchedService);
+            // Add professional name placeholder to the fetched service
+            const serviceWithProfessional = {
+                ...fetchedService,
+                professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`, // Add placeholder
+                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}` // Placeholder avatar
+            };
+            setService(serviceWithProfessional);
             setAvailableTimeSlots(fetchedService.availability || []);
           } else {
             setError('Servicio no encontrado.');
@@ -74,7 +81,7 @@ const ServiceDetailPageContent = () => {
       // Placeholder: In a real app, filter service.availability based on selectedDate
       // For now, we assume all listed slots are for any selected date.
       setAvailableTimeSlots(service.availability || []);
-      setSelectedTimeSlot(undefined); 
+      setSelectedTimeSlot(undefined);
     }
   }, [service, selectedDate]);
 
@@ -97,7 +104,7 @@ const ServiceDetailPageContent = () => {
       });
       return;
     }
-    if (!policyAccepted) {
+    if (!policyAccepted && service?.policyText) { // Only require policy if it exists
       toast({
         title: 'Política no Aceptada',
         description: 'Debes aceptar la política de servicio.',
@@ -117,6 +124,7 @@ const ServiceDetailPageContent = () => {
       title: 'Reserva Solicitada',
       description: `Tu solicitud para "${service?.title}" el ${selectedDate ? format(selectedDate, "PPP", { locale: es }) : ''} a las ${selectedTimeSlot} ha sido enviada.`,
     });
+    // Consider redirecting or showing a success message confirmation state
     // router.push('/book-service');
   };
 
@@ -154,7 +162,7 @@ const ServiceDetailPageContent = () => {
       </div>
     );
   }
-  
+
   const imagesToShow = service.imageUrls && service.imageUrls.length > 0 ? service.imageUrls : (service.imageUrl ? [service.imageUrl] : []);
 
 
@@ -167,6 +175,7 @@ const ServiceDetailPageContent = () => {
 
       <Card className="overflow-hidden shadow-xl rounded-xl">
         <CardHeader className="p-0">
+          {/* Image Carousel */}
           {imagesToShow.length > 0 ? (
             <Carousel
               opts={{ loop: imagesToShow.length > 1 }}
@@ -206,9 +215,23 @@ const ServiceDetailPageContent = () => {
         </CardHeader>
 
         <CardContent className="p-4 md:p-6 lg:p-8 space-y-6">
+          {/* Service Title */}
           <CardTitle className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">{service.title}</CardTitle>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-muted-foreground">
+
+          {/* Professional Info */}
+          <div className="flex items-center gap-3 pt-2">
+            <Avatar className="h-10 w-10 border">
+              <AvatarImage src={service.professionalAvatar} alt={service.professionalName || 'Profesional'} data-ai-hint="professional avatar" />
+              <AvatarFallback><User className="h-5 w-5 text-muted-foreground" /></AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-sm font-medium text-foreground">{service.professionalName || 'Nombre del Profesional'}</p>
+              <p className="text-xs text-muted-foreground">{service.category}</p>
+            </div>
+          </div>
+
+          {/* Location and Rate */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-muted-foreground border-t pt-4">
             <div className="flex items-center text-sm">
               <MapPin className="mr-2 h-4 w-4 text-primary" />
               {service.location}
@@ -218,55 +241,62 @@ const ServiceDetailPageContent = () => {
             </div>
           </div>
 
+          {/* Description */}
           <CardDescription className="text-base leading-relaxed text-foreground/80 border-t pt-4 mt-4">
+             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
             {service.description}
           </CardDescription>
 
-          <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start pt-4 border-t">
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground flex items-center">
-                <CalendarDays className="mr-2 h-5 w-5 text-primary" />
-                Disponibilidad
-              </h3>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(day) => day < new Date(new Date().setHours(0,0,0,0))}
-                className="rounded-md border shadow-sm p-0 w-full"
-                locale={es}
-                captionLayout="dropdown-buttons"
-                fromYear={currentYear}
-                toYear={currentYear + 2}
-              />
-            </div>
+           {/* Booking Section: Calendar and Time Slots */}
+           <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start pt-6 border-t">
+              {/* Calendar for Date Selection */}
+              <div className="space-y-4">
+                 <h3 className="text-xl font-semibold text-foreground flex items-center">
+                     <CalendarDays className="mr-2 h-5 w-5 text-primary" />
+                     Seleccionar Fecha
+                 </h3>
+                 <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(day) => day < new Date(new Date().setHours(0,0,0,0))}
+                    className="rounded-md border shadow-sm p-0 w-full"
+                    locale={es}
+                    captionLayout="dropdown-buttons"
+                    fromYear={currentYear}
+                    toYear={currentYear + 2}
+                 />
+               </div>
 
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-foreground flex items-center">
-                 <Clock className="mr-2 h-5 w-5 text-primary" />
-                 Horarios Disponibles
-              </h3>
-              {availableTimeSlots.length > 0 ? (
-                <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-                  <SelectTrigger id="time-slot" className="w-full">
-                    <SelectValue placeholder="Selecciona un cupo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTimeSlots.map((slot) => (
-                      <SelectItem key={slot} value={slot}>
-                        {slot}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  No hay cupos específicos listados o selecciona una fecha para ver disponibilidad.
-                </p>
-              )}
-            </div>
-          </div>
+               {/* Time Slot Selection */}
+               <div className="space-y-4">
+                 <h3 className="text-xl font-semibold text-foreground flex items-center">
+                    <Clock className="mr-2 h-5 w-5 text-primary" />
+                    Seleccionar Hora (Cupo)
+                 </h3>
+                 {availableTimeSlots.length > 0 ? (
+                    <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                      <SelectTrigger id="time-slot" className="w-full">
+                        <SelectValue placeholder="Selecciona un cupo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                     <p className="text-sm text-muted-foreground italic pt-2">
+                       No hay cupos específicos listados o selecciona una fecha para ver disponibilidad.
+                     </p>
+                  )}
+               </div>
+           </div>
 
+
+          {/* Service Policy */}
           {service.policyText && (
             <Alert className="mt-6">
               <Info className="h-4 w-4" />
@@ -275,25 +305,29 @@ const ServiceDetailPageContent = () => {
             </Alert>
           )}
 
-          <div className="flex items-center space-x-3 mt-6 pt-6 border-t">
-            <Checkbox
-              id="policy-acceptance"
-              checked={policyAccepted}
-              onCheckedChange={(checked) => setPolicyAccepted(checked as boolean)}
-              aria-labelledby="policy-acceptance-label"
-            />
-            <Label htmlFor="policy-acceptance" id="policy-acceptance-label" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              He leído y acepto la política de servicio.
-            </Label>
-          </div>
+          {/* Policy Acceptance Checkbox */}
+          {service.policyText && ( // Only show checkbox if policy exists
+            <div className="flex items-center space-x-3 mt-6 pt-6 border-t">
+                <Checkbox
+                    id="policy-acceptance"
+                    checked={policyAccepted}
+                    onCheckedChange={(checked) => setPolicyAccepted(checked as boolean)}
+                    aria-labelledby="policy-acceptance-label"
+                />
+                <Label htmlFor="policy-acceptance" id="policy-acceptance-label" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    He leído y acepto la política de servicio.
+                </Label>
+            </div>
+           )}
         </CardContent>
 
+        {/* Booking Button Footer */}
         <CardFooter className="bg-muted/30 p-4 md:p-6 border-t flex justify-end">
-            <Button 
-              onClick={handleBooking} 
-              size="lg" 
-              className="w-full sm:w-auto" 
-              disabled={isLoading || !selectedDate || !selectedTimeSlot || !policyAccepted}
+            <Button
+              onClick={handleBooking}
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={isLoading || !selectedDate || !selectedTimeSlot || (!!service.policyText && !policyAccepted)} // Disable logic updated
             >
                 Aceptar y Reservar
             </Button>
