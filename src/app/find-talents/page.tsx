@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -16,7 +15,7 @@ import { Label } from "@/components/ui/label"; // Added Label
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select components
 import { Slider } from "@/components/ui/slider"; // Added Slider
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Added Sheet components
-
+import Image from 'next/image'; // Import next/image
 
 // Define Category types - Simplified
 interface Category {
@@ -56,7 +55,7 @@ const dummyTalents = [
     reviews: 32,
     category: 'Entrenador Personal',
     skills: ['Pérdida de Peso', 'Entrenamiento de Fuerza', 'Nutrición Deportiva'],
-    image: 'https://picsum.photos/100/100?random=t1',
+    image: 'https://picsum.photos/400/300?random=t1', // Use landscape image for consistency
     dataAiHint: "personal trainer fitness woman"
   },
   {
@@ -69,7 +68,7 @@ const dummyTalents = [
     reviews: 45,
     category: 'Tecnología',
     skills: ['React', 'Node.js', 'TypeScript', 'Bases de Datos SQL'],
-    image: 'https://picsum.photos/100/100?random=t2',
+    image: 'https://picsum.photos/400/300?random=t2', // Use landscape image
     dataAiHint: "web developer man code"
   },
    {
@@ -82,7 +81,7 @@ const dummyTalents = [
     reviews: 28,
     category: 'Profesores',
     skills: ['Inglés Conversacional', 'Preparación TOEFL', 'Inglés de Negocios'],
-    image: 'https://picsum.photos/100/100?random=t3',
+    image: 'https://picsum.photos/400/300?random=t3', // Use landscape image
     dataAiHint: "english teacher woman online"
   },
    {
@@ -95,7 +94,7 @@ const dummyTalents = [
     reviews: 19,
     category: 'Contratista',
     skills: ['Remodelación de Cocinas', 'Baños', 'Ampliaciones', 'Pintura'],
-    image: 'https://picsum.photos/100/100?random=t4',
+    image: 'https://picsum.photos/400/300?random=t4', // Use landscape image
     dataAiHint: "general contractor man construction"
   },
    {
@@ -108,7 +107,7 @@ const dummyTalents = [
     reviews: 51,
     category: 'Diseñadores',
     skills: ['Logotipos', 'Identidad Visual', 'Diseño Web UI/UX', 'Illustrator'],
-    image: 'https://picsum.photos/100/100?random=t5',
+    image: 'https://picsum.photos/400/300?random=t5', // Use landscape image
     dataAiHint: "graphic designer woman creative"
   },
     {
@@ -121,7 +120,7 @@ const dummyTalents = [
     reviews: 25,
     category: 'Mantenimiento Hogar',
     skills: ['Plomería', 'Electricidad Básica', 'Reparaciones Menores'],
-    image: 'https://picsum.photos/100/100?random=t6',
+    image: 'https://picsum.photos/400/300?random=t6', // Use landscape image
     dataAiHint: "handyman home repair tools"
   },
     // Add more talent examples for different categories if needed
@@ -135,7 +134,7 @@ const dummyTalents = [
       reviews: 40,
       category: 'Instalación Deportiva', // Example for sport facility related
       skills: ['Yoga Vinyasa', 'Pilates Mat', 'Meditación Guiada'],
-      image: 'https://picsum.photos/100/100?random=t7',
+      image: 'https://picsum.photos/400/300?random=t7', // Use landscape image
       dataAiHint: "yoga instructor woman studio"
     },
      {
@@ -148,7 +147,7 @@ const dummyTalents = [
       reviews: 38,
       category: 'Marketing Digital',
       skills: ['Optimización SEO', 'Google Ads', 'Marketing de Contenidos', 'Analítica Web'],
-      image: 'https://picsum.photos/100/100?random=t8',
+      image: 'https://picsum.photos/400/300?random=t8', // Use landscape image
       dataAiHint: "marketing specialist man digital"
     },
 ];
@@ -234,7 +233,7 @@ const FiltersContent = ({
          {/* Spacer to push button to bottom */}
           <div className="flex-grow"></div>
 
-         {/* Close button for mobile sheet - kept outside the immediate form elements for layout */}
+         {/* Close button for mobile sheet */}
           <SheetClose asChild>
               <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>{/* Apply filters and close sheet */}
           </SheetClose>
@@ -323,39 +322,52 @@ const FindTalentsContent = () => {
         {filteredTalents.length > 0 ? (
           <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid */}
             {filteredTalents.map(talent => (
-              <Card key={talent.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col">
-                <CardHeader className="flex flex-row items-start gap-3 p-4">
-                  <Avatar className="h-12 w-12 border flex-shrink-0">
-                    <AvatarImage src={talent.image} alt={talent.name} data-ai-hint={talent.dataAiHint} />
-                    <AvatarFallback>{talent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base md:text-lg truncate">{talent.name}</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm line-clamp-2">{talent.title}</CardDescription>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                      <MapPin className="h-3 w-3 flex-shrink-0" /> <span className="truncate">{talent.location}</span>
+                <Card key={talent.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
+                    {/* Image Section - Similar to Service Card */}
+                    <div className="relative aspect-video w-full overflow-hidden">
+                    <Image
+                        src={talent.image || `https://picsum.photos/400/300?random=${talent.id}`} // Fallback if imageUrl is missing
+                        alt={talent.name}
+                        layout="fill"
+                        objectFit="cover"
+                        data-ai-hint={talent.dataAiHint} // Generic hint, refine if possible
+                    />
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-4 pb-3 flex-grow space-y-2">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
-                    <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
-                    <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {talent.skills.slice(0, 3).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge>
-                    ))}
-                    {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>}
-                  </div>
-                  <p className="text-sm text-muted-foreground pt-1">
-                    Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
-                  </p>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button>
-                </CardFooter>
+                    <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-lg font-semibold">
+                            {talent.name}
+                        </CardTitle>
+                        <CardDescription>{talent.title}</CardDescription> {/* Use talent's title here */}
+                    </CardHeader>
+                    <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2"> {/* Adjusted spacing */}
+                         {/* Location */}
+                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4 flex-shrink-0" />
+                            <span>{talent.location}</span>
+                        </div>
+                         {/* Rating */}
+                        <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                            <span className="font-semibold text-sm">{talent.rating.toFixed(1)}</span>
+                            <span className="text-xs text-muted-foreground">({talent.reviews} reseñas)</span>
+                        </div>
+                        {/* Skills */}
+                        <div className="flex flex-wrap gap-1 pt-1">
+                            {talent.skills.slice(0, 3).map(skill => (
+                            <Badge key={skill} variant="secondary" className="text-xs font-normal">{skill}</Badge>
+                            ))}
+                            {talent.skills.length > 3 && <Badge variant="outline" className="text-xs font-normal">+{talent.skills.length - 3}</Badge>}
+                        </div>
+                         {/* Rate */}
+                         <div className="pt-2 flex-grow flex items-end"> {/* Push rate to bottom */}
+                            <p className="text-sm text-muted-foreground">
+                                Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> / hora
+                            </p>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0 border-t mt-2"> {/* Added border */}
+                        <Button size="sm" className="w-full h-9 text-xs sm:text-sm">Ver Perfil</Button>
+                    </CardFooter>
               </Card>
             ))}
           </div>
@@ -383,4 +395,3 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
-
