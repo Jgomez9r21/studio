@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -274,19 +273,19 @@ function LandingPageContent() {
                             </DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
-                              <Label htmlFor={`name-${listing.id}`} className="text-left sm:text-right">Nombre</Label>
-                              <Input id={`name-${listing.id}`} defaultValue="Tu Nombre"
-                                     className="rounded-md shadow-sm"/>
+                            <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                              <Label htmlFor={`name-${listing.id}`} className="text-left text-sm">Nombre</Label>
+                              <Input id={`name-${listing.id}`} placeholder="Tu Nombre"
+                                     className="rounded-md shadow-sm col-span-1"/>
                             </div>
-                             <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
-                              <Label htmlFor={`date-${listing.id}`} className="text-left sm:text-right">Seleccionar Fecha</Label>
+                             <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                              <Label htmlFor={`date-${listing.id}`} className="text-left text-sm">Seleccionar Fecha</Label>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <Button
                                     variant={"outline"}
                                     className={cn(
-                                      "w-full justify-start text-left font-normal",
+                                      "w-full justify-start text-left font-normal col-span-1",
                                       !date && "text-muted-foreground"
                                     )}
                                   >
@@ -309,12 +308,12 @@ function LandingPageContent() {
                                 </PopoverContent>
                               </Popover>
                             </div>
-                             <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-center gap-4">
-                                <Label htmlFor={`time-${listing.id}`} className="text-left sm:text-right">
+                             <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                                <Label htmlFor={`time-${listing.id}`} className="text-left text-sm">
                                     Seleccionar Hora (Cupo)
                                 </Label>
                                 <Select onValueChange={setSelectedTime} value={selectedTime}>
-                                    <SelectTrigger className="w-full">
+                                    <SelectTrigger className="w-full col-span-1">
                                     <SelectValue placeholder="Seleccionar Cupo" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -326,10 +325,10 @@ function LandingPageContent() {
                                     </SelectContent>
                                 </Select>
                              </div>
-                            <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[1fr_3fr] items-start gap-4">
-                              <Label htmlFor={`comment-${listing.id}`} className="text-left sm:text-right pt-1.5">Comentario</Label>
+                            <div className="grid grid-cols-[auto_1fr] items-start gap-4">
+                              <Label htmlFor={`comment-${listing.id}`} className="text-left text-sm pt-1.5">Comentario</Label>
                               <Textarea id={`comment-${listing.id}`} placeholder="Añade detalles sobre tu solicitud..."
-                                        className="rounded-md shadow-sm"/>
+                                        className="rounded-md shadow-sm col-span-1"/>
                             </div>
                           </div>
                           <DialogFooter>
@@ -366,4 +365,3 @@ export default function Page() {
   );
 }
 
-    
