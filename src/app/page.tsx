@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -64,6 +65,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
 
 // Define Category types with explicit icon typing
@@ -244,9 +246,8 @@ function LandingPageContent() {
                       <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col p-4 pt-0">
-                      {/* Description removed from here */}
                       <p className="text-sm font-medium mb-1">
-                        Tarifa: ${listing.rate} por hora
+                        Tarifa: ${listing.rate}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}
                       </p>
                       {listing.professionalName && (
                         <p className="text-sm text-muted-foreground mb-1">
@@ -401,4 +402,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-

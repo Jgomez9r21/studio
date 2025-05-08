@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -16,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"; // Added Slider
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Added Sheet components
 import Image from 'next/image'; // Import next/image
+import { HOURLY_RATE_CATEGORIES } from '@/lib/config'; // New import
 
 // Definir tipos de categorías - Simplificado
 interface Category {
@@ -353,7 +355,8 @@ const FindTalentsContent = () => {
                         </p>
                          {/* Rate */}
                         <p className="text-sm">
-                            Tarifa: <span className="font-medium text-foreground">${talent.rate}</span> por hora
+                            Tarifa: <span className="font-medium text-foreground">${talent.rate}</span>
+                            {HOURLY_RATE_CATEGORIES.includes(talent.category) ? ' por hora' : ''}
                         </p>
                          {/* Location (moved below rate for similarity) */}
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">

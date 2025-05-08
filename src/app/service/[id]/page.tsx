@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -25,6 +26,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils'; // Import cn utility
+import { HOURLY_RATE_CATEGORIES } from '@/lib/config'; // New import
 
 const ServiceDetailPageContent = () => {
   const params = useParams();
@@ -239,7 +241,7 @@ const ServiceDetailPageContent = () => {
               {service.location}
             </div>
             <div className="text-lg font-semibold text-primary">
-              ${service.rate}/hr
+              ${service.rate}{HOURLY_RATE_CATEGORIES.includes(service.category) ? '/hr' : ''}
             </div>
           </div>
 
