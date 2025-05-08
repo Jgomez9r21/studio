@@ -244,21 +244,21 @@ const ServiceDetailPageContent = () => {
           </div>
 
           {/* Description with Read More */}
-            <div className="border-t pt-4 mt-4">
-               <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
-               <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && "line-clamp-3")}>
-                 {service.description}
-               </p>
-               {service.description.length > 200 && ( // Show button only if description is long enough
-                 <Button
-                   variant="link"
-                   className="p-0 h-auto text-primary text-sm mt-1"
-                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                 >
-                   {isDescriptionExpanded ? 'Ver menos' : 'Ver más'}
-                 </Button>
-               )}
-            </div>
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
+            <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && "line-clamp-3")}>
+              {service.description}
+            </p>
+            {service.description.length > 200 && ( // Show button only if description is long enough
+              <Button
+                variant="link"
+                className="p-0 h-auto text-primary text-sm mt-1"
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+              >
+                {isDescriptionExpanded ? 'Ver menos' : 'Ver más'}
+              </Button>
+            )}
+          </div>
 
 
            {/* Booking Section: Calendar and Time Slots */}
