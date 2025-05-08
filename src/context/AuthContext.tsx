@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth';
 import { auth as firebaseAuth } from '@/lib/firebase'; // Import initialized auth
 
-// Define user type
+
 interface User {
   id: string;
   name: string;
@@ -29,9 +29,9 @@ interface User {
   isPhoneVerified?: boolean; // Add flag for phone verification status
 }
 
-// Corrected Dummy User Credentials
-const DUMMY_EMAIL = "user@ejemplo.com";
-const DUMMY_PASSWORD = "user12345"; // Corrected password
+//cuenta de prueba de email y contraseña
+const DUMMY_EMAIL = "user@user.com";
+const DUMMY_PASSWORD = "user12345"; // contraseña correcta
 const dummyUser: User = {
   id: 'usr123',
   name: "Usuario Ejemplo",

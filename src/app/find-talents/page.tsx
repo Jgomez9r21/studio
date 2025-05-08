@@ -1,5 +1,7 @@
 "use client";
-
+//nombre
+//modulo
+//subprograma  
 import type React from 'react';
 import { useState } from 'react'; // Removed useEffect as it's not used directly here
 import AppLayout from '@/layout/AppLayout'; // Import the reusable layout

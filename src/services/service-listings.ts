@@ -30,6 +30,10 @@ export interface ServiceListing {
    * La ubicación donde se provee el servicio.
    */
   location: string;
+  /**
+   * Optional URL for the service image.
+   */
+  imageUrl?: string;
 }
 
 /**
@@ -41,7 +45,7 @@ export interface ServiceListing {
  */
 export async function getServiceListings(category?: string, location?: string): Promise<ServiceListing[]> {
   // TODO: Implement this by calling an external API.
-  // Placeholder data, including new categories
+  // Placeholder data, including new categories and imageUrl
   return [
     {
       id: '1',
@@ -50,7 +54,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 50,
       availability: ['Lunes 9:00-10:00', 'Miércoles 18:00-19:00'],
       category: 'Instalación Deportiva', // Changed from 'Deporte'
-      location: 'Gimnasio Local'
+      location: 'Gimnasio Local',
+      imageUrl: 'https://picsum.photos/400/300?random=1' // Added placeholder image URL
     },
     {
       id: '2',
@@ -59,7 +64,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 75,
       availability: ['Martes 14:00-16:00', 'Jueves 10:00-12:00'],
       category: 'Tecnología',
-      location: 'Remoto'
+      location: 'Remoto',
+      imageUrl: 'https://picsum.photos/400/300?random=2' // Added placeholder image URL
     },
      {
       id: '3',
@@ -68,7 +74,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 60,
       availability: ['Lunes 17:00-18:00', 'Viernes 8:00-9:00'],
       category: 'Entrenador Personal',
-      location: 'Club de Boxeo Central'
+      location: 'Club de Boxeo Central',
+      imageUrl: 'https://picsum.photos/400/300?random=3' // Added placeholder image URL
     },
     {
       id: '4',
@@ -77,7 +84,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 80, // Assuming a project-based or higher hourly rate
       availability: ['Lunes a Viernes 8:00-17:00'],
       category: 'Contratista',
-      location: 'Área Metropolitana'
+      location: 'Área Metropolitana',
+      imageUrl: 'https://picsum.photos/400/300?random=4' // Added placeholder image URL
     },
     {
       id: '5',
@@ -86,7 +94,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 55,
       availability: ['Miércoles 9:00-12:00', 'Sábado 10:00-14:00'],
       category: 'Mantenimiento Hogar',
-      location: 'Ciudad'
+      location: 'Ciudad',
+      imageUrl: 'https://picsum.photos/400/300?random=5' // Added placeholder image URL
     },
     {
       id: '6',
@@ -95,7 +104,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 40,
       availability: ['Martes 16:00-18:00', 'Jueves 17:00-19:00'],
       category: 'Profesores',
-      location: 'Online o Presencial'
+      location: 'Online o Presencial',
+      imageUrl: 'https://picsum.photos/400/300?random=6' // Added placeholder image URL
     },
      {
       id: '7',
@@ -104,7 +114,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 65,
       availability: ['Lunes 10:00-13:00', 'Miércoles 14:00-17:00'],
       category: 'Diseñadores',
-      location: 'Remoto'
+      location: 'Remoto',
+      imageUrl: 'https://picsum.photos/400/300?random=7' // Added placeholder image URL
     },
      {
       id: '8',
@@ -113,7 +124,8 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 70,
       availability: ['Consultar disponibilidad'],
       category: 'Marketing Digital',
-      location: 'Remoto'
+      location: 'Remoto',
+      imageUrl: 'https://picsum.photos/400/300?random=8' // Added placeholder image URL
     },
      {
         id: '9',
@@ -122,7 +134,8 @@ export async function getServiceListings(category?: string, location?: string): 
         rate: 45,
         availability: ['Martes 20:00-21:00', 'Jueves 21:00-22:00', 'Sábado 16:00-17:00'],
         category: 'Instalación Deportiva',
-        location: 'Complejo Deportivo Norte'
+        location: 'Complejo Deportivo Norte',
+        imageUrl: 'https://picsum.photos/400/300?random=9' // Added placeholder image URL
      },
     // Add more listings for other categories as needed
   ];

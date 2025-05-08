@@ -1,7 +1,7 @@
 "use client";
 
 import type React from 'react';
-import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
+import AppLayout from '@/layout/AppLayout'; // Importar el diseño reutilizable
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { Button } from '@/components/ui/button'; // Import Button
 

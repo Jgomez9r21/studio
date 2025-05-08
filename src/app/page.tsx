@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -62,6 +63,7 @@ import {
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
+import Image from 'next/image'; // Import next/image
 
 
 // Define Category types with explicit icon typing
@@ -70,10 +72,10 @@ interface Category {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Service Categories
+// Categorías de servicios
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Instalación Deportiva', icon: Dumbbell }, // Changed from Reserva Deportiva
+  { name: 'Instalación Deportiva', icon: Dumbbell }, // Cambiado de Reserva Deportiva
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -85,10 +87,10 @@ const categorias: Category[] = [
   { name: 'Redacción & Traducción', icon: Edit },
   { name: 'Música & Audio', icon: Music },
   { name: 'Finanzas', icon: DollarSign },
-  // { name: 'Servicios de IA', icon: Bot }, // Removed as icon might not exist
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
+
 ];
 
 
@@ -118,7 +120,9 @@ function LandingPageContent() {
         const updatedData = data.map(listing => ({
           ...listing,
           // Ensure category exists, otherwise default to 'Otros'
-          category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros'
+          category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
+          // Use existing imageUrl or provide a default/random one
+           imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`
         }));
         setListings(updatedData);
       } catch (error) {
@@ -134,6 +138,9 @@ function LandingPageContent() {
     (listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listing.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  const currentYear = new Date().getFullYear();
+
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -173,7 +180,7 @@ function LandingPageContent() {
                 <div className="p-1">
                   <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col"> {/* Ensure cards have height */}
                     <CardContent className="flex aspect-video items-center justify-center p-0 relative">
-                       <img src={service.image} alt={service.title} className="object-cover w-full h-full" data-ai-hint={service.dataAiHint} />
+                        <Image src={service.image} alt={service.title} layout="fill" objectFit="cover" data-ai-hint={service.dataAiHint} />
                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                        <div className="absolute bottom-0 left-0 p-4">
                          <CardTitle className="text-lg font-semibold text-white mb-1">{service.title}</CardTitle>
@@ -227,7 +234,17 @@ function LandingPageContent() {
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid for responsiveness */}
                 {filteredListings.map(listing => (
                   <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
-                    <CardHeader>
+                     {/* Image Section */}
+                     <div className="relative aspect-video w-full overflow-hidden">
+                       <Image
+                         src={listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`} // Fallback if imageUrl is missing
+                         alt={listing.title}
+                         layout="fill"
+                         objectFit="cover"
+                         data-ai-hint={`${listing.category} service`} // Generic hint, refine if possible
+                       />
+                     </div>
+                    <CardHeader className="p-4 pb-2"> {/* Adjusted padding */}
                       <CardTitle className="text-lg font-semibold">
                         {listing.title}
                       </CardTitle>
@@ -285,8 +302,8 @@ function LandingPageContent() {
                                     disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
                                     initialFocus
                                      captionLayout="dropdown-buttons" // Ensure dropdowns are enabled
-                                     fromYear={1900}
-                                     toYear={new Date().getFullYear()}
+                                     fromYear={1900} // Allow past years
+                                     toYear={currentYear} // Set current year as max
                                      locale={es} // Set locale to Spanish
                                   />
                                 </PopoverContent>
@@ -348,3 +365,5 @@ export default function Page() {
     </AppLayout>
   );
 }
+
+    
