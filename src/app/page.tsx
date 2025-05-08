@@ -244,9 +244,7 @@ function LandingPageContent() {
                       <CardDescription>{listing.category}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col p-4 pt-0">
-                      <p className="text-sm text-muted-foreground mb-2 flex-grow line-clamp-3">
-                        {listing.description}
-                      </p>
+                      {/* Description removed from here */}
                       <p className="text-sm font-medium mb-1">
                         Tarifa: ${listing.rate} por hora
                       </p>
@@ -403,3 +401,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
