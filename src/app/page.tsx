@@ -227,7 +227,7 @@ function LandingPageContent() {
          </ScrollArea>
 
 
-        {/* Render content for the selected category */}
+        {/* Representar contenido para la categoría seleccionada*/}
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
           <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
