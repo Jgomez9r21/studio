@@ -182,18 +182,18 @@ const ServiceDetailPageContent = () => {
   };
 
   const modifiersClassNames = {
-    past: 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 !cursor-not-allowed opacity-70 rounded-none',
-    sunday: 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 !cursor-not-allowed opacity-70 rounded-none',
-    holiday: 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 !cursor-not-allowed opacity-70 rounded-none',
-    partial: 'bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 !cursor-not-allowed opacity-70 rounded-none', // "No Information" -> Grey
-    unavailable: 'bg-red-600 text-white hover:bg-red-700 focus:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 rounded-none', // "Sold out" -> Red
-    available: 'bg-green-600 text-white hover:bg-green-700 focus:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 rounded-none', // "Available" -> Green
-    selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-offset-background ring-ring', // Ensure high specificity
+    past: 'bg-muted text-muted-foreground rounded-none',
+    sunday: 'bg-muted text-muted-foreground rounded-none',
+    holiday: 'bg-muted text-muted-foreground rounded-none',
+    partial: 'bg-muted text-muted-foreground rounded-none', // Styled as unavailable/disabled
+    unavailable: 'bg-muted text-muted-foreground rounded-none', // Styled as unavailable/disabled
+    available: 'bg-green-600 text-white hover:bg-green-700 focus:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 rounded-none',
+    selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-offset-background ring-ring',
   };
 
    const calendarClassNames = {
-     day_today: 'text-accent-foreground font-normal', // Today is not specially colored unless it's also available/unavailable etc.
-     day_disabled: 'text-gray-400 !cursor-not-allowed opacity-70 rounded-none', // Generic disabled style
+     day_today: 'font-normal rounded-none', // Remove special styling for "today" if not otherwise styled by modifiers
+     // day_disabled will be styled by default from calendar.tsx, plus the bg-muted from modifiers
    };
    
   const disabledDays = (date: Date): boolean => {
@@ -204,8 +204,8 @@ const ServiceDetailPageContent = () => {
       date < today || 
       isSunday(date) || 
       isHoliday(date) || 
-      availabilityStatus === 'none' || // Explicitly unavailable (red)
-      availabilityStatus === 'partial' // "No information" (grey)
+      availabilityStatus === 'none' || 
+      availabilityStatus === 'partial' 
     );
   };
 
