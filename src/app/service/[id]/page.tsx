@@ -19,7 +19,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, isSameDay, isSunday, startOfDay } from 'date-fns';
+import type { DayModifiers } from 'react-day-picker';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -27,6 +28,25 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils'; // Import cn utility
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config'; // New import
+
+// Example holiday data (replace with actual holiday logic if needed)
+const holidays: Date[] = [
+  new Date(2024, 7, 19), // Example: August 19, 2024
+  new Date(2024, 11, 25), // Christmas Day
+  new Date(2025, 0, 1),  // New Year's Day
+];
+
+// Example daily availability data structure (replace with actual data fetching)
+type DailyAvailabilityStatus = 'full' | 'partial' | 'none';
+const dummyDailyAvailability: Record<string, DailyAvailabilityStatus> = {
+  [format(new Date(2024, 7, 20), 'yyyy-MM-dd')]: 'full', // Aug 20
+  [format(new Date(2024, 7, 21), 'yyyy-MM-dd')]: 'partial', // Aug 21
+  [format(new Date(2024, 7, 22), 'yyyy-MM-dd')]: 'none',    // Aug 22
+  [format(new Date(2024, 7, 23), 'yyyy-MM-dd')]: 'full',    // Aug 23
+  [format(new Date(2024, 7, 26), 'yyyy-MM-dd')]: 'partial', // Aug 26
+  [format(new Date(2024, 7, 27), 'yyyy-MM-dd')]: 'full',    // Aug 27
+};
+
 
 const ServiceDetailPageContent = () => {
   const params = useParams();
@@ -40,11 +60,12 @@ const ServiceDetailPageContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // Start with no date selected
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // State for description expansion
+  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>(dummyDailyAvailability); // State for daily availability
 
   useEffect(() => {
     if (serviceId) {
@@ -54,7 +75,6 @@ const ServiceDetailPageContent = () => {
         try {
           const fetchedService = await getServiceById(serviceId);
           if (fetchedService) {
-            setService(fetchedService);
             // Add professional name placeholder to the fetched service
             const serviceWithProfessional = {
                 ...fetchedService,
@@ -62,7 +82,8 @@ const ServiceDetailPageContent = () => {
                 professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}` // Placeholder avatar
             };
             setService(serviceWithProfessional);
-            setAvailableTimeSlots(fetchedService.availability || []);
+            // TODO: Fetch actual daily availability based on serviceId
+            // setDailyAvailability(await fetchDailyAvailability(serviceId));
           } else {
             setError('Servicio no encontrado.');
           }
@@ -81,13 +102,20 @@ const ServiceDetailPageContent = () => {
   }, [serviceId]);
 
   useEffect(() => {
+    // Reset time slots when date changes
+    setAvailableTimeSlots([]);
+    setSelectedTimeSlot(undefined);
     if (service && selectedDate) {
-      // Placeholder: In a real app, filter service.availability based on selectedDate
-      // For now, we assume all listed slots are for any selected date.
-      setAvailableTimeSlots(service.availability || []);
-      setSelectedTimeSlot(undefined);
+      // Placeholder: In a real app, fetch available slots for the *selectedDate*
+      // For now, just use the general availability list if the day isn't 'none'
+      const dateString = format(selectedDate, 'yyyy-MM-dd');
+      if (dailyAvailability[dateString] !== 'none') {
+        setAvailableTimeSlots(service.availability || []);
+      } else {
+         setAvailableTimeSlots([]); // No slots if day is unavailable
+      }
     }
-  }, [service, selectedDate]);
+  }, [service, selectedDate, dailyAvailability]);
 
   const handleBooking = () => {
     if (!isLoggedIn) {
@@ -133,6 +161,36 @@ const ServiceDetailPageContent = () => {
   };
 
   const currentYear = new Date().getFullYear();
+
+  // --- Calendar Modifiers ---
+  const isHoliday = (date: Date): boolean => {
+    const startOfGivenDate = startOfDay(date);
+    return holidays.some(holiday => isSameDay(startOfGivenDate, startOfDay(holiday)));
+  };
+
+  const modifiers: DayModifiers = {
+    sunday: (date: Date) => isSunday(date),
+    holiday: isHoliday,
+    available: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
+    partial: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
+    unavailable: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+    disabled: (date: Date) => date < startOfDay(new Date()) || isSunday(date) || isHoliday(date) || dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+  };
+
+  const modifiersClassNames = {
+    sunday: 'text-muted-foreground opacity-50',
+    holiday: 'text-muted-foreground opacity-50 font-bold', // Example styling for holidays
+    available: 'bg-green-100 text-green-900 hover:bg-green-200 focus:bg-green-200',
+    partial: 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200 focus:bg-yellow-200',
+    unavailable: 'bg-red-100 text-red-900 opacity-50 line-through cursor-not-allowed',
+    selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90', // Keep selected styling
+    // Disabled days will use the default disabled styling from calendar.tsx
+  };
+
+   const calendarClassNames = {
+     day_today: '', // Override default today styling to remove it
+   };
+
 
   if (isLoading) {
     return (
@@ -275,7 +333,10 @@ const ServiceDetailPageContent = () => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={(day) => day < new Date(new Date().setHours(0,0,0,0))}
+                    disabled={modifiers.disabled} // Use the combined disabled modifier
+                    modifiers={modifiers}
+                    modifiersClassNames={modifiersClassNames}
+                    classNames={calendarClassNames} // Pass the custom classNames to override today style
                     className="rounded-md border shadow-sm p-0 w-full"
                     locale={es}
                     captionLayout="dropdown-buttons"
@@ -290,24 +351,33 @@ const ServiceDetailPageContent = () => {
                     <Clock className="mr-2 h-5 w-5 text-primary" />
                     Seleccionar Hora (Cupo)
                  </h3>
-                 {availableTimeSlots.length > 0 ? (
-                    <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-                      <SelectTrigger id="time-slot" className="w-full">
-                        <SelectValue placeholder="Selecciona un cupo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableTimeSlots.map((slot) => (
-                          <SelectItem key={slot} value={slot}>
-                            {slot}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
+                 {selectedDate ? (
+                   availableTimeSlots.length > 0 ? (
+                     <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                       <SelectTrigger id="time-slot" className="w-full">
+                         <SelectValue placeholder="Selecciona un cupo" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {availableTimeSlots.map((slot) => (
+                           <SelectItem key={slot} value={slot}>
+                             {slot}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   ) : (
                      <p className="text-sm text-muted-foreground italic pt-2">
-                       No hay cupos específicos listados o selecciona una fecha para ver disponibilidad.
+                       { dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none'
+                          ? 'No hay cupos disponibles para este día.'
+                          : 'Selecciona una fecha con disponibilidad para ver los cupos.'
+                       }
                      </p>
-                  )}
+                   )
+                 ) : (
+                    <p className="text-sm text-muted-foreground italic pt-2">
+                        Selecciona una fecha para ver los cupos disponibles.
+                    </p>
+                 ) }
                </div>
            </div>
 
@@ -363,3 +433,4 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
+
