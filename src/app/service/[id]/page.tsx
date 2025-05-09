@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -215,18 +216,17 @@ const ServiceDetailPageContent = () => {
     available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
     partial: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
     unavailable: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
-    // No special styling for today, its availability status will handle it
   };
 
   const modifiersClassNames = {
-    past: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
-    sunday: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
-    holiday: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
-    available: 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 focus:bg-green-200 dark:focus:bg-green-800 rounded-none',
-    partial: 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 focus:bg-orange-200 dark:focus:bg-orange-800 rounded-none',
-    unavailable: 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 focus:bg-red-200 dark:focus:bg-red-800 !cursor-not-allowed rounded-none',
+    past: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
+    sunday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
+    holiday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
+    available: '!bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600 rounded-none',
+    partial: '!bg-orange-400 !text-white hover:!bg-orange-500 focus:!bg-orange-500 rounded-none',
+    unavailable: '!bg-red-500 !text-white hover:!bg-red-600 focus:!bg-red-600 !cursor-not-allowed rounded-none',
     selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-ring ring-offset-2 dark:ring-offset-background',
-    day_today: 'font-normal rounded-none', // Keep today's font normal, availability styling will take precedence
+    day_today: 'text-accent-foreground font-semibold rounded-none', // Default style from calendar.tsx with font-semibold
   };
 
 
@@ -235,11 +235,10 @@ const ServiceDetailPageContent = () => {
     const dateKey = format(date, 'yyyy-MM-dd');
     const availabilityStatus = dailyAvailability[dateKey];
     return (
-      isPastDay(date) || // Disable all past days (except today if needed, handled by isPastDay logic)
+      isPastDay(date) || 
       isSunday(date) ||
       isHoliday(date) ||
       availabilityStatus === 'none' 
-      // 'partial' days are not disabled, they are selectable
     );
   };
 
@@ -385,7 +384,7 @@ const ServiceDetailPageContent = () => {
                     locale={es}
                     captionLayout="dropdown-buttons"
                     fromYear={currentYear}
-                    toYear={currentYear + 2}
+                    toYear={currentYear + 2} // Can show up to 3 years for selection
                  />
                </div>
 
@@ -473,3 +472,4 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
+
