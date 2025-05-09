@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -33,6 +34,7 @@ const holidays: Date[] = [
   new Date(2024, 7, 19), // Example: August 19, 2024
   new Date(2024, 11, 25), // Christmas Day
   new Date(2025, 0, 1),  // New Year's Day
+  new Date(2025, 4, 1), // May 1, 2025 (Labor Day example)
 ];
 
 // Example daily availability data structure (replace with actual data fetching)
@@ -40,16 +42,18 @@ type DailyAvailabilityStatus = 'full' | 'partial' | 'none';
 const dummyDailyAvailability: Record<string, DailyAvailabilityStatus> = {
   [format(new Date(2024, 7, 20), 'yyyy-MM-dd')]: 'full', // Aug 20
   [format(new Date(2024, 7, 21), 'yyyy-MM-dd')]: 'partial', // Aug 21
-  [format(new Date(2024, 7, 22), 'yyyy-MM-dd')]: 'none',    // Aug 22
+  [format(new Date(2024, 7, 22), 'yyyy-MM-dd')]: 'none',    // Aug 22 (Should be red)
   [format(new Date(2024, 7, 23), 'yyyy-MM-dd')]: 'full',    // Aug 23
   [format(new Date(2024, 7, 26), 'yyyy-MM-dd')]: 'partial', // Aug 26
   [format(new Date(2024, 7, 27), 'yyyy-MM-dd')]: 'full',    // Aug 27
   // Example for May 2025 to test new green styling
   [format(new Date(2025, 4, 5), 'yyyy-MM-dd')]: 'full', // May 5, 2025
   [format(new Date(2025, 4, 6), 'yyyy-MM-dd')]: 'full', // May 6, 2025
-  [format(new Date(2025, 4, 9), 'yyyy-MM-dd')]: 'partial', // May 9, 2025 (as in image, orange)
-  [format(new Date(2025, 4, 10), 'yyyy-MM-dd')]: 'full', // May 10, 2025 (will be blue if selected)
-  [format(new Date(2025, 4, 31), 'yyyy-MM-dd')]: 'partial', // May 31, 2025 (as in image, orange)
+  [format(new Date(2025, 4, 9), 'yyyy-MM-dd')]: 'partial', // May 9, 2025 (yellow)
+  [format(new Date(2025, 4, 10), 'yyyy-MM-dd')]: 'full', // May 10, 2025 (green)
+  [format(new Date(2025, 4, 31), 'yyyy-MM-dd')]: 'partial', // May 31, 2025 (yellow)
+  // Sundays in May 2025: 4, 11, 18, 25 (Should be gray)
+  // May 1, 2025 is a Holiday (Should be gray)
 };
 
 
@@ -108,13 +112,14 @@ const ServiceDetailPageContent = () => {
     setSelectedTimeSlot(undefined);
     if (service && selectedDate) {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
-      if (dailyAvailability[dateString] !== 'none') {
+      // Only show slots if not Sunday, not Holiday, and availability is not 'none'
+      if (!isSunday(selectedDate) && !isHoliday(selectedDate) && dailyAvailability[dateString] !== 'none') {
         setAvailableTimeSlots(service.availability || []);
       } else {
          setAvailableTimeSlots([]);
       }
     }
-  }, [service, selectedDate, dailyAvailability]);
+  }, [service, selectedDate, dailyAvailability]); // isHoliday is not directly in deps, but part of logic
 
   const handleBooking = () => {
     if (!isLoggedIn) {
@@ -165,26 +170,31 @@ const ServiceDetailPageContent = () => {
   };
 
   const modifiers: DayModifiers = {
-    sunday: (date: Date) => isSunday(date),
+    sunday: isSunday,
     holiday: isHoliday,
-    available: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
-    partial: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
-    unavailable: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
-    disabled: (date: Date) => date < startOfDay(new Date()) || isSunday(date) || isHoliday(date) || dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+    available: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full' && !isSunday(date) && !isHoliday(date),
+    partial: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial' && !isSunday(date) && !isHoliday(date),
+    unavailable: (date: Date) => !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
   };
 
   const modifiersClassNames = {
-    sunday: 'text-muted-foreground opacity-50',
-    holiday: 'text-muted-foreground opacity-50 font-bold',
-    available: 'bg-green-400 text-primary-foreground hover:bg-green-500 focus:bg-green-500 dark:bg-green-600 dark:hover:bg-green-700',
-    partial: 'bg-yellow-400 text-primary-foreground hover:bg-yellow-500 focus:bg-yellow-500 dark:bg-yellow-600 dark:hover:bg-yellow-700',
-    unavailable: 'bg-red-100 text-red-900 opacity-50 line-through cursor-not-allowed dark:bg-red-900 dark:text-red-200',
-    selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90',
+    sunday: 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 opacity-75 !cursor-not-allowed',
+    holiday: 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 opacity-75 !cursor-not-allowed',
+    available: 'bg-green-500 text-white hover:bg-green-600 focus:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 rounded-md',
+    partial: 'bg-yellow-400 text-black hover:bg-yellow-500 focus:bg-yellow-500 dark:bg-yellow-500 dark:hover:bg-yellow-600 rounded-md',
+    unavailable: 'bg-red-500 text-white opacity-75 line-through !cursor-not-allowed dark:bg-red-700 dark:text-red-200 rounded-md',
+    selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 rounded-md',
   };
 
    const calendarClassNames = {
-     day_today: '', 
+     day_today: 'bg-transparent text-foreground font-bold', // Make today's date text bold but background transparent unless modified by other rules
    };
+   
+   const disabledDays = (date: Date) =>
+    date < startOfDay(new Date()) || // Past dates
+    isSunday(date) || // Sundays
+    isHoliday(date) || // Holidays
+    (!isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none'); // Unavailable non-Sun/Hol days
 
 
   if (isLoading) {
@@ -296,7 +306,7 @@ const ServiceDetailPageContent = () => {
 
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
-            <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && "line-clamp-3")}>
+            <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && service.description.length > 200 && "line-clamp-3")}>
               {service.description}
             </p>
             {service.description.length > 200 && (
@@ -321,7 +331,7 @@ const ServiceDetailPageContent = () => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={modifiers.disabled}
+                    disabled={disabledDays}
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
                     classNames={calendarClassNames}
@@ -354,9 +364,9 @@ const ServiceDetailPageContent = () => {
                      </Select>
                    ) : (
                      <p className="text-sm text-muted-foreground italic pt-2">
-                       { dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none'
-                          ? 'No hay cupos disponibles para este día.'
-                          : 'Selecciona una fecha con disponibilidad para ver los cupos.'
+                       { (isSunday(selectedDate) || isHoliday(selectedDate))
+                          ? 'Los domingos y festivos no hay servicio.'
+                          : 'No hay cupos disponibles para este día.'
                        }
                      </p>
                    )
