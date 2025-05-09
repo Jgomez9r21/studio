@@ -19,14 +19,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, isSunday, startOfDay, isPast } from 'date-fns'; // Added isPast
+import { format, isSameDay, isSunday, startOfDay, isPast } from 'date-fns';
 import type { DayModifiers } from 'react-day-picker';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils'; // Import cn utility
+import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
 // Example holiday data
@@ -96,8 +96,8 @@ const ServiceDetailPageContent = () => {
                 ...fetchedService,
                 professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`,
                 professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}`,
-                imageUrls: fetchedService.imageUrls && fetchedService.imageUrls.length > 0 
-                           ? fetchedService.imageUrls 
+                imageUrls: fetchedService.imageUrls && fetchedService.imageUrls.length > 0
+                           ? fetchedService.imageUrls
                            : (fetchedService.imageUrl ? [fetchedService.imageUrl] : [`https://picsum.photos/800/600?random=service-${fetchedService.id}`]),
                 description: fetchedService.description || "No hay descripción disponible para este servicio."
             };
@@ -124,14 +124,13 @@ const ServiceDetailPageContent = () => {
     setSelectedTimeSlot(undefined);
     if (service && selectedDate) {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
-       // Only show slots if not Sunday, not Holiday, not past, and availability is 'full'
       if (!isSunday(selectedDate) && !isHoliday(selectedDate) && !isPastDay(selectedDate) && dailyAvailability[dateString] === 'full') {
         setAvailableTimeSlots(service.availability || []);
       } else {
          setAvailableTimeSlots([]);
       }
     }
-  }, [service, selectedDate, dailyAvailability, today]); // Added today to deps
+  }, [service, selectedDate, dailyAvailability, today]);
 
   const handleBooking = () => {
     if (!isLoggedIn) {
@@ -197,30 +196,30 @@ const ServiceDetailPageContent = () => {
     sunday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
     holiday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
     available: 'bg-green-600 text-white hover:bg-green-700 focus:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 rounded-none',
-    partial: '!bg-orange-400 !text-black !cursor-not-allowed rounded-none', // Orange for partial, not selectable
-    unavailable: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',   // Red for unavailable, not selectable
+    partial: '!bg-orange-400 !text-black !cursor-not-allowed rounded-none',
+    unavailable: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',
     selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-offset-background ring-ring',
   };
 
    const calendarClassNames = {
-     day_today: 'font-normal rounded-none', // Remove special styling for "today" if not otherwise styled by modifiers
+     day_today: 'font-normal rounded-none',
    };
-   
+
   const disabledDays = (date: Date): boolean => {
-    if (!today) return true; 
+    if (!today) return true;
     const dateKey = format(date, 'yyyy-MM-dd');
     const availabilityStatus = dailyAvailability[dateKey];
     return (
-      date < today || 
-      isSunday(date) || 
-      isHoliday(date) || 
-      availabilityStatus === 'none' || 
-      availabilityStatus === 'partial' 
+      date < today ||
+      isSunday(date) ||
+      isHoliday(date) ||
+      availabilityStatus === 'none' ||
+      availabilityStatus === 'partial'
     );
   };
 
 
-  if (isLoading || !today) { 
+  if (isLoading || !today) {
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -450,6 +449,3 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
-
-
-    
