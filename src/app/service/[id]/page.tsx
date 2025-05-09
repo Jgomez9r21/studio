@@ -43,33 +43,33 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
     const availability: Record<string, AvailabilityStatus> = {};
     const today = startOfDay(new Date());
 
-    for (let i = 0; i < 3; i++) { // Generate for current month and next 2 months
-        const targetMonthDate = addMonths(today, i);
-        const year = getYear(targetMonthDate);
-        const month = getMonth(targetMonthDate);
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // Generate for current year and next 2 years to cover calendar navigation range
+    for (let yearOffset = 0; yearOffset < 3; yearOffset++) {
+        const targetYear = getYear(today) + yearOffset;
+        for (let month = 0; month < 12; month++) { // Iterate through all months of the target year
+            const daysInMonth = new Date(targetYear, month + 1, 0).getDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = startOfDay(new Date(targetYear, month, day));
+                const dateString = format(date, 'yyyy-MM-dd');
+                
+                if (isBefore(date, today) && !isSameDay(date, today)) {
+                     availability[dateString] = 'unavailable'; // Past dates are unavailable
+                     continue;
+                }
+                if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
+                     availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
+                     continue;
+                }
 
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = startOfDay(new Date(year, month, day));
-            const dateString = format(date, 'yyyy-MM-dd');
-            
-            if (isBefore(date, today) && !isSameDay(date, today)) {
-                 availability[dateString] = 'unavailable'; // Past dates are unavailable
-                 continue;
-            }
-            if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-                 availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
-                 continue;
-            }
-
-            // Simulate varied availability for other days
-            const rand = Math.random();
-            if (rand < 0.4) { // 40% available
-                availability[dateString] = 'available';
-            } else if (rand < 0.7) { // 30% partial
-                availability[dateString] = 'partial';
-            } else { // 30% occupied
-                availability[dateString] = 'occupied';
+                // Simulate varied availability for other days
+                const rand = Math.random();
+                if (rand < 0.4) { // 40% available
+                    availability[dateString] = 'available';
+                } else if (rand < 0.7) { // 30% partial
+                    availability[dateString] = 'partial';
+                } else { // 30% occupied
+                    availability[dateString] = 'occupied';
+                }
             }
         }
     }
@@ -375,7 +375,7 @@ const ServiceDetailPageContent = () => {
                     locale={es}
                     defaultMonth={selectedDate || startOfDay(new Date())}
                     fromYear={currentYear} 
-                    toYear={currentYear + 2}
+                    toYear={currentYear + 2} // Allow navigation for 3 years
                     captionLayout="dropdown-buttons"
                     className="rounded-md border shadow-md p-2 bg-card"
                 />
@@ -470,3 +470,4 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
+
