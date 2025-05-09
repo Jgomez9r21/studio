@@ -16,9 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react'; 
+import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays, CalendarIcon as CalendarIconLucide } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, isPast, isSunday } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isPast, isSunday, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -26,7 +26,11 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import CustomCalendar, { type AvailabilityStatus } from '@/components/ui/CustomCalendar';
+import { Calendar } from '@/components/ui/calendar'; // Use shadcn Calendar
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // For date picker popover if needed
+
+// Define AvailabilityStatus type, can be moved to a types file if shared
+export type AvailabilityStatus = 'available' | 'partial' | 'occupied' | 'unavailable';
 
 
 // Example holiday data
@@ -38,9 +42,9 @@ const holidays: Date[] = [
 
 const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
     const availability: Record<string, AvailabilityStatus> = {};
-    const today = startOfDay(new Date()); 
+    const today = startOfDay(new Date());
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) { // Generate for current month and next 2 months
         const targetMonthDate = addMonths(today, i);
         const year = getYear(targetMonthDate);
         const month = getMonth(targetMonthDate);
@@ -50,22 +54,22 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
             const date = startOfDay(new Date(year, month, day));
             const dateString = format(date, 'yyyy-MM-dd');
             
-            if (isPast(date) && !isSameDay(date, today)) {
+            if (isBefore(date, today) && !isSameDay(date, today)) { // Past dates before today
                  availability[dateString] = 'unavailable';
                  continue;
             }
             if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-                 availability[dateString] = 'unavailable';
+                 availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
                  continue;
             }
 
             const rand = Math.random();
-            if (rand < 0.4) {
-                availability[dateString] = 'available'; 
-            } else if (rand < 0.7) {
-                availability[dateString] = 'partial';   
-            } else { 
-                availability[dateString] = 'occupied';  
+            if (rand < 0.4) { // 40% available
+                availability[dateString] = 'available';
+            } else if (rand < 0.7) { // 30% partial
+                availability[dateString] = 'partial';
+            } else { // 30% occupied
+                availability[dateString] = 'occupied';
             }
         }
     }
@@ -92,7 +96,8 @@ const ServiceDetailPageContent = () => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [dailyAvailability, setDailyAvailability] = useState<Record<string, AvailabilityStatus>>({});
   
-  const [today, setToday] = useState<Date>(startOfDay(new Date())); 
+  const today = startOfDay(new Date());
+  const currentYear = getYear(today);
 
 
   useEffect(() => {
@@ -146,7 +151,8 @@ const ServiceDetailPageContent = () => {
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
-            setAvailableTimeSlots(['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM']); 
+            // Fallback default slots if service.availability is empty
+            setAvailableTimeSlots(['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM']); 
          }
       } else {
          setAvailableTimeSlots([]);
@@ -230,6 +236,28 @@ const ServiceDetailPageContent = () => {
 
   const imagesToShow = service.imageUrls && service.imageUrls.length > 0 ? service.imageUrls : (service.imageUrl ? [service.imageUrl] : []);
 
+  const isDayDisabled = (date: Date): boolean => {
+    if (isBefore(date, today) && !isSameDay(date, today)) return true; // Past dates before today
+    if (isSunday(date)) return true;
+    if (holidays.some(h => isSameDay(h, date))) return true;
+    const status = dailyAvailability[format(date, 'yyyy-MM-dd')];
+    if (status === 'occupied' || status === 'unavailable') return true;
+    return false;
+  };
+
+  const modifiers = {
+    available: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
+    partial: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
+    occupied: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'occupied', // Occupied implies disabled for selection
+  };
+
+  const modifiersClassNames = {
+    available: 'day-available',
+    partial: 'day-partial',
+    occupied: 'day-occupied',
+    // 'selected' and 'today' are handled by shadcn/ui default styles or can be customized further if needed
+    // 'disabled' days (Sunday, holiday, past, 'unavailable' status) will get .rdp-day_disabled
+  };
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-6 md:py-8 max-w-5xl">
@@ -321,21 +349,30 @@ const ServiceDetailPageContent = () => {
           </div>
 
           <div className="space-y-6 pt-6 border-t">
-             <div className="space-y-2">
-                <Label htmlFor="calendar-booking" className="text-md font-semibold text-foreground flex items-center">
-                    <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
-                    Seleccionar Fecha
-                </Label>
-                <CustomCalendar
-                    value={selectedDate}
-                    onChange={setSelectedDate}
-                    availability={dailyAvailability}
-                    holidays={holidays}
-                    minDate={today}
-                    initialDisplayMonth={startOfDay(new Date())}
+            <div className="space-y-3">
+              <Label htmlFor="calendar-booking" className="text-md font-semibold text-foreground flex items-center">
+                  <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
+                  Seleccionar Fecha
+              </Label>
+              <div className="flex justify-center"> {/* Center the calendar */}
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={isDayDisabled}
+                    modifiers={modifiers}
+                    modifiersClassNames={modifiersClassNames}
+                    locale={es}
+                    defaultMonth={selectedDate || startOfDay(new Date())} // Or a specific month like new Date(2025, 4) for May 2025
+                    fromYear={currentYear -1} // Allow selecting from previous year for booking past services if logic changes
+                    toYear={currentYear + 2}   // Allow selecting up to 2 years in future
+                    captionLayout="dropdown-buttons"
+                    className="rounded-md border shadow-md p-2 bg-card" // Added some base styling
                 />
-                {selectedDate && <p className="text-sm text-muted-foreground pt-1">Fecha seleccionada: {format(selectedDate, "PPP", { locale: es })}</p>}
+              </div>
+              {selectedDate && <p className="text-sm text-muted-foreground pt-2 text-center">Fecha seleccionada: {format(selectedDate, "PPP", { locale: es })}</p>}
             </div>
+
 
             <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
               <Label htmlFor={`time-slot-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
@@ -359,7 +396,7 @@ const ServiceDetailPageContent = () => {
                     </Select>
                   ) : (
                      <p className="text-sm text-muted-foreground italic pt-1">
-                        { (dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'occupied' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'unavailable' )
+                        { (dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'occupied' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'unavailable' ) || isDayDisabled(selectedDate)
                             ? 'Día no disponible para reserva.'
                             : 'No hay cupos disponibles para este día.'
                         }
