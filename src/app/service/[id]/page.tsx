@@ -50,18 +50,19 @@ const generateDummyAvailability = () => {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         for (let day = 1; day <= daysInMonth; day++) {
             const date = new Date(year, month, day);
-            if (isSunday(date) || holidays.some(h => isSameDay(h, date)) || isPast(date) && !isSameDay(date, today)) {
+            if (isSunday(date) || holidays.some(h => isSameDay(h, date)) || (isPast(date) && !isSameDay(date, startOfDay(new Date())))) { // Ensure today is not skipped if in past
                 continue; // Skip Sundays, holidays, and past days (except today)
             }
             const rand = Math.random();
             const dateString = format(date, 'yyyy-MM-dd');
-            if (rand < 0.5) {
+            if (rand < 0.4) { // Increased chance of 'full' for testing
                 availability[dateString] = 'full';
-            } else if (rand < 0.75) {
+            } else if (rand < 0.7) { // Increased chance of 'partial'
                 availability[dateString] = 'partial';
-            } else {
+            } else if (rand < 0.9) { // Chance of 'none'
                 availability[dateString] = 'none';
             }
+            // Some days will remain undefined in the map to test 'not_explicitly_available_gray'
         }
     };
 
@@ -211,36 +212,42 @@ const ServiceDetailPageContent = () => {
   const isPastDay = (date: Date): boolean => !!today && !isSameDay(date, today) && date < today;
 
 
- const modifiers: DayModifiers = {
+  const modifiers: DayModifiers = {
     past: isPastDay,
     sunday: isSunday,
     holiday: isHoliday,
     available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
     partial: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
-    unavailable: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+    unavailable_red: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+    not_explicitly_available_gray: (date: Date) =>
+      !isPastDay(date) &&
+      !isSunday(date) &&
+      !isHoliday(date) &&
+      dailyAvailability[format(date, 'yyyy-MM-dd')] === undefined,
   };
 
   const modifiersClassNames = {
-    past: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
-    sunday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
-    holiday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60',
-    available: '!bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600 rounded-none',
-    partial: '!bg-orange-400 !text-white hover:!bg-orange-500 focus:!bg-orange-500 rounded-none',
-    unavailable: '!bg-red-500 !text-white hover:!bg-red-600 focus:!bg-red-600 !cursor-not-allowed rounded-none',
+    past: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60', // Gris (pasado)
+    sunday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60', // Gris (domingo)
+    holiday: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60', // Gris (festivo)
+    available: '!bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600 rounded-none', // Verde (disponible)
+    partial: '!bg-orange-400 !text-white hover:!bg-orange-500 focus:!bg-orange-500 rounded-none', // Naranja (medio cupo)
+    unavailable_red: '!bg-red-500 !text-white hover:!bg-red-600 focus:!bg-red-600 !cursor-not-allowed rounded-none', // Rojo (ocupado/sin cupo)
+    not_explicitly_available_gray: '!bg-slate-100 dark:!bg-slate-800 !text-slate-400 dark:!text-slate-500 !cursor-not-allowed rounded-none opacity-60', // Gris (no info / no disponible)
     selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-ring ring-offset-2 dark:ring-offset-background',
-    day_today: 'text-accent-foreground font-semibold rounded-none', // Default style from calendar.tsx with font-semibold
+    day_today: 'text-accent-foreground font-semibold rounded-none',
   };
 
-
   const disabledDays = (date: Date): boolean => {
-    if (!today) return true;
+    if (!today) return true; // Disable all if today is not set yet
     const dateKey = format(date, 'yyyy-MM-dd');
     const availabilityStatus = dailyAvailability[dateKey];
     return (
-      isPastDay(date) || 
+      isPastDay(date) ||
       isSunday(date) ||
       isHoliday(date) ||
-      availabilityStatus === 'none' 
+      availabilityStatus === 'none' || // Ocupado (rojo)
+      availabilityStatus === undefined // No tiene info / no disponible (gris)
     );
   };
 
@@ -430,7 +437,7 @@ const ServiceDetailPageContent = () => {
                     </Select>
                   ) : (
                     <p className="text-sm text-muted-foreground italic pt-1"> {/* Adjusted padding */}
-                      { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' )
+                      { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === undefined )
                          ? 'Día no disponible para reserva.'
                          : 'No hay cupos disponibles para este día.'
                       }
@@ -496,5 +503,7 @@ const ServiceDetailPage = () => {
 export default ServiceDetailPage;
 
 
+
+    
 
     
