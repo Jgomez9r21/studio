@@ -37,13 +37,12 @@ const holidays: Date[] = [
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
 
-// Example daily availability data structure
-type DailyAvailabilityStatus = 'full' | 'partial' | 'none';
+// Updated daily availability data structure to reflect user's desired states
+type DailyAvailabilityStatus = 'available' | 'partial' | 'occupied';
 
 const generateDummyAvailability = () => {
     const availability: Record<string, DailyAvailabilityStatus> = {};
-    const today = new Date();
-    const currentYear = today.getFullYear();
+    const today = startOfDay(new Date()); // Ensure 'today' is start of day for comparisons
 
     // Generate for current month and next two months
     for (let i = 0; i < 3; i++) {
@@ -53,28 +52,26 @@ const generateDummyAvailability = () => {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month, day);
+            const date = startOfDay(new Date(year, month, day)); // Work with start of day
             const dateString = format(date, 'yyyy-MM-dd');
             
-            // Skip past days (except today), Sundays, and holidays for random assignment
-             if (isPast(date) && !isSameDay(date, startOfDay(new Date()))) {
-                availability[dateString] = 'none'; // Mark past days as unavailable (red or gray depending on other rules)
-                continue;
-            }
-            if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-                 availability[dateString] = 'none'; // Explicitly mark Sundays/Holidays as 'none' for red/gray styling
+            // Skip past days (but not today), Sundays, and holidays for random assignment
+            // These will be styled gray by their specific modifiers and be disabled.
+            if ((isPast(date) && !isSameDay(date, today)) || isSunday(date) || holidays.some(h => isSameDay(h, date))) {
+                // No need to explicitly set in `availability` map, modifiers will handle gray styling and disabled state.
                 continue;
             }
 
             const rand = Math.random();
             if (rand < 0.4) {
-                availability[dateString] = 'full';
+                availability[dateString] = 'available'; // Green
             } else if (rand < 0.7) {
-                availability[dateString] = 'partial';
-            } else if (rand < 0.9) {
-                availability[dateString] = 'none';
+                availability[dateString] = 'partial';   // Orange
+            } else { // rand >= 0.7
+                availability[dateString] = 'occupied';  // Red
             }
-            // Some days will remain undefined, styled as 'not_explicitly_available_gray'
+            // Days not explicitly assigned here (if any logic changes) will be `undefined`
+            // and handled by the `gray_default_unavailable` modifier.
         }
     }
     return availability;
@@ -99,7 +96,7 @@ const ServiceDetailPageContent = () => {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>({});
-  const [today, setToday] = useState<Date | undefined>(undefined);
+  const [today, setToday] = useState<Date>(startOfDay(new Date())); // Initialize today
   
   const [calendarMonth, setCalendarMonth] = useState<Date>(startOfDay(new Date()));
   const currentYear = getYear(new Date());
@@ -108,7 +105,7 @@ const ServiceDetailPageContent = () => {
 
 
   useEffect(() => {
-    setToday(startOfDay(new Date()));
+    // `today` is already initialized with useState
     setDailyAvailability(generateDummyAvailability());
   }, []);
 
@@ -155,11 +152,12 @@ const ServiceDetailPageContent = () => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const dayStatus = dailyAvailability[dateString];
       
-      if (dayStatus === 'full' || dayStatus === 'partial') {
+      // Only show time slots for 'available' or 'partial' days
+      if (dayStatus === 'available' || dayStatus === 'partial') {
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
-            // Fallback if service.availability is empty but day is marked as available
+            // Fallback if service.availability is empty but day is marked as available/partial
             setAvailableTimeSlots(['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM']); 
          }
       } else {
@@ -215,53 +213,43 @@ const ServiceDetailPageContent = () => {
     return holidays.some(holiday => isSameDay(startOfGivenDate, startOfDay(holiday)));
   };
 
-  const isPastDay = (date: Date): boolean => !!today && !isSameDay(date, today) && date < today;
+  const isPastDay = (date: Date): boolean => !isSameDay(date, today) && date < today;
 
 
   const modifiers: DayModifiers = {
-    past: isPastDay, // Will be styled gray and disabled
-    sunday: isSunday, // Will be styled gray and disabled (due to dailyAvailability['date'] often being 'none')
-    holiday: isHoliday, // Will be styled gray and disabled (due to dailyAvailability['date'] often being 'none')
-    available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
+    past: isPastDay,
+    sunday: isSunday,
+    holiday: isHoliday,
+    available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'available',
     partial: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
-    unavailable_red: (date: Date) => (!isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none') || (isSunday(date) || isHoliday(date)), // Sundays/Holidays are red now
-    not_explicitly_available_gray: (date: Date) =>
-      !isPastDay(date) &&
-      !isSunday(date) &&
-      !isHoliday(date) &&
-      dailyAvailability[format(date, 'yyyy-MM-dd')] === undefined,
+    occupied: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'occupied',
+    gray_default_unavailable: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === undefined,
   };
 
+  const grayStyle = '!text-muted-foreground !bg-slate-200 dark:!bg-slate-700 !cursor-not-allowed rounded-none opacity-70';
+
   const modifiersClassNames = {
-    past: '!text-muted-foreground !bg-slate-100 dark:!bg-slate-800 !cursor-not-allowed rounded-none opacity-60',
-    sunday: '!text-white !bg-red-500 !cursor-not-allowed rounded-none', // Sundays explicitly red if also 'unavailable_red'
-    holiday: '!text-white !bg-red-500 !cursor-not-allowed rounded-none', // Holidays explicitly red if also 'unavailable_red'
+    past: grayStyle,
+    sunday: grayStyle,
+    holiday: grayStyle,
     available: '!bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600 rounded-none',
     partial: '!bg-orange-400 !text-white hover:!bg-orange-500 focus:!bg-orange-500 rounded-none',
-    unavailable_red: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',
-    not_explicitly_available_gray: '!text-muted-foreground !bg-slate-100 dark:!bg-slate-800 !cursor-not-allowed rounded-none opacity-60',
+    occupied: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',
+    gray_default_unavailable: grayStyle,
     selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-ring ring-offset-2 dark:ring-offset-background',
-    // day_today is a default DayPicker style, let's keep it simple unless specific styling needed
-    // For day_today, ensure it doesn't override availability colors if 'today' is also e.g. 'available'
-    // This might require more complex logic or careful ordering in DayPicker if default 'today' style is too strong
     day_today: 'font-semibold rounded-none', 
   };
   
-  // Ensure Sundays and holidays are always disabled, regardless of dummy data for 'full' or 'partial'
   const disabledDays = (date: Date): boolean => {
-    if (!today) return true;
-    if (isPastDay(date) && !isSameDay(date, today)) return true; // Disable past days (except today)
-    if (isSunday(date) || isHoliday(date)) return true; // Disable Sundays and holidays
-
-    const dateString = format(date, 'yyyy-MM-dd');
-    const availabilityStatus = dailyAvailability[dateString];
-    
-    // Disable if 'none' (red) or not explicitly defined (gray)
-    return availabilityStatus === 'none' || availabilityStatus === undefined;
+    if (isPastDay(date)) return true;
+    if (isSunday(date)) return true;
+    if (isHoliday(date)) return true;
+    const status = dailyAvailability[format(date, 'yyyy-MM-dd')];
+    return status === 'occupied' || status === undefined;
   };
 
 
-  if (isLoading || !today) {
+  if (isLoading) { // Removed !today check as it's initialized
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -448,7 +436,7 @@ const ServiceDetailPageContent = () => {
                     </Select>
                   ) : (
                     <p className="text-sm text-muted-foreground italic pt-1">
-                      { (isSunday(selectedDate) || isHoliday(selectedDate) || (isPastDay(selectedDate) && !isSameDay(selectedDate, today)) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === undefined )
+                      { (isSunday(selectedDate) || isHoliday(selectedDate) || (isPastDay(selectedDate) && !isSameDay(selectedDate, today)) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'occupied' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === undefined )
                          ? 'Día no disponible para reserva.'
                          : 'No hay cupos disponibles para este día.'
                       }
@@ -518,3 +506,4 @@ export default ServiceDetailPage;
     
 
     
+
