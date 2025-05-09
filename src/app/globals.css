@@ -103,64 +103,68 @@ body {
 
 /* Custom Calendar Day Modifier Styles */
 @layer components {
+  /* Verde : Días disponibles ("available") */
   .rdp-day_available {
     background-color: #4ade80 !important; /* Tailwind green-400 */
     color: white !important;
     border-radius: var(--radius);
   }
-  .rdp-day_available:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+  .rdp-day_available:hover:not([disabled]):not(.rdp-day_selected) {
     background-color: #3cb170 !important; /* Darker green for hover */
   }
 
+  /* Naranja : Días con medio cupo ("partial") */
   .rdp-day_partial {
     background-color: #fbbf24 !important; /* Tailwind amber-400 */
-    color: hsl(var(--foreground)) !important;
+    color: hsl(var(--foreground)) !important; /* Use foreground for better contrast */
     border-radius: var(--radius);
   }
-  .rdp-day_partial:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+  .rdp-day_partial:hover:not([disabled]):not(.rdp-day_selected) {
     background-color: #f59e0b !important; /* Darker amber for hover */
   }
 
+  /* Rojo : Días ocupados ("occupied") */
   .rdp-day_occupied {
     background-color: #f87171 !important; /* Tailwind red-400 */
     color: white !important;
     border-radius: var(--radius);
-    /* Occupied days are also typically disabled, so opacity and cursor:not-allowed will apply from .rdp-day_disabled */
+    /* Occupied days are also typically disabled, so opacity and cursor:not-allowed will apply from .rdp-day_disabled if not overridden by this more specific class */
   }
-   .rdp-day_occupied:hover:not(.rdp-day_disabled):not(.rdp-day_selected) {
+   .rdp-day_occupied:hover:not([disabled]):not(.rdp-day_selected) {
     background-color: #ef4444 !important; /* Darker red for hover, if it's ever not disabled */
   }
 
 
-  /* Default disabled style from shadcn/ui/calendar.css is:
-     .rdp-day_disabled { text-muted-foreground opacity-50 !cursor-not-allowed }
-     We add a background for better visual indication for days that are generally unavailable (Sundays, holidays, past)
-  */
-  .rdp-button[disabled].rdp-day_outside,
-  .rdp-button[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied) {
+  /* Gris : Días no disponibles o descansos (Sundays, holidays, past, or 'unavailable' status) */
+  /* This targets generally disabled days that don't have a specific availability status color. */
+  .rdp-button[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied),
+  .rdp-day_outside[disabled] /* Also style disabled outside days similarly */
+  {
     background-color: #e5e7eb !important; /* tailwind gray-200 */
     color: #6b7280 !important; /* tailwind gray-500 */
     opacity: 0.7 !important;
     border-radius: var(--radius);
+    cursor: not-allowed !important;
   }
   
-  /* Ensure selected style (primary blue) overrides availability colors */
+  /* Ensure selected style (primary blue) overrides other status colors */
+  .rdp-day_selected,
   .rdp-day_selected.rdp-day_available,
   .rdp-day_selected.rdp-day_partial,
-  .rdp-day_selected.rdp-day_occupied,
-  .rdp-day_selected { /* Default selected style from shadcn/ui Calendar */
+  .rdp-day_selected.rdp-day_occupied { 
     background-color: hsl(var(--primary)) !important;
     color: hsl(var(--primary-foreground)) !important;
-    opacity: 1 !important; /* Ensure selected is fully opaque */
+    opacity: 1 !important; 
   }
-  .rdp-day_selected:hover {
-    background-color: hsl(var(--primary)) !important; /* Keep primary color on hover for selected */
+  .rdp-day_selected:hover:not([disabled]) {
+    background-color: hsl(var(--primary)) !important; 
     opacity: 0.9 !important;
   }
 
-  /* Today's date styling (default from shadcn is text-accent-foreground) */
-  /* If a specific background or border is needed for today that ISN'T an availability status: */
-  /* .rdp-day_today:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied) {
-    border: 1px solid hsl(var(--accent)) !important;
-  } */
+  /* Default styling for today's date (text-accent-foreground from shadcn) */
+  /* If you want a border or different background for today IF IT'S NOT ALSO another status:
+  .rdp-day_today:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied):not([disabled]) {
+    border: 1px solid hsl(var(--accent));
+  }
+  */
 }

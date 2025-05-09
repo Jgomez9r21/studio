@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -16,9 +15,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays, CalendarIcon as CalendarIconLucide } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react'; // Removed CalendarIconLucide as CalendarDays is preferred
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isPast, isSunday, isBefore } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -26,14 +25,14 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import { Calendar } from '@/components/ui/calendar'; // Use shadcn Calendar
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // For date picker popover if needed
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Define AvailabilityStatus type, can be moved to a types file if shared
+// Define AvailabilityStatus type
 export type AvailabilityStatus = 'available' | 'partial' | 'occupied' | 'unavailable';
 
 
-// Example holiday data
+// Example holiday data (can be fetched or configured elsewhere)
 const holidays: Date[] = [
   new Date(new Date().getFullYear(), 11, 25), // Christmas Day current year
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
@@ -54,8 +53,8 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
             const date = startOfDay(new Date(year, month, day));
             const dateString = format(date, 'yyyy-MM-dd');
             
-            if (isBefore(date, today) && !isSameDay(date, today)) { // Past dates before today
-                 availability[dateString] = 'unavailable';
+            if (isBefore(date, today) && !isSameDay(date, today)) {
+                 availability[dateString] = 'unavailable'; // Past dates are unavailable
                  continue;
             }
             if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
@@ -63,6 +62,7 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
                  continue;
             }
 
+            // Simulate varied availability for other days
             const rand = Math.random();
             if (rand < 0.4) { // 40% available
                 availability[dateString] = 'available';
@@ -101,6 +101,7 @@ const ServiceDetailPageContent = () => {
 
 
   useEffect(() => {
+    // Generate dummy availability on component mount
     setDailyAvailability(generateDummyAvailability());
   }, []);
 
@@ -236,28 +237,35 @@ const ServiceDetailPageContent = () => {
 
   const imagesToShow = service.imageUrls && service.imageUrls.length > 0 ? service.imageUrls : (service.imageUrl ? [service.imageUrl] : []);
 
+  // Function to determine if a day should be disabled for selection in the calendar
   const isDayDisabled = (date: Date): boolean => {
-    if (isBefore(date, today) && !isSameDay(date, today)) return true; // Past dates before today
-    if (isSunday(date)) return true;
-    if (holidays.some(h => isSameDay(h, date))) return true;
-    const status = dailyAvailability[format(date, 'yyyy-MM-dd')];
+    const dateOnly = startOfDay(date); // Ensure time component is removed for accurate comparison
+    if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true; // Past dates before today
+    if (isSunday(dateOnly)) return true; // Disable Sundays
+    if (holidays.some(h => isSameDay(h, dateOnly))) return true; // Disable holidays
+
+    const status = dailyAvailability[format(dateOnly, 'yyyy-MM-dd')];
+    // Explicitly disable days marked as 'occupied' or 'unavailable' by our custom logic
     if (status === 'occupied' || status === 'unavailable') return true;
     return false;
   };
 
+  // Modifiers for react-day-picker to apply custom styles
   const modifiers = {
-    available: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
-    partial: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
-    occupied: (date: Date) => dailyAvailability[format(date, 'yyyy-MM-dd')] === 'occupied', // Occupied implies disabled for selection
+    available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
+    partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
+    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied', 
+    // 'unavailable' status and general disabled days (past, Sunday, holiday) are handled by the `disabled` prop of Calendar
   };
 
+  // CSS class names for the modifiers, matching those in globals.css
   const modifiersClassNames = {
-    available: 'day-available',
-    partial: 'day-partial',
-    occupied: 'day-occupied',
-    // 'selected' and 'today' are handled by shadcn/ui default styles or can be customized further if needed
-    // 'disabled' days (Sunday, holiday, past, 'unavailable' status) will get .rdp-day_disabled
+    available: 'rdp-day_available',
+    partial: 'rdp-day_partial',
+    occupied: 'rdp-day_occupied',
+    // No 'unavailable' needed here; disabled days get default shadcn/ui disabled styling, overridden by our globals.css for general disabled days.
   };
+
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-6 md:py-8 max-w-5xl">
@@ -354,20 +362,20 @@ const ServiceDetailPageContent = () => {
                   <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
                   Seleccionar Fecha
               </Label>
-              <div className="flex justify-center"> {/* Center the calendar */}
+              <div className="flex justify-center">
                 <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={isDayDisabled}
+                    disabled={isDayDisabled} // Uses the updated function
                     modifiers={modifiers}
-                    modifiersClassNames={modifiersClassNames}
+                    modifiersClassNames={modifiersClassNames} // Apply custom classes for statuses
                     locale={es}
-                    defaultMonth={selectedDate || startOfDay(new Date())} // Or a specific month like new Date(2025, 4) for May 2025
-                    fromYear={currentYear -1} // Allow selecting from previous year for booking past services if logic changes
-                    toYear={currentYear + 2}   // Allow selecting up to 2 years in future
+                    defaultMonth={selectedDate || startOfDay(new Date())}
+                    fromYear={currentYear} 
+                    toYear={currentYear + 2}
                     captionLayout="dropdown-buttons"
-                    className="rounded-md border shadow-md p-2 bg-card" // Added some base styling
+                    className="rounded-md border shadow-md p-2 bg-card"
                 />
               </div>
               {selectedDate && <p className="text-sm text-muted-foreground pt-2 text-center">Fecha seleccionada: {format(selectedDate, "PPP", { locale: es })}</p>}
