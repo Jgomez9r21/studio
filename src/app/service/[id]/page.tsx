@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -27,7 +26,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils'; // Import cn utility
-import { HOURLY_RATE_CATEGORIES } from '@/lib/config'; // New import
+import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
 // Example holiday data (replace with actual holiday logic if needed)
 const holidays: Date[] = [
@@ -45,6 +44,12 @@ const dummyDailyAvailability: Record<string, DailyAvailabilityStatus> = {
   [format(new Date(2024, 7, 23), 'yyyy-MM-dd')]: 'full',    // Aug 23
   [format(new Date(2024, 7, 26), 'yyyy-MM-dd')]: 'partial', // Aug 26
   [format(new Date(2024, 7, 27), 'yyyy-MM-dd')]: 'full',    // Aug 27
+  // Example for May 2025 to test new green styling
+  [format(new Date(2025, 4, 5), 'yyyy-MM-dd')]: 'full', // May 5, 2025
+  [format(new Date(2025, 4, 6), 'yyyy-MM-dd')]: 'full', // May 6, 2025
+  [format(new Date(2025, 4, 9), 'yyyy-MM-dd')]: 'partial', // May 9, 2025 (as in image, orange)
+  [format(new Date(2025, 4, 10), 'yyyy-MM-dd')]: 'full', // May 10, 2025 (will be blue if selected)
+  [format(new Date(2025, 4, 31), 'yyyy-MM-dd')]: 'partial', // May 31, 2025 (as in image, orange)
 };
 
 
@@ -60,12 +65,12 @@ const ServiceDetailPageContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined); // Start with no date selected
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | undefined>();
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // State for description expansion
-  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>(dummyDailyAvailability); // State for daily availability
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>(dummyDailyAvailability);
 
   useEffect(() => {
     if (serviceId) {
@@ -75,15 +80,12 @@ const ServiceDetailPageContent = () => {
         try {
           const fetchedService = await getServiceById(serviceId);
           if (fetchedService) {
-            // Add professional name placeholder to the fetched service
             const serviceWithProfessional = {
                 ...fetchedService,
-                professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`, // Add placeholder
-                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}` // Placeholder avatar
+                professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`,
+                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}`
             };
             setService(serviceWithProfessional);
-            // TODO: Fetch actual daily availability based on serviceId
-            // setDailyAvailability(await fetchDailyAvailability(serviceId));
           } else {
             setError('Servicio no encontrado.');
           }
@@ -102,17 +104,14 @@ const ServiceDetailPageContent = () => {
   }, [serviceId]);
 
   useEffect(() => {
-    // Reset time slots when date changes
     setAvailableTimeSlots([]);
     setSelectedTimeSlot(undefined);
     if (service && selectedDate) {
-      // Placeholder: In a real app, fetch available slots for the *selectedDate*
-      // For now, just use the general availability list if the day isn't 'none'
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       if (dailyAvailability[dateString] !== 'none') {
         setAvailableTimeSlots(service.availability || []);
       } else {
-         setAvailableTimeSlots([]); // No slots if day is unavailable
+         setAvailableTimeSlots([]);
       }
     }
   }, [service, selectedDate, dailyAvailability]);
@@ -136,7 +135,7 @@ const ServiceDetailPageContent = () => {
       });
       return;
     }
-    if (!policyAccepted && service?.policyText) { // Only require policy if it exists
+    if (!policyAccepted && service?.policyText) {
       toast({
         title: 'Política no Aceptada',
         description: 'Debes aceptar la política de servicio.',
@@ -156,13 +155,10 @@ const ServiceDetailPageContent = () => {
       title: 'Reserva Solicitada',
       description: `Tu solicitud para "${service?.title}" el ${selectedDate ? format(selectedDate, "PPP", { locale: es }) : ''} a las ${selectedTimeSlot} ha sido enviada.`,
     });
-    // Consider redirecting or showing a success message confirmation state
-    // router.push('/book-service');
   };
 
   const currentYear = new Date().getFullYear();
 
-  // --- Calendar Modifiers ---
   const isHoliday = (date: Date): boolean => {
     const startOfGivenDate = startOfDay(date);
     return holidays.some(holiday => isSameDay(startOfGivenDate, startOfDay(holiday)));
@@ -179,16 +175,15 @@ const ServiceDetailPageContent = () => {
 
   const modifiersClassNames = {
     sunday: 'text-muted-foreground opacity-50',
-    holiday: 'text-muted-foreground opacity-50 font-bold', // Example styling for holidays
-    available: 'bg-green-100 text-green-900 hover:bg-green-200 focus:bg-green-200',
-    partial: 'bg-yellow-100 text-yellow-900 hover:bg-yellow-200 focus:bg-yellow-200',
-    unavailable: 'bg-red-100 text-red-900 opacity-50 line-through cursor-not-allowed',
-    selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90', // Keep selected styling
-    // Disabled days will use the default disabled styling from calendar.tsx
+    holiday: 'text-muted-foreground opacity-50 font-bold',
+    available: 'bg-green-400 text-primary-foreground hover:bg-green-500 focus:bg-green-500 dark:bg-green-600 dark:hover:bg-green-700',
+    partial: 'bg-yellow-400 text-primary-foreground hover:bg-yellow-500 focus:bg-yellow-500 dark:bg-yellow-600 dark:hover:bg-yellow-700',
+    unavailable: 'bg-red-100 text-red-900 opacity-50 line-through cursor-not-allowed dark:bg-red-900 dark:text-red-200',
+    selected: 'bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90',
   };
 
    const calendarClassNames = {
-     day_today: '', // Override default today styling to remove it
+     day_today: '', 
    };
 
 
@@ -237,7 +232,6 @@ const ServiceDetailPageContent = () => {
 
       <Card className="overflow-hidden shadow-xl rounded-xl">
         <CardHeader className="p-0">
-          {/* Image Carousel */}
           {imagesToShow.length > 0 ? (
             <Carousel
               opts={{ loop: imagesToShow.length > 1 }}
@@ -250,11 +244,11 @@ const ServiceDetailPageContent = () => {
                       <Image
                         src={imgUrl}
                         alt={`${service.title} - imagen ${index + 1}`}
-                        fill // Use fill instead of layout="fill"
-                        style={{ objectFit: "cover" }} // Use style object for objectFit
+                        fill
+                        style={{ objectFit: "cover" }}
                         className="rounded-t-xl"
                         data-ai-hint={`service image ${index + 1}`}
-                        priority={index === 0} // Prioritize loading the first image
+                        priority={index === 0}
                       />
                     </AspectRatio>
                   </CarouselItem>
@@ -277,10 +271,8 @@ const ServiceDetailPageContent = () => {
         </CardHeader>
 
         <CardContent className="p-4 md:p-6 lg:p-8 space-y-6">
-          {/* Service Title */}
           <CardTitle className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">{service.title}</CardTitle>
 
-          {/* Professional Info */}
           <div className="flex items-center gap-3 pt-2">
             <Avatar className="h-10 w-10 border">
               <AvatarImage src={service.professionalAvatar} alt={service.professionalName || 'Profesional'} data-ai-hint="professional avatar" />
@@ -292,7 +284,6 @@ const ServiceDetailPageContent = () => {
             </div>
           </div>
 
-          {/* Location and Rate */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-muted-foreground border-t pt-4">
             <div className="flex items-center text-sm">
               <MapPin className="mr-2 h-4 w-4 text-primary" />
@@ -303,13 +294,12 @@ const ServiceDetailPageContent = () => {
             </div>
           </div>
 
-          {/* Description with Read More */}
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
             <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && "line-clamp-3")}>
               {service.description}
             </p>
-            {service.description.length > 200 && ( // Show button only if description is long enough
+            {service.description.length > 200 && (
               <Button
                 variant="link"
                 className="p-0 h-auto text-primary text-sm mt-1"
@@ -321,9 +311,7 @@ const ServiceDetailPageContent = () => {
           </div>
 
 
-           {/* Booking Section: Calendar and Time Slots */}
            <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start pt-6 border-t">
-              {/* Calendar for Date Selection */}
               <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-foreground flex items-center">
                      <CalendarDays className="mr-2 h-5 w-5 text-primary" />
@@ -333,10 +321,10 @@ const ServiceDetailPageContent = () => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={modifiers.disabled} // Use the combined disabled modifier
+                    disabled={modifiers.disabled}
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
-                    classNames={calendarClassNames} // Pass the custom classNames to override today style
+                    classNames={calendarClassNames}
                     className="rounded-md border shadow-sm p-0 w-full"
                     locale={es}
                     captionLayout="dropdown-buttons"
@@ -345,7 +333,6 @@ const ServiceDetailPageContent = () => {
                  />
                </div>
 
-               {/* Time Slot Selection */}
                <div className="space-y-4">
                  <h3 className="text-xl font-semibold text-foreground flex items-center">
                     <Clock className="mr-2 h-5 w-5 text-primary" />
@@ -382,7 +369,6 @@ const ServiceDetailPageContent = () => {
            </div>
 
 
-          {/* Service Policy */}
           {service.policyText && (
             <Alert className="mt-6">
               <Info className="h-4 w-4" />
@@ -391,8 +377,7 @@ const ServiceDetailPageContent = () => {
             </Alert>
           )}
 
-          {/* Policy Acceptance Checkbox */}
-          {service.policyText && ( // Only show checkbox if policy exists
+          {service.policyText && (
             <div className="flex items-center space-x-3 mt-6 pt-6 border-t">
                 <Checkbox
                     id="policy-acceptance"
@@ -407,13 +392,12 @@ const ServiceDetailPageContent = () => {
            )}
         </CardContent>
 
-        {/* Booking Button Footer */}
         <CardFooter className="bg-muted/30 p-4 md:p-6 border-t flex justify-end">
             <Button
               onClick={handleBooking}
               size="lg"
               className="w-full sm:w-auto"
-              disabled={isLoading || !selectedDate || !selectedTimeSlot || (!!service.policyText && !policyAccepted)} // Disable logic updated
+              disabled={isLoading || !selectedDate || !selectedTimeSlot || (!!service.policyText && !policyAccepted)}
             >
                 Aceptar y Reservar
             </Button>
