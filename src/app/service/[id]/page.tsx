@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -31,28 +30,47 @@ import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
 // Example holiday data
 const holidays: Date[] = [
-  new Date(2024, 11, 25), // Christmas Day
-  new Date(2025, 0, 1),  // New Year's Day
-  new Date(2025, 4, 1), // May 1, 2025 (Labor Day example)
-  new Date(2025, 7, 19), // Example: August 19, 2025
+  new Date(new Date().getFullYear(), 11, 25), // Christmas Day current year
+  new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
 
 // Example daily availability data structure
 type DailyAvailabilityStatus = 'full' | 'partial' | 'none';
-const dummyDailyAvailability: Record<string, DailyAvailabilityStatus> = {
-  // For current month and next month for testing
-  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 20), 'yyyy-MM-dd')]: 'full',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 21), 'yyyy-MM-dd')]: 'partial',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 22), 'yyyy-MM-dd')]: 'none',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 23), 'yyyy-MM-dd')]: 'full',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 24), 'yyyy-MM-dd')]: 'partial',
+
+const generateDummyAvailability = () => {
+    const availability: Record<string, DailyAvailabilityStatus> = {};
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    const addRandomAvailability = (year: number, month: number) => {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day);
+            if (isSunday(date) || holidays.some(h => isSameDay(h, date)) || isPast(date) && !isSameDay(date, today)) {
+                continue; // Skip Sundays, holidays, and past days (except today)
+            }
+            const rand = Math.random();
+            const dateString = format(date, 'yyyy-MM-dd');
+            if (rand < 0.5) {
+                availability[dateString] = 'full';
+            } else if (rand < 0.75) {
+                availability[dateString] = 'partial';
+            } else {
+                availability[dateString] = 'none';
+            }
+        }
+    };
+
+    // Current month
+    addRandomAvailability(currentYear, currentMonth);
+    // Next month
+    addRandomAvailability(currentYear, currentMonth + 1);
+     // Month after next
+    addRandomAvailability(currentYear, currentMonth + 2);
 
 
-  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5), 'yyyy-MM-dd')]: 'full',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 9), 'yyyy-MM-dd')]: 'partial',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 10), 'yyyy-MM-dd')]: 'none',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 12), 'yyyy-MM-dd')]: 'full',
-  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 15), 'yyyy-MM-dd')]: 'partial',
+    return availability;
 };
 
 
@@ -73,7 +91,7 @@ const ServiceDetailPageContent = () => {
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>(dummyDailyAvailability);
+  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>({});
   const [today, setToday] = useState<Date | undefined>(undefined);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
@@ -81,6 +99,7 @@ const ServiceDetailPageContent = () => {
   useEffect(() => {
     setToday(startOfDay(new Date()));
     setCurrentYear(new Date().getFullYear());
+    setDailyAvailability(generateDummyAvailability());
   }, []);
 
 
@@ -124,13 +143,20 @@ const ServiceDetailPageContent = () => {
     setSelectedTimeSlot(undefined);
     if (service && selectedDate) {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
-      if (!isSunday(selectedDate) && !isHoliday(selectedDate) && !isPastDay(selectedDate) && dailyAvailability[dateString] === 'full') {
-        setAvailableTimeSlots(service.availability || []);
+      const dayStatus = dailyAvailability[dateString];
+      
+      if (dayStatus === 'full' || dayStatus === 'partial') {
+         if (service.availability && service.availability.length > 0) {
+            setAvailableTimeSlots(service.availability);
+         } else {
+            // Fallback if service.availability is empty but day is marked as available
+            setAvailableTimeSlots(['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM']); 
+         }
       } else {
          setAvailableTimeSlots([]);
       }
     }
-  }, [service, selectedDate, dailyAvailability, today]);
+  }, [service, selectedDate, dailyAvailability]);
 
   const handleBooking = () => {
     if (!isLoggedIn) {
@@ -179,42 +205,41 @@ const ServiceDetailPageContent = () => {
     return holidays.some(holiday => isSameDay(startOfGivenDate, startOfDay(holiday)));
   };
 
-  const isPastDay = (date: Date): boolean => !!today && date < today;
+  const isPastDay = (date: Date): boolean => !!today && !isSameDay(date, today) && date < today;
 
 
-  const modifiers: DayModifiers = {
+ const modifiers: DayModifiers = {
+    past: isPastDay,
     sunday: isSunday,
     holiday: isHoliday,
-    past: isPastDay,
     available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'full',
     partial: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
     unavailable: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none',
+    // No special styling for today, its availability status will handle it
   };
 
   const modifiersClassNames = {
-    past: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
-    sunday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
-    holiday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
-    available: 'bg-green-600 text-white hover:bg-green-700 focus:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 rounded-none',
-    partial: '!bg-orange-400 !text-black !cursor-not-allowed rounded-none',
-    unavailable: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',
-    selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-offset-background ring-ring',
+    past: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
+    sunday: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
+    holiday: 'text-muted-foreground opacity-50 !bg-muted !cursor-not-allowed rounded-none',
+    available: 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 focus:bg-green-200 dark:focus:bg-green-800 rounded-none',
+    partial: 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800 focus:bg-orange-200 dark:focus:bg-orange-800 rounded-none',
+    unavailable: 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 focus:bg-red-200 dark:focus:bg-red-800 !cursor-not-allowed rounded-none',
+    selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-ring ring-offset-2 dark:ring-offset-background',
+    day_today: 'font-normal rounded-none', // Keep today's font normal, availability styling will take precedence
   };
 
-   const calendarClassNames = {
-     day_today: 'font-normal rounded-none',
-   };
 
   const disabledDays = (date: Date): boolean => {
     if (!today) return true;
     const dateKey = format(date, 'yyyy-MM-dd');
     const availabilityStatus = dailyAvailability[dateKey];
     return (
-      date < today ||
+      isPastDay(date) || // Disable all past days (except today if needed, handled by isPastDay logic)
       isSunday(date) ||
       isHoliday(date) ||
-      availabilityStatus === 'none' ||
-      availabilityStatus === 'partial'
+      availabilityStatus === 'none' 
+      // 'partial' days are not disabled, they are selectable
     );
   };
 
@@ -356,7 +381,6 @@ const ServiceDetailPageContent = () => {
                     disabled={disabledDays}
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
-                    classNames={calendarClassNames}
                     className="rounded-md border shadow-sm p-0 w-full"
                     locale={es}
                     captionLayout="dropdown-buttons"
@@ -386,7 +410,7 @@ const ServiceDetailPageContent = () => {
                      </Select>
                    ) : (
                      <p className="text-sm text-muted-foreground italic pt-2">
-                       { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'partial' )
+                       { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' )
                           ? 'Día no disponible para reserva.'
                           : 'No hay cupos disponibles para este día.'
                        }
