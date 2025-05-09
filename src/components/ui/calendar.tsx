@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -32,43 +31,43 @@ function Calendar({
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md" // Keep nav buttons rounded
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
-          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+          "text-muted-foreground rounded-none w-9 font-normal text-[0.8rem]", // Ensure head cells are square
         row: "flex w-full mt-2",
-        cell: "relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected])]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+        cell: "relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20 rounded-none", // Ensure cells are square
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-none" // Ensure days are square
         ),
-        day_range_end: "day-range-end",
+        day_range_end: "day-range-end rounded-none",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "text-accent-foreground", // Default today styling, can be overridden by modifiers or other classes
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-none", // Ensure selected day is square
+        day_today: "text-accent-foreground rounded-none", // Default today styling, can be overridden
         day_outside:
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30", 
-        day_disabled: "text-muted-foreground opacity-50 !cursor-not-allowed", // Ensure disabled days show not-allowed cursor
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30 rounded-none", 
+        day_disabled: "text-muted-foreground opacity-50 !cursor-not-allowed rounded-none", // Ensure disabled days show not-allowed cursor and are square
         day_range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+          "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
         day_hidden: "invisible",
         ...classNames, // Allow overriding any class via props
       }}
       components={{
-        IconLeft: ({ className: iconClassName, ...iconProps }) => ( // Renamed className to avoid conflict
+        IconLeft: ({ className: iconClassName, ...iconProps }) => ( 
           <ChevronLeft className={cn("h-4 w-4", iconClassName)} {...iconProps} />
         ),
-        IconRight: ({ className: iconClassName, ...iconProps }) => ( // Renamed className to avoid conflict
+        IconRight: ({ className: iconClassName, ...iconProps }) => ( 
           <ChevronRight className={cn("h-4 w-4", iconClassName)} {...iconProps} />
         ),
       }}
-      captionLayout={captionLayout} // Pass captionLayout prop
-      fromYear={fromYear} // Pass fromYear prop
-      toYear={toYear} // Pass toYear prop
+      captionLayout={captionLayout} 
+      fromYear={fromYear} 
+      toYear={toYear} 
       {...props}
     />
   )
@@ -76,4 +75,3 @@ function Calendar({
 Calendar.displayName = "Calendar"
 
 export { Calendar }
-
