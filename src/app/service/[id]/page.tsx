@@ -241,12 +241,13 @@ const ServiceDetailPageContent = () => {
   const isDayDisabled = (date: Date): boolean => {
     const dateOnly = startOfDay(date); // Ensure time component is removed for accurate comparison
     if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true; // Past dates before today
-    if (isSunday(dateOnly)) return true; // Disable Sundays
-    if (holidays.some(h => isSameDay(h, dateOnly))) return true; // Disable holidays
-
+    
     const status = dailyAvailability[format(dateOnly, 'yyyy-MM-dd')];
-    // Explicitly disable days marked as 'occupied' or 'unavailable' by our custom logic
+    // Explicitly disable days marked as 'occupied' or 'unavailable' by our custom logic,
+    // also disable Sundays and holidays if they don't have a specific 'available' or 'partial' status override
     if (status === 'occupied' || status === 'unavailable') return true;
+    if ((isSunday(dateOnly) || holidays.some(h => isSameDay(h, dateOnly))) && status !== 'available' && status !== 'partial') return true;
+
     return false;
   };
 
@@ -254,8 +255,9 @@ const ServiceDetailPageContent = () => {
   const modifiers = {
     available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
     partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
-    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied', 
-    // 'unavailable' status and general disabled days (past, Sunday, holiday) are handled by the `disabled` prop of Calendar
+    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied',
+    // 'unavailable' status also contributes to the disabled state handled by isDayDisabled
+    // and gets general disabled styling from globals.css or shadcn default
   };
 
   // CSS class names for the modifiers, matching those in globals.css
@@ -263,7 +265,7 @@ const ServiceDetailPageContent = () => {
     available: 'rdp-day_available',
     partial: 'rdp-day_partial',
     occupied: 'rdp-day_occupied',
-    // No 'unavailable' needed here; disabled days get default shadcn/ui disabled styling, overridden by our globals.css for general disabled days.
+    // No explicit 'unavailable' class here, as it falls under the general disabled styling handled by globals.css
   };
 
 
