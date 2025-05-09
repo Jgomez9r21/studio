@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -13,7 +12,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -225,11 +223,11 @@ function LandingPageContent() {
 
 
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
-          <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
+          <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card"> {/* Changed bg-card to bg-transparent or remove if parent handles bg */}
             {filteredListings.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
-                  <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-background">
+                  <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card"> {/* Ensured bg-card for individual cards */}
                      <div className="relative aspect-video w-full overflow-hidden">
                        <Image
                          src={listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`}
@@ -239,144 +237,149 @@ function LandingPageContent() {
                          data-ai-hint={`${listing.category} service`}
                        />
                      </div>
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-lg font-semibold">
+                    <CardHeader className="p-4 pb-1">
+                      <CardTitle className="text-lg font-semibold leading-tight line-clamp-2">
                         {listing.title}
                       </CardTitle>
-                      <CardDescription>{listing.category}</CardDescription>
+                      <CardDescription className="text-xs text-muted-foreground pt-0.5">{listing.category}</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-grow flex flex-col p-4 pt-0">
-                      <p className="text-sm font-medium mb-1">
-                        Tarifa: ${listing.rate}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}
-                      </p>
+                    <CardContent className="flex-grow flex flex-col p-4 pt-2 space-y-1.5">
+                       <p className="text-sm">
+                          <span className="text-muted-foreground">Tarifa: </span>
+                          <span className="font-medium text-foreground">${listing.rate}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
+                       </p>
                       {listing.professionalName && (
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Profesional: {listing.professionalName}
+                        <p className="text-sm">
+                          <span className="text-muted-foreground">Profesional: </span>
+                          <span className="text-foreground">{listing.professionalName}</span>
                         </p>
                       )}
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Disponibilidad: {listing.availability.join(', ')}
+                      <p className="text-sm text-foreground line-clamp-2 flex-grow">
+                         <span className="text-muted-foreground">Disponibilidad: </span>
+                         {listing.availability.join(', ')}
                       </p>
 
                       {/* Booking Dialog */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline">Reservar Servicio</Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-                           <ScrollArea className="max-h-[80vh]"> {/* Wrap content in ScrollArea */}
-                             <div className="p-6"> {/* Add padding back to the inner container */}
-                                <DialogHeader className="pb-4 border-b mb-4"> {/* Style header */}
-                                  <DialogTitle>Reservar {listing.title}</DialogTitle>
-                                  <DialogDescription>
-                                    Realiza una solicitud de reserva para programar este servicio.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                  {/* Image Carousel */}
-                                  {listing.imageUrls && listing.imageUrls.length > 0 && (
-                                    <Carousel className="w-full rounded-md overflow-hidden shadow-md">
-                                      <CarouselContent>
-                                        {listing.imageUrls.map((url, index) => (
-                                          <CarouselItem key={index}>
-                                            <AspectRatio ratio={16 / 9} className="bg-muted">
-                                              <Image
-                                                src={url}
-                                                alt={`${listing.title} - Imagen ${index + 1}`}
-                                                layout="fill"
-                                                objectFit="cover"
-                                                data-ai-hint="service booking image"
-                                              />
-                                            </AspectRatio>
-                                          </CarouselItem>
-                                        ))}
-                                      </CarouselContent>
-                                      {listing.imageUrls.length > 1 && (
-                                        <>
-                                          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
-                                          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
-                                        </>
-                                      )}
-                                    </Carousel>
-                                  )}
-
-                                  {/* Professional Info */}
-                                  {listing.professionalName && (
-                                      <div className="flex items-center gap-2 pt-2">
-                                          <Avatar className="h-8 w-8">
-                                              <AvatarImage src={listing.professionalAvatar || `https://picsum.photos/50/50?random=prof-${listing.id}`} alt={listing.professionalName} data-ai-hint="professional avatar" />
-                                              <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
-                                          </Avatar>
-                                          <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
-                                      </div>
-                                  )}
-
-                                  {/* Description */}
-                                   <div className="pt-2">
-                                      <p className="text-sm text-muted-foreground">{listing.description}</p>
-                                    </div>
-
-
-                                  {/* Date Selection */}
-                                  <div className="grid grid-cols-[auto_1fr] items-center gap-4 pt-2">
-                                    <Label htmlFor={`date-${listing.id}`} className="text-left text-sm whitespace-nowrap">Seleccionar Fecha</Label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <Button
-                                          variant={"outline"}
-                                          className={cn(
-                                            "w-full justify-start text-left font-normal col-span-1",
-                                            !date && "text-muted-foreground"
+                       <div className="mt-auto pt-3">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" className="w-full">Reservar Servicio</Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+                               <ScrollArea className="max-h-[80vh]"> {/* Wrap content in ScrollArea */}
+                                 <div className="p-6"> {/* Add padding back to the inner container */}
+                                    <DialogHeader className="pb-4 border-b mb-4"> {/* Style header */}
+                                      <DialogTitle>Reservar {listing.title}</DialogTitle>
+                                      <DialogDescription>
+                                        Realiza una solicitud de reserva para programar este servicio.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      {/* Image Carousel */}
+                                      {listing.imageUrls && listing.imageUrls.length > 0 && (
+                                        <Carousel className="w-full rounded-md overflow-hidden shadow-md">
+                                          <CarouselContent>
+                                            {listing.imageUrls.map((url, index) => (
+                                              <CarouselItem key={index}>
+                                                <AspectRatio ratio={16 / 9} className="bg-muted">
+                                                  <Image
+                                                    src={url}
+                                                    alt={`${listing.title} - Imagen ${index + 1}`}
+                                                    layout="fill"
+                                                    objectFit="cover"
+                                                    data-ai-hint="service booking image"
+                                                  />
+                                                </AspectRatio>
+                                              </CarouselItem>
+                                            ))}
+                                          </CarouselContent>
+                                          {listing.imageUrls.length > 1 && (
+                                            <>
+                                              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                            </>
                                           )}
-                                        >
-                                          <CalendarIcon className="mr-2 h-4 w-4"/>
-                                          {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                          mode="single"
-                                          selected={date}
-                                          onSelect={setDate}
-                                          disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
-                                          initialFocus
-                                           captionLayout="dropdown-buttons"
-                                           fromYear={currentYear}
-                                           toYear={currentYear + 5} // Allow selection up to 5 years in future
-                                           locale={es}
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
-                                  </div>
+                                        </Carousel>
+                                      )}
 
-                                  {/* Time Slot Selection */}
-                                   <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                                      <Label htmlFor={`time-${listing.id}`} className="text-left text-sm whitespace-nowrap">
-                                          Hora (Cupo)
-                                      </Label>
-                                      <Select onValueChange={setSelectedTime} value={selectedTime}>
-                                          <SelectTrigger className="w-full col-span-1">
-                                          <SelectValue placeholder="Seleccionar Cupo" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                          {listing.availability.map((timeSlot) => (
-                                              <SelectItem key={timeSlot} value={timeSlot}>
-                                              {timeSlot}
-                                              </SelectItem>
-                                          ))}
-                                          </SelectContent>
-                                      </Select>
-                                   </div>
-                                </div>
-                                <ShadDialogFooter className="pt-6 mt-4 border-t"> {/* Style footer */}
-                                  <Button type="submit" className="w-full">
-                                    Realizar solicitud de reserva
-                                  </Button>
-                                </ShadDialogFooter>
-                              </div> {/* Close padding div */}
-                           </ScrollArea> {/* Close ScrollArea */}
-                        </DialogContent>
-                      </Dialog>
+                                      {/* Professional Info */}
+                                      {listing.professionalName && (
+                                          <div className="flex items-center gap-2 pt-2">
+                                              <Avatar className="h-8 w-8">
+                                                  <AvatarImage src={listing.professionalAvatar || `https://picsum.photos/50/50?random=prof-${listing.id}`} alt={listing.professionalName} data-ai-hint="professional avatar" />
+                                                  <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
+                                              </Avatar>
+                                              <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
+                                          </div>
+                                      )}
+
+                                      {/* Description */}
+                                       <div className="pt-2">
+                                          <p className="text-sm text-muted-foreground">{listing.description}</p>
+                                        </div>
+
+
+                                      {/* Date Selection */}
+                                      <div className="grid grid-cols-[auto_1fr] items-center gap-4 pt-2">
+                                        <Label htmlFor={`date-${listing.id}`} className="text-left text-sm whitespace-nowrap">Seleccionar Fecha</Label>
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              variant={"outline"}
+                                              className={cn(
+                                                "w-full justify-start text-left font-normal col-span-1",
+                                                !date && "text-muted-foreground"
+                                              )}
+                                            >
+                                              <CalendarIcon className="mr-2 h-4 w-4"/>
+                                              {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                              mode="single"
+                                              selected={date}
+                                              onSelect={setDate}
+                                              disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
+                                              initialFocus
+                                               captionLayout="dropdown-buttons"
+                                               fromYear={currentYear}
+                                               toYear={currentYear + 5} // Allow selection up to 5 years in future
+                                               locale={es}
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                      </div>
+
+                                      {/* Time Slot Selection */}
+                                       <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                                          <Label htmlFor={`time-${listing.id}`} className="text-left text-sm whitespace-nowrap">
+                                              Hora (Cupo)
+                                          </Label>
+                                          <Select onValueChange={setSelectedTime} value={selectedTime}>
+                                              <SelectTrigger className="w-full col-span-1">
+                                              <SelectValue placeholder="Seleccionar Cupo" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                              {listing.availability.map((timeSlot) => (
+                                                  <SelectItem key={timeSlot} value={timeSlot}>
+                                                  {timeSlot}
+                                                  </SelectItem>
+                                              ))}
+                                              </SelectContent>
+                                          </Select>
+                                       </div>
+                                    </div>
+                                    <ShadDialogFooter className="pt-6 mt-4 border-t"> {/* Style footer */}
+                                      <Button type="submit" className="w-full">
+                                        Realizar solicitud de reserva
+                                      </Button>
+                                    </ShadDialogFooter>
+                                  </div> {/* Close padding div */}
+                               </ScrollArea> {/* Close ScrollArea */}
+                            </DialogContent>
+                          </Dialog>
+                       </div>
                     </CardContent>
                   </Card>
                 ))}
