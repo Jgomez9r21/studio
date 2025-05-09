@@ -223,7 +223,6 @@ function LandingPageContent() {
 
 
          <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
-          <ScrollArea className="h-[600px] w-full rounded-md border shadow-sm p-4 bg-card">
             {filteredListings.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
@@ -373,11 +372,10 @@ function LandingPageContent() {
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-muted-foreground">
+              <div className="flex items-center justify-center h-full text-muted-foreground p-8 border rounded-lg bg-card">
                 No hay servicios disponibles en esta categoría.
               </div>
             )}
-          </ScrollArea>
         </TabsContent>
       </Tabs>
     </div>
@@ -393,3 +391,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
