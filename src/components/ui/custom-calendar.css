@@ -93,7 +93,7 @@
 
 .calendar-cell.today {
   font-weight: bold;
-  border: 1px solid hsl(var(--primary)); /* Highlight today with border */
+  /* border: 1px solid hsl(var(--primary)); Remove specific today border if color indicates status */
 }
 .calendar-cell.selected {
   background-color: hsl(var(--primary)) !important;
