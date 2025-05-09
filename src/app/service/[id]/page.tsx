@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type React from 'react';
@@ -17,7 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User, CalendarIcon } from 'lucide-react'; // Added CalendarIcon
 import { useToast } from '@/hooks/use-toast';
 import { format, isSameDay, isSunday, startOfDay, isPast } from 'date-fns';
 import type { DayModifiers } from 'react-day-picker';
@@ -26,6 +27,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover imports
 import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
@@ -366,62 +368,82 @@ const ServiceDetailPageContent = () => {
             )}
           </div>
 
-
-           <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start pt-6 border-t">
-              <div className="space-y-4">
-                 <h3 className="text-xl font-semibold text-foreground flex items-center">
-                     <CalendarDays className="mr-2 h-5 w-5 text-primary" />
-                     Seleccionar Fecha
-                 </h3>
-                 <Calendar
+          <div className="space-y-6 pt-6 border-t"> {/* Main container for date & time pickers */}
+            {/* Date Selection */}
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
+              <Label htmlFor={`date-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
+                <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
+                Seleccionar Fecha
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    id={`date-${service.id}`}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     disabled={disabledDays}
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
-                    className="rounded-md border shadow-sm p-0 w-full"
                     locale={es}
                     captionLayout="dropdown-buttons"
                     fromYear={currentYear}
-                    toYear={currentYear + 2} // Can show up to 3 years for selection
-                 />
-               </div>
+                    toYear={currentYear + 2}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-               <div className="space-y-4">
-                 <h3 className="text-xl font-semibold text-foreground flex items-center">
-                    <Clock className="mr-2 h-5 w-5 text-primary" />
-                    Seleccionar Hora (Cupo)
-                 </h3>
-                 {selectedDate ? (
-                   availableTimeSlots.length > 0 ? (
-                     <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
-                       <SelectTrigger id="time-slot" className="w-full">
-                         <SelectValue placeholder="Selecciona un cupo" />
-                       </SelectTrigger>
-                       <SelectContent>
-                         {availableTimeSlots.map((slot) => (
-                           <SelectItem key={slot} value={slot}>
-                             {slot}
-                           </SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
-                   ) : (
-                     <p className="text-sm text-muted-foreground italic pt-2">
-                       { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' )
-                          ? 'Día no disponible para reserva.'
-                          : 'No hay cupos disponibles para este día.'
-                       }
-                     </p>
-                   )
-                 ) : (
-                    <p className="text-sm text-muted-foreground italic pt-2">
-                        Selecciona una fecha para ver los cupos disponibles.
+            {/* Time Selection */}
+            <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
+              <Label htmlFor={`time-slot-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
+                <Clock className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
+                Hora (Cupo)
+              </Label>
+              <div>
+                {selectedDate ? (
+                  availableTimeSlots.length > 0 ? (
+                    <Select value={selectedTimeSlot} onValueChange={setSelectedTimeSlot}>
+                      <SelectTrigger id={`time-slot-${service.id}`} className="w-full">
+                        <SelectValue placeholder="Selecciona un cupo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTimeSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic pt-1"> {/* Adjusted padding */}
+                      { (isSunday(selectedDate) || isHoliday(selectedDate) || isPastDay(selectedDate) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'none' )
+                         ? 'Día no disponible para reserva.'
+                         : 'No hay cupos disponibles para este día.'
+                      }
                     </p>
-                 ) }
-               </div>
-           </div>
+                  )
+                ) : (
+                   <p className="text-sm text-muted-foreground italic pt-1"> {/* Adjusted padding */}
+                       Selecciona una fecha para ver los cupos disponibles.
+                   </p>
+                ) }
+              </div>
+            </div>
+          </div>
 
 
           {service.policyText && (
