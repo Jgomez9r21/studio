@@ -15,9 +15,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react'; // Removed CalendarIconLucide as CalendarDays is preferred
+import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -28,12 +28,12 @@ import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// Define AvailabilityStatus type
 export type AvailabilityStatus = 'available' | 'partial' | 'occupied' | 'unavailable';
-
 
 // Example holiday data (can be fetched or configured elsewhere)
 const holidays: Date[] = [
+  new Date(new Date().getFullYear(), 0, 1), // New Year's Day
+  new Date(new Date().getFullYear(), 4, 1), // Labor Day
   new Date(new Date().getFullYear(), 11, 25), // Christmas Day current year
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
@@ -42,37 +42,33 @@ const holidays: Date[] = [
 const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
     const availability: Record<string, AvailabilityStatus> = {};
     const today = startOfDay(new Date());
+    const startDate = today;
+    const endDate = addMonths(today, 6); // Generate for a few months ahead
 
-    // Generate for current year and next 2 years to cover calendar navigation range
-    for (let yearOffset = 0; yearOffset < 3; yearOffset++) {
-        const targetYear = getYear(today) + yearOffset;
-        for (let month = 0; month < 12; month++) { // Iterate through all months of the target year
-            const daysInMonth = new Date(targetYear, month + 1, 0).getDate();
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = startOfDay(new Date(targetYear, month, day));
-                const dateString = format(date, 'yyyy-MM-dd');
-                
-                if (isBefore(date, today) && !isSameDay(date, today)) {
-                     availability[dateString] = 'unavailable'; // Past dates are unavailable
-                     continue;
-                }
-                if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-                     availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
-                     continue;
-                }
+    const intervalDates = eachDayOfInterval({ start: startDate, end: endDate });
 
-                // Simulate varied availability for other days
-                const rand = Math.random();
-                if (rand < 0.4) { // 40% available
-                    availability[dateString] = 'available';
-                } else if (rand < 0.7) { // 30% partial
-                    availability[dateString] = 'partial';
-                } else { // 30% occupied
-                    availability[dateString] = 'occupied';
-                }
-            }
+    intervalDates.forEach(date => {
+        const dateString = format(date, 'yyyy-MM-dd');
+
+        if (isBefore(date, today) && !isSameDay(date, today)) {
+            availability[dateString] = 'unavailable'; // Past dates are unavailable
+            return;
         }
-    }
+        if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
+            availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable by default
+            return;
+        }
+
+        // Simulate varied availability for other days
+        const rand = Math.random();
+        if (rand < 0.5) { // 50% available
+            availability[dateString] = 'available';
+        } else if (rand < 0.75) { // 25% partial
+            availability[dateString] = 'partial';
+        } else { // 25% occupied
+            availability[dateString] = 'occupied';
+        }
+    });
     return availability;
 };
 
@@ -101,7 +97,6 @@ const ServiceDetailPageContent = () => {
 
 
   useEffect(() => {
-    // Generate dummy availability on component mount
     setDailyAvailability(generateDummyAvailability());
   }, []);
 
@@ -152,7 +147,6 @@ const ServiceDetailPageContent = () => {
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
-            // Fallback default slots if service.availability is empty
             setAvailableTimeSlots(['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM']); 
          }
       } else {
@@ -237,35 +231,33 @@ const ServiceDetailPageContent = () => {
 
   const imagesToShow = service.imageUrls && service.imageUrls.length > 0 ? service.imageUrls : (service.imageUrl ? [service.imageUrl] : []);
 
-  // Function to determine if a day should be disabled for selection in the calendar
   const isDayDisabled = (date: Date): boolean => {
-    const dateOnly = startOfDay(date); // Ensure time component is removed for accurate comparison
-    if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true; // Past dates before today
+    const dateOnly = startOfDay(date);
+    if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true;
     
     const status = dailyAvailability[format(dateOnly, 'yyyy-MM-dd')];
-    // Explicitly disable days marked as 'occupied' or 'unavailable' by our custom logic,
-    // also disable Sundays and holidays if they don't have a specific 'available' or 'partial' status override
     if (status === 'occupied' || status === 'unavailable') return true;
-    if ((isSunday(dateOnly) || holidays.some(h => isSameDay(h, dateOnly))) && status !== 'available' && status !== 'partial') return true;
-
+    
+    // Sundays and holidays are disabled unless explicitly 'available' or 'partial'
+    if ((isSunday(dateOnly) || holidays.some(h => isSameDay(h, dateOnly)))) {
+        return !(status === 'available' || status === 'partial');
+    }
     return false;
   };
 
-  // Modifiers for react-day-picker to apply custom styles
   const modifiers = {
     available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
     partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
     occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied',
-    // 'unavailable' status also contributes to the disabled state handled by isDayDisabled
-    // and gets general disabled styling from globals.css or shadcn default
+    // 'unavailable' days will be handled by the default disabled styling if isDayDisabled returns true
+    // and no other color modifier applies.
   };
 
-  // CSS class names for the modifiers, matching those in globals.css
   const modifiersClassNames = {
     available: 'rdp-day_available',
     partial: 'rdp-day_partial',
     occupied: 'rdp-day_occupied',
-    // No explicit 'unavailable' class here, as it falls under the general disabled styling handled by globals.css
+    // No specific class for 'unavailable' as it's covered by the general disabled style in globals.css
   };
 
 
@@ -369,13 +361,13 @@ const ServiceDetailPageContent = () => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={isDayDisabled} // Uses the updated function
+                    disabled={isDayDisabled}
                     modifiers={modifiers}
-                    modifiersClassNames={modifiersClassNames} // Apply custom classes for statuses
+                    modifiersClassNames={modifiersClassNames}
                     locale={es}
-                    defaultMonth={selectedDate || startOfDay(new Date())}
-                    fromYear={currentYear} 
-                    toYear={currentYear + 2} // Allow navigation for 3 years
+                    defaultMonth={startOfDay(new Date())} // Start with current month view
+                    fromMonth={startOfDay(new Date())} // Prevent navigating to past months
+                    toYear={currentYear + 2} 
                     captionLayout="dropdown-buttons"
                     className="rounded-md border shadow-md p-2 bg-card"
                 />
