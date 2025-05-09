@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -31,29 +32,29 @@ function Calendar({
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 rounded-md" // Keep nav buttons rounded
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100" // Removed rounded-md
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
-          "text-muted-foreground rounded-none w-9 font-normal text-[0.8rem]", // Ensure head cells are square
+          "text-muted-foreground w-9 font-normal text-[0.8rem]", // Ensure head cells are square, removed rounded-none
         row: "flex w-full mt-2",
-        cell: "relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20 rounded-none", // Ensure cells are square
+        cell: "relative h-9 w-9 p-0 text-center text-sm focus-within:relative focus-within:z-20", // Ensure cells are square, removed rounded-none
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-none" // Ensure days are square
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100" // Ensure days are square, removed rounded-none
         ),
-        day_range_end: "day-range-end rounded-none",
+        day_range_end: "day-range-end", // Removed rounded-none
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-none", // Ensure selected day is square
-        day_today: "text-accent-foreground rounded-none", // Default today styling, can be overridden
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground", // Ensure selected day is square, removed rounded-none
+        day_today: "text-accent-foreground", // Default today styling, can be overridden, removed rounded-none
         day_outside:
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30 rounded-none", 
-        day_disabled: "text-muted-foreground opacity-50 !cursor-not-allowed rounded-none", // Ensure disabled days show not-allowed cursor and are square
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30", // Removed rounded-none
+        day_disabled: "text-muted-foreground opacity-50 !cursor-not-allowed", // Ensure disabled days show not-allowed cursor and are square, removed rounded-none
         day_range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground rounded-none",
+          "aria-selected:bg-accent aria-selected:text-accent-foreground", // Removed rounded-none
         day_hidden: "invisible",
         ...classNames, // Allow overriding any class via props
       }}

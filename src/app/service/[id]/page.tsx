@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import type React from 'react';
@@ -12,24 +11,23 @@ import {
 } from '@/services/service-listings';
 import AppLayout from '@/layout/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, CalendarDays, Clock, Info, User, CalendarIcon } from 'lucide-react'; // Added CalendarIcon
+import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react'; 
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, isSunday, startOfDay, isPast, getYear, addMonths } from 'date-fns';
-import type { DayModifiers } from 'react-day-picker';
+import { format, isSameDay, startOfDay, addMonths, getYear, isPast, isSunday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; // Added Popover imports
 import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
+import CustomCalendar, { type AvailabilityStatus } from '@/components/ui/CustomCalendar';
+
 
 // Example holiday data
 const holidays: Date[] = [
@@ -37,41 +35,38 @@ const holidays: Date[] = [
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
 
-// Updated daily availability data structure to reflect user's desired states
-type DailyAvailabilityStatus = 'available' | 'partial' | 'occupied';
 
-const generateDummyAvailability = () => {
-    const availability: Record<string, DailyAvailabilityStatus> = {};
-    const today = startOfDay(new Date()); // Ensure 'today' is start of day for comparisons
+const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
+    const availability: Record<string, AvailabilityStatus> = {};
+    const today = startOfDay(new Date()); 
 
-    // Generate for current month and next two months
     for (let i = 0; i < 3; i++) {
         const targetMonthDate = addMonths(today, i);
-        const year = targetMonthDate.getFullYear();
-        const month = targetMonthDate.getMonth();
+        const year = getYear(targetMonthDate);
+        const month = getMonth(targetMonthDate);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
 
         for (let day = 1; day <= daysInMonth; day++) {
-            const date = startOfDay(new Date(year, month, day)); // Work with start of day
+            const date = startOfDay(new Date(year, month, day));
             const dateString = format(date, 'yyyy-MM-dd');
             
-            // Skip past days (but not today), Sundays, and holidays for random assignment
-            // These will be styled gray by their specific modifiers and be disabled.
-            if ((isPast(date) && !isSameDay(date, today)) || isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-                // No need to explicitly set in `availability` map, modifiers will handle gray styling and disabled state.
-                continue;
+            if (isPast(date) && !isSameDay(date, today)) {
+                 availability[dateString] = 'unavailable';
+                 continue;
+            }
+            if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
+                 availability[dateString] = 'unavailable';
+                 continue;
             }
 
             const rand = Math.random();
             if (rand < 0.4) {
-                availability[dateString] = 'available'; // Green
+                availability[dateString] = 'available'; 
             } else if (rand < 0.7) {
-                availability[dateString] = 'partial';   // Orange
-            } else { // rand >= 0.7
-                availability[dateString] = 'occupied';  // Red
+                availability[dateString] = 'partial';   
+            } else { 
+                availability[dateString] = 'occupied';  
             }
-            // Days not explicitly assigned here (if any logic changes) will be `undefined`
-            // and handled by the `gray_default_unavailable` modifier.
         }
     }
     return availability;
@@ -95,17 +90,12 @@ const ServiceDetailPageContent = () => {
   const [policyAccepted, setPolicyAccepted] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>({});
-  const [today, setToday] = useState<Date>(startOfDay(new Date())); // Initialize today
+  const [dailyAvailability, setDailyAvailability] = useState<Record<string, AvailabilityStatus>>({});
   
-  const [calendarMonth, setCalendarMonth] = useState<Date>(startOfDay(new Date()));
-  const currentYear = getYear(new Date());
-  const fromMonth = startOfDay(new Date());
-  const toMonth = addMonths(startOfDay(new Date()), 2);
+  const [today, setToday] = useState<Date>(startOfDay(new Date())); 
 
 
   useEffect(() => {
-    // `today` is already initialized with useState
     setDailyAvailability(generateDummyAvailability());
   }, []);
 
@@ -152,12 +142,10 @@ const ServiceDetailPageContent = () => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const dayStatus = dailyAvailability[dateString];
       
-      // Only show time slots for 'available' or 'partial' days
       if (dayStatus === 'available' || dayStatus === 'partial') {
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
-            // Fallback if service.availability is empty but day is marked as available/partial
             setAvailableTimeSlots(['9:00 AM', '10:00 AM', '2:00 PM', '3:00 PM']); 
          }
       } else {
@@ -207,49 +195,7 @@ const ServiceDetailPageContent = () => {
     });
   };
 
-
-  const isHoliday = (date: Date): boolean => {
-    const startOfGivenDate = startOfDay(date);
-    return holidays.some(holiday => isSameDay(startOfGivenDate, startOfDay(holiday)));
-  };
-
-  const isPastDay = (date: Date): boolean => !isSameDay(date, today) && date < today;
-
-
-  const modifiers: DayModifiers = {
-    past: isPastDay,
-    sunday: isSunday,
-    holiday: isHoliday,
-    available: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'available',
-    partial: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'partial',
-    occupied: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'occupied',
-    gray_default_unavailable: (date: Date) => !isPastDay(date) && !isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === undefined,
-  };
-
-  const grayStyle = '!text-muted-foreground !bg-slate-200 dark:!bg-slate-700 !cursor-not-allowed rounded-none opacity-70';
-
-  const modifiersClassNames = {
-    past: grayStyle,
-    sunday: grayStyle,
-    holiday: grayStyle,
-    available: '!bg-green-500 !text-white hover:!bg-green-600 focus:!bg-green-600 rounded-none',
-    partial: '!bg-orange-400 !text-white hover:!bg-orange-500 focus:!bg-orange-500 rounded-none',
-    occupied: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',
-    gray_default_unavailable: grayStyle,
-    selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-ring ring-offset-2 dark:ring-offset-background',
-    day_today: 'font-semibold rounded-none', 
-  };
-  
-  const disabledDays = (date: Date): boolean => {
-    if (isPastDay(date)) return true;
-    if (isSunday(date)) return true;
-    if (isHoliday(date)) return true;
-    const status = dailyAvailability[format(date, 'yyyy-MM-dd')];
-    return status === 'occupied' || status === undefined;
-  };
-
-
-  if (isLoading) { // Removed !today check as it's initialized
+  if (isLoading) { 
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -334,17 +280,19 @@ const ServiceDetailPageContent = () => {
 
         <CardContent className="p-4 md:p-6 lg:p-8 space-y-6">
           <CardTitle className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">{service.title}</CardTitle>
-
-          <div className="flex items-center gap-3 pt-2">
-            <Avatar className="h-10 w-10 border">
-              <AvatarImage src={service.professionalAvatar} alt={service.professionalName || 'Profesional'} data-ai-hint="professional avatar" />
-              <AvatarFallback><User className="h-5 w-5 text-muted-foreground" /></AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium text-foreground">{service.professionalName || 'Nombre del Profesional'}</p>
-              <p className="text-xs text-muted-foreground">{service.category}</p>
+          
+          {service.professionalName && (
+            <div className="flex items-center gap-3 pt-2">
+                <Avatar className="h-10 w-10 border">
+                <AvatarImage src={service.professionalAvatar} alt={service.professionalName} data-ai-hint="professional avatar" />
+                <AvatarFallback><User className="h-5 w-5 text-muted-foreground" /></AvatarFallback>
+                </Avatar>
+                <div>
+                <p className="text-sm font-medium text-foreground">{service.professionalName}</p>
+                <p className="text-xs text-muted-foreground">{service.category}</p>
+                </div>
             </div>
-          </div>
+          )}
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-muted-foreground border-t pt-4">
             <div className="flex items-center text-sm">
@@ -355,7 +303,7 @@ const ServiceDetailPageContent = () => {
               ${service.rate}{HOURLY_RATE_CATEGORIES.includes(service.category) ? '/hr' : ''}
             </div>
           </div>
-
+          
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
             <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && service.description.length > 200 && "line-clamp-3")}>
@@ -372,48 +320,23 @@ const ServiceDetailPageContent = () => {
             )}
           </div>
 
-          <div className="space-y-6 pt-6 border-t"> {/* Main container for date & time pickers */}
-            {/* Date Selection */}
-            <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
-              <Label htmlFor={`date-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
-                <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
-                Seleccionar Fecha
-              </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    id={`date-${service.id}`}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
-                    {selectedDate ? format(selectedDate, "PPP", { locale: es }) : <span>Elige una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    month={calendarMonth}
-                    onMonthChange={setCalendarMonth}
-                    disabled={disabledDays}
-                    modifiers={modifiers}
-                    modifiersClassNames={modifiersClassNames}
-                    locale={es}
-                    captionLayout="dropdown-buttons"
-                    fromMonth={fromMonth}
-                    toMonth={toMonth}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+          <div className="space-y-6 pt-6 border-t">
+             <div className="space-y-2">
+                <Label htmlFor="calendar-booking" className="text-md font-semibold text-foreground flex items-center">
+                    <CalendarDays className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
+                    Seleccionar Fecha
+                </Label>
+                <CustomCalendar
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    availability={dailyAvailability}
+                    holidays={holidays}
+                    minDate={today}
+                    initialDisplayMonth={startOfDay(new Date())}
+                />
+                {selectedDate && <p className="text-sm text-muted-foreground pt-1">Fecha seleccionada: {format(selectedDate, "PPP", { locale: es })}</p>}
             </div>
 
-            {/* Time Selection */}
             <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
               <Label htmlFor={`time-slot-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
                 <Clock className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
@@ -435,11 +358,11 @@ const ServiceDetailPageContent = () => {
                       </SelectContent>
                     </Select>
                   ) : (
-                    <p className="text-sm text-muted-foreground italic pt-1">
-                      { (isSunday(selectedDate) || isHoliday(selectedDate) || (isPastDay(selectedDate) && !isSameDay(selectedDate, today)) || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'occupied' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === undefined )
-                         ? 'Día no disponible para reserva.'
-                         : 'No hay cupos disponibles para este día.'
-                      }
+                     <p className="text-sm text-muted-foreground italic pt-1">
+                        { (dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'occupied' || dailyAvailability[format(selectedDate, 'yyyy-MM-dd')] === 'unavailable' )
+                            ? 'Día no disponible para reserva.'
+                            : 'No hay cupos disponibles para este día.'
+                        }
                     </p>
                   )
                 ) : (
@@ -500,10 +423,3 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
-
-
-
-    
-
-    
-
