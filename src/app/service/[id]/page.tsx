@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -43,9 +44,15 @@ const dummyDailyAvailability: Record<string, DailyAvailabilityStatus> = {
   [format(new Date(new Date().getFullYear(), new Date().getMonth(), 20), 'yyyy-MM-dd')]: 'full',
   [format(new Date(new Date().getFullYear(), new Date().getMonth(), 21), 'yyyy-MM-dd')]: 'partial',
   [format(new Date(new Date().getFullYear(), new Date().getMonth(), 22), 'yyyy-MM-dd')]: 'none',
+  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 23), 'yyyy-MM-dd')]: 'full',
+  [format(new Date(new Date().getFullYear(), new Date().getMonth(), 24), 'yyyy-MM-dd')]: 'partial',
+
+
   [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 5), 'yyyy-MM-dd')]: 'full',
   [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 9), 'yyyy-MM-dd')]: 'partial',
   [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 10), 'yyyy-MM-dd')]: 'none',
+  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 12), 'yyyy-MM-dd')]: 'full',
+  [format(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 15), 'yyyy-MM-dd')]: 'partial',
 };
 
 
@@ -88,7 +95,11 @@ const ServiceDetailPageContent = () => {
             const serviceWithProfessional = {
                 ...fetchedService,
                 professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`,
-                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}`
+                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}`,
+                imageUrls: fetchedService.imageUrls && fetchedService.imageUrls.length > 0 
+                           ? fetchedService.imageUrls 
+                           : (fetchedService.imageUrl ? [fetchedService.imageUrl] : [`https://picsum.photos/800/600?random=service-${fetchedService.id}`]),
+                description: fetchedService.description || "No hay descripción disponible para este servicio."
             };
             setService(serviceWithProfessional);
           } else {
@@ -182,18 +193,17 @@ const ServiceDetailPageContent = () => {
   };
 
   const modifiersClassNames = {
-    past: 'bg-muted text-muted-foreground rounded-none',
-    sunday: 'bg-muted text-muted-foreground rounded-none',
-    holiday: 'bg-muted text-muted-foreground rounded-none',
-    partial: 'bg-muted text-muted-foreground rounded-none', // Styled as unavailable/disabled
-    unavailable: 'bg-muted text-muted-foreground rounded-none', // Styled as unavailable/disabled
+    past: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
+    sunday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
+    holiday: '!bg-muted !text-muted-foreground !cursor-not-allowed rounded-none',
     available: 'bg-green-600 text-white hover:bg-green-700 focus:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 rounded-none',
+    partial: '!bg-orange-400 !text-black !cursor-not-allowed rounded-none', // Orange for partial, not selectable
+    unavailable: '!bg-red-500 !text-white !cursor-not-allowed rounded-none',   // Red for unavailable, not selectable
     selected: '!bg-primary !text-primary-foreground hover:!bg-primary/90 focus:!bg-primary/90 rounded-none ring-2 ring-offset-background ring-ring',
   };
 
    const calendarClassNames = {
      day_today: 'font-normal rounded-none', // Remove special styling for "today" if not otherwise styled by modifiers
-     // day_disabled will be styled by default from calendar.tsx, plus the bg-muted from modifiers
    };
    
   const disabledDays = (date: Date): boolean => {
@@ -440,3 +450,6 @@ const ServiceDetailPage = () => {
 };
 
 export default ServiceDetailPage;
+
+
+    
