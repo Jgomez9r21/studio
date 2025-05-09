@@ -158,14 +158,6 @@ body {
     opacity: 0.9 !important;
   }
 
-  /* Default styling for today's date (text-accent from shadcn is typical) */
-  /* If you want a border or different background for today IF IT'S NOT ALSO another status or selected/disabled:
-  .rdp-day_today:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied):not([disabled]) {
-    border: 1px solid hsl(var(--accent));
-    background-color: transparent !important; // Ensure no background if only 'today'
-    color: hsl(var(--accent-foreground)) !important;
-  }
-  */
    /* More specific 'today' styling that doesn't get overridden by disabled state, unless also selected or status-colored */
   .rdp-day_today:not([disabled]):not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied) {
     font-weight: bold;
