@@ -75,6 +75,15 @@ const ServiceDetailPageContent = () => {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [dailyAvailability, setDailyAvailability] = useState<Record<string, DailyAvailabilityStatus>>(dummyDailyAvailability);
+  const [today, setToday] = useState<Date | undefined>(undefined);
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+
+  useEffect(() => {
+    setToday(startOfDay(new Date()));
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
 
   useEffect(() => {
     if (serviceId) {
@@ -162,7 +171,6 @@ const ServiceDetailPageContent = () => {
     });
   };
 
-  const currentYear = new Date().getFullYear();
 
   const isHoliday = (date: Date): boolean => {
     const startOfGivenDate = startOfDay(date);
@@ -187,17 +195,21 @@ const ServiceDetailPageContent = () => {
   };
 
    const calendarClassNames = {
-     day_today: 'bg-transparent text-foreground font-bold', // Make today's date text bold but background transparent unless modified by other rules
+     day_today: 'bg-transparent text-foreground font-bold',
    };
    
-   const disabledDays = (date: Date) =>
-    date < startOfDay(new Date()) || // Past dates
-    isSunday(date) || // Sundays
-    isHoliday(date) || // Holidays
-    (!isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none'); // Unavailable non-Sun/Hol days
+   const disabledDays = (date: Date): boolean => {
+    if (!today) return true; // Disable all days if today is not set yet (client-side init)
+    return (
+      date < today || // Past dates
+      isSunday(date) || // Sundays
+      isHoliday(date) || // Holidays
+      (!isSunday(date) && !isHoliday(date) && dailyAvailability[format(date, 'yyyy-MM-dd')] === 'none') // Unavailable non-Sun/Hol days
+    );
+  };
 
 
-  if (isLoading) {
+  if (isLoading || !today) { // Also wait for today to be set
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
