@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Dumbbell, Building } from "lucide-react"; // Added Building
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building } from "lucide-react"; // Added Building
 import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet"; // Renamed SheetTitle
 import { Button } from '@/components/ui/button';
 import {
@@ -61,14 +61,9 @@ const navegacion = [
     icon: Home,
   },
   {
-    title: "Reserva Deportiva",
-    href: "/?category=Instalaci%C3%B3n%20Deportiva", 
-    icon: Dumbbell, 
-  },
-  {
     title: "Publica tu Espacio Deportivo",
     href: "/post-job",
-    icon: Building, // Changed icon to Building
+    icon: Building,
   },
   {
     title: "Mis Reservas",
@@ -173,6 +168,7 @@ export default function AppLayout({
     isLoading,
     showLoginDialog,
     showProfileDialog,
+    currentView,
     handleOpenChange,
     handleLogout,
     openLoginDialog,
@@ -266,7 +262,7 @@ export default function AppLayout({
     if (showLoginDialog) {
       return (
         <DialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
-           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(90vh-2rem)]">
+           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(80vh-5rem)]"> {/* Adjusted max-h */}
              <div className="p-6">
                 <DialogHeader className="mb-4 text-center">
                   <ShadDialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</ShadDialogTitle>
@@ -539,7 +535,7 @@ export default function AppLayout({
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                           <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                            <ShadSheetTitle className="sr-only">Menú principal</ShadSheetTitle> 
+                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> 
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
@@ -627,3 +623,4 @@ export default function AppLayout({
       </>
   );
 }
+

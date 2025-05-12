@@ -68,25 +68,6 @@ export async function getServiceListings(category?: string, location?: string): 
   // Placeholder data, including new categories and imageUrl
   return [
     {
-      id: '1',
-      title: 'Entrenamiento Fitness Personalizado',
-      description: 'Sesiones de entrenamiento personalizadas para ayudarte a alcanzar tus metas de fitness. Planes adaptados a tus necesidades y nivel, con seguimiento constante para maximizar resultados.',
-      rate: 50,
-      availability: ['Lunes 9:00-10:00', 'Miércoles 18:00-19:00', 'Viernes 9:00-10:00'],
-      category: 'Instalación Deportiva', // Changed from 'Deporte'
-      location: 'Gimnasio Local Central',
-      imageUrl: 'https://picsum.photos/800/600?random=1', // Added placeholder image URL
-      imageUrls: [
-        'https://picsum.photos/800/600?random=11',
-        'https://picsum.photos/800/600?random=12',
-        'https://picsum.photos/800/600?random=13',
-      ],
-      policyText: "Al reservar este servicio, aceptas nuestra política de cancelación con 24 horas de antelación. Las ausencias sin previo aviso no serán reembolsables.",
-      professionalName: "Ana García", // Added professional name
-      professionalAvatar: "https://picsum.photos/50/50?random=prof-1", // Added professional avatar
-      rating: 4.9,
-    },
-    {
       id: '2',
       title: 'Desarrollo Web Frontend',
       description: 'Creación de interfaces de usuario interactivas y responsivas para tu sitio web. Utilizamos las últimas tecnologías para asegurar una experiencia de usuario óptima en todos los dispositivos.',
@@ -197,25 +178,6 @@ export async function getServiceListings(category?: string, location?: string): 
        professionalAvatar: "https://picsum.photos/50/50?random=prof-8",
        rating: 4.3,
     },
-     {
-        id: '9',
-        title: 'Reserva de Cancha de Fútbol 5',
-        description: 'Alquila una cancha de césped sintético para tu partido con amigos. Instalaciones de primera calidad con iluminación y vestuarios.',
-        rate: 45,
-        availability: ['Martes 20:00-21:00', 'Jueves 21:00-22:00', 'Sábado 16:00-17:00'],
-        category: 'Instalación Deportiva',
-        location: 'Complejo Deportivo Norte',
-        imageUrl: 'https://picsum.photos/800/600?random=9', // Added placeholder image URL
-        imageUrls: [
-            'https://picsum.photos/800/600?random=91',
-            'https://picsum.photos/800/600?random=92',
-        ],
-        policyText: "El alquiler de la cancha es por hora. Se debe abonar el total al momento de la reserva. No se permiten botines con tapones de metal.",
-        // No specific professional for facility booking, but could be facility name
-         professionalName: "Complejo Deportivo Norte",
-         professionalAvatar: "https://picsum.photos/50/50?random=prof-9",
-         rating: 4.0,
-     },
     // Add more listings for other categories as needed
   ];
 }

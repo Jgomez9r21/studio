@@ -58,7 +58,6 @@ import {
   Code,
   Construction,
   School2,
-  Dumbbell,
   Palette,
   HomeIcon as LucideHomeIcon,
   Info
@@ -87,7 +86,6 @@ interface Category {
 // Categorías de servicios - Moved outside component for stability
 const categorias: Category[] = [
   { name: 'Todos' },
-  { name: 'Instalación Deportiva', icon: Dumbbell },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -107,7 +105,6 @@ const categorias: Category[] = [
 // Featured Services for Carousel - Moved outside component for stability
 const featuredServices = [
   { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1', dataAiHint: "web development code" },
-  { id: 'f2', title: 'Reserva de Cancha de Tenis', description: 'Encuentra y reserva tu hora.', category: 'Instalación Deportiva', image: 'https://picsum.photos/400/300?random=2', dataAiHint: "tennis court" },
   { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3', dataAiHint: "logo design graphic" },
   { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4', dataAiHint: "language class conversation" },
   { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5', dataAiHint: "electrician repair home" },
@@ -596,3 +593,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+

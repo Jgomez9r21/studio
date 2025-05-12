@@ -34,20 +34,6 @@ type FavoriteItem = (ServiceListing & { itemType: 'service' }) | (Talent & { ite
 // Mock data for demonstration
 const mockFavoritedItemsData: FavoriteItem[] = [
   {
-    itemType: 'service',
-    id: 's1',
-    title: 'Entrenamiento Fitness Personalizado',
-    description: 'Sesiones de entrenamiento personalizadas para alcanzar tus metas.',
-    rate: 50,
-    availability: ['Lunes 9:00-10:00'],
-    category: 'Instalación Deportiva',
-    location: 'Gimnasio Local Central',
-    imageUrl: 'https://picsum.photos/400/300?random=s1',
-    imageUrls: ['https://picsum.photos/400/300?random=s1'],
-    professionalName: "Ana García",
-    rating: 4.9,
-  },
-  {
     itemType: 'talent',
     id: 't1',
     name: 'Carlos Rodriguez',

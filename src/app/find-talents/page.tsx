@@ -29,7 +29,6 @@ interface Category {
 // Categorías disponibles para filtrar - simplificado para el menú desplegable Seleccionar
 const categorias: Category[] = [
     { name: 'Todos' },
-    { name: 'Instalación Deportiva'},
     { name: 'Tecnología' },
     { name: 'Entrenador Personal' },
     { name: 'Contratista' },
@@ -133,21 +132,6 @@ const dummyTalents = [
     image: 'https://picsum.photos/400/300?random=t6', // Use landscape image
     dataAiHint: "handyman home repair tools"
   },
-    // Add more talent examples for different categories if needed
-    {
-      id: 't7',
-      name: 'Laura Gómez',
-      title: 'Instructora de Yoga y Pilates',
-      location: 'Estudio Sol',
-      rate: 45, // Per class/hour
-      rating: 4.9,
-      reviews: 40,
-      category: 'Instalación Deportiva', // Example for sport facility related
-      skills: ['Yoga Vinyasa', 'Pilates Mat', 'Meditación Guiada'],
-      description: 'Instructora certificada que te guía hacia el bienestar físico y mental.', // Added description
-      image: 'https://picsum.photos/400/300?random=t7', // Use landscape image
-      dataAiHint: "yoga instructor woman studio"
-    },
      {
       id: 't8',
       name: 'Miguel Ángel Torres',
@@ -244,14 +228,12 @@ const FiltersContent = ({
 
          {/* Spacer to push button to bottom */}
           <div className="flex-grow"></div>
-         {/* Close button for mobile sheet - kept outside the immediate form elements for layout */}
+         {/* Close button for mobile sheet */}
          {onApplyFilters && (
           <SheetClose asChild>
-              <Button className="w-full md:hidden" onClick={onApplyFilters}>Mostrar Resultados</Button>{/* Hidden on md and larger */}
+              <Button className="w-full md:hidden" onClick={onApplyFilters}>Mostrar Resultados</Button>
           </SheetClose>
          )}
-          {/* Apply Filters button for larger screens */}
-          {/* <Button className="w-full hidden md:block" onClick={onApplyFilters}>Aplicar Filtros</Button> */}
      </div>
     );
 };
