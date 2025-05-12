@@ -2,8 +2,8 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'; // Added useSearchParams and useRouter
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
 import AppLayout from '@/layout/AppLayout';
@@ -21,10 +21,10 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
-  DialogHeader as ShadDialogHeader, 
+  DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
   DialogTrigger,
-  DialogClose, // Added DialogClose
+  DialogClose,
   DialogFooter as ShadDialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
@@ -40,11 +40,11 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star } from "lucide-react"; // Added Filter, Star
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider"; // Added Slider
+import { Slider } from "@/components/ui/slider";
 import {
   BarChart,
   Camera,
@@ -84,7 +84,7 @@ interface Category {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Categorías de servicios
+// Categorías de servicios - Moved outside component for stability
 const categorias: Category[] = [
   { name: 'Todos' },
   { name: 'Instalación Deportiva', icon: Dumbbell },
@@ -102,11 +102,9 @@ const categorias: Category[] = [
   { name: 'Crecimiento Personal', icon: Lightbulb },
   { name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
-
 ];
 
-
-// Featured Services for Carousel
+// Featured Services for Carousel - Moved outside component for stability
 const featuredServices = [
   { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1', dataAiHint: "web development code" },
   { id: 'f2', title: 'Reserva de Cancha de Tenis', description: 'Encuentra y reserva tu hora.', category: 'Instalación Deportiva', image: 'https://picsum.photos/400/300?random=2', dataAiHint: "tennis court" },
@@ -139,7 +137,7 @@ const ServiceFiltersContent = ({
                      <SelectValue placeholder="Selecciona una categoría" />
                  </SelectTrigger>
                  <SelectContent>
-                     {categorias.map(category => ( // Use categorias from page.tsx scope
+                     {categorias.map(category => (
                          <SelectItem key={category.name} value={category.name}>
                            {category.icon && <category.icon className="inline-block h-4 w-4 mr-2 text-muted-foreground" />}
                            {category.name}
@@ -212,8 +210,12 @@ function LandingPageContent() {
   // New filter states
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(500); // Default max rate, adjust as needed
+  const [maxRate, setMaxRate] = useState(500);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
 
   useEffect(() => {
@@ -222,6 +224,7 @@ function LandingPageContent() {
         const data = await getServiceListings();
         const updatedData = data.map(listing => ({
           ...listing,
+          // Ensure category exists or default to 'Otros' if necessary
           category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
            imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`,
            imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://picsum.photos/800/600?random=service-${listing.id}`]),
@@ -235,6 +238,26 @@ function LandingPageContent() {
     fetchListings();
   }, []);
 
+  // Effect to sync selectedCategory with URL query parameter
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    let targetCategory = 'Todos'; // Default to 'Todos'
+
+    if (categoryFromUrl) {
+      const decodedCategory = decodeURIComponent(categoryFromUrl);
+      const foundCategory = categorias.find(cat => cat.name === decodedCategory);
+      if (foundCategory) {
+        targetCategory = foundCategory.name;
+      }
+      // If categoryFromUrl is present but not in `categorias`, it defaults to 'Todos' (initial targetCategory value)
+    }
+
+    if (selectedCategory !== targetCategory) {
+      setSelectedCategory(targetCategory);
+    }
+  }, [searchParams, selectedCategory]); // `categorias` is stable (moved outside), `setSelectedCategory` is stable
+
+
   const filteredListings = listings.filter(listing => {
     const matchesCategory = selectedCategory === 'Todos' || listing.category === selectedCategory;
     const matchesSearch = searchQuery === '' ||
@@ -242,13 +265,11 @@ function LandingPageContent() {
                           (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesLocation = locationFilter === '' || (listing.location && listing.location.toLowerCase().includes(locationFilter.toLowerCase()));
     const matchesRate = listing.rate <= maxRate;
-    // If listing has no rating, it passes if minRating is 0. Otherwise, it must be >= minRating.
     const matchesRating = listing.rating !== undefined ? listing.rating >= minRating : minRating === 0;
-
 
     return matchesCategory && matchesSearch && matchesLocation && matchesRate && matchesRating;
   });
-  
+
 
   const currentYear = new Date().getFullYear();
 
@@ -263,10 +284,9 @@ function LandingPageContent() {
       return newFavorites;
     });
   };
-  
+
   const handleApplyFiltersFromSheet = () => {
     setIsFilterSheetOpen(false);
-    // Filtering happens automatically based on state change
   };
 
 
@@ -354,10 +374,20 @@ function LandingPageContent() {
 
 
       {/* Category Tabs & Service Listings */}
-      <Tabs defaultValue="todos" value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} onValueChange={(value) => {
-        const category = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value);
-        if (category) setSelectedCategory(category.name);
-      }} className="w-full px-4 md:px-6 lg:px-8 pb-4">
+       <Tabs
+        value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
+        onValueChange={(value) => {
+          const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
+          setSelectedCategory(categoryName);
+          // Update URL query parameter when tab changes
+          if (categoryName === 'Todos') {
+            router.push(pathname, { scroll: false });
+          } else {
+            router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
+          }
+        }}
+        className="w-full px-4 md:px-6 lg:px-8 pb-4"
+      >
          <ScrollArea className="w-full whitespace-nowrap pb-4">
            <TabsList className="inline-flex h-auto sm:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap sm:flex-nowrap">
              {categorias.map(category => (
@@ -375,7 +405,7 @@ function LandingPageContent() {
          </ScrollArea>
 
 
-         <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} className="mt-6">
+         <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
             {filteredListings.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
@@ -507,7 +537,7 @@ function LandingPageContent() {
                                            initialFocus
                                             captionLayout="dropdown-buttons"
                                             fromYear={currentYear}
-                                            toYear={currentYear + 5} 
+                                            toYear={currentYear + 5}
                                             locale={es}
                                          />
                                        </PopoverContent>
@@ -566,4 +596,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
