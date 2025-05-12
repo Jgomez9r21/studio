@@ -24,17 +24,27 @@ import {
   DialogHeader as ShadDialogHeader, 
   DialogTitle as ShadDialogTitle,
   DialogTrigger,
+  DialogClose, // Added DialogClose
   DialogFooter as ShadDialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
+  SheetTrigger,
+  SheetClose as ShadSheetClose,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart } from "lucide-react"; // Added MapPin, Heart
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star } from "lucide-react"; // Added Filter, Star
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider"; // Added Slider
 import {
   BarChart,
   Camera,
@@ -106,6 +116,90 @@ const featuredServices = [
 ];
 
 
+// Component for Filter Controls (used in Sheet)
+const ServiceFiltersContent = ({
+    selectedCategory, setSelectedCategory,
+    locationFilter, setLocationFilter,
+    minRating, setMinRating,
+    maxRate, setMaxRate,
+    onApplyFilters
+}: {
+    selectedCategory: string; setSelectedCategory: (cat: string) => void;
+    locationFilter: string; setLocationFilter: (loc: string) => void;
+    minRating: number; setMinRating: (rate: number) => void;
+    maxRate: number; setMaxRate: (rate: number) => void;
+    onApplyFilters: () => void;
+}) => {
+    return (
+     <div className="space-y-6 p-4 h-full flex flex-col">
+         <div className="space-y-2">
+             <Label htmlFor="category-filter-select">Categoría</Label>
+             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                 <SelectTrigger id="category-filter-select">
+                     <SelectValue placeholder="Selecciona una categoría" />
+                 </SelectTrigger>
+                 <SelectContent>
+                     {categorias.map(category => ( // Use categorias from page.tsx scope
+                         <SelectItem key={category.name} value={category.name}>
+                           {category.icon && <category.icon className="inline-block h-4 w-4 mr-2 text-muted-foreground" />}
+                           {category.name}
+                         </SelectItem>
+                     ))}
+                 </SelectContent>
+             </Select>
+         </div>
+
+         <div className="space-y-2">
+             <Label htmlFor="location-filter-input">Ubicación</Label>
+             <div className="relative">
+                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                 <Input
+                     id="location-filter-input"
+                     placeholder="Ciudad o Remoto"
+                     value={locationFilter}
+                     onChange={(e) => setLocationFilter(e.target.value)}
+                     className="pl-9"
+                 />
+             </div>
+         </div>
+
+         <div className="space-y-2">
+             <Label htmlFor="rating-filter-slider">Valoración Mínima</Label>
+              <div className="flex items-center gap-2">
+                 <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                 <Slider
+                     id="rating-filter-slider"
+                     min={0}
+                     max={5}
+                     step={0.1}
+                     value={[minRating]}
+                     onValueChange={(value) => setMinRating(value[0])}
+                     className="flex-grow"
+                 />
+                 <span className="text-sm font-medium w-8 text-right">{minRating.toFixed(1)}</span>
+             </div>
+         </div>
+
+         <div className="space-y-2">
+             <Label htmlFor="rate-filter-slider">Tarifa Máxima (${maxRate}/hr)</Label>
+             <Slider
+                 id="rate-filter-slider"
+                 min={0}
+                 max={500} // Adjust max rate as needed
+                 step={5}
+                 value={[maxRate]}
+                 onValueChange={(value) => setMaxRate(value[0])}
+             />
+         </div>
+          <div className="flex-grow"></div>
+          <ShadSheetClose asChild>
+              <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
+          </ShadSheetClose>
+     </div>
+    );
+};
+
+
 // Main Content Component for the Landing Page
 function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
@@ -114,6 +208,12 @@ function LandingPageContent() {
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [favoritedListings, setFavoritedListings] = useState<Set<string>>(new Set());
+
+  // New filter states
+  const [locationFilter, setLocationFilter] = useState('');
+  const [minRating, setMinRating] = useState(0);
+  const [maxRate, setMaxRate] = useState(500); // Default max rate, adjust as needed
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
 
   useEffect(() => {
@@ -135,11 +235,20 @@ function LandingPageContent() {
     fetchListings();
   }, []);
 
-  const filteredListings = listings.filter(listing =>
-    (selectedCategory === 'Todos' || listing.category === selectedCategory) &&
-    (listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase())))
-  );
+  const filteredListings = listings.filter(listing => {
+    const matchesCategory = selectedCategory === 'Todos' || listing.category === selectedCategory;
+    const matchesSearch = searchQuery === '' ||
+                          listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesLocation = locationFilter === '' || (listing.location && listing.location.toLowerCase().includes(locationFilter.toLowerCase()));
+    const matchesRate = listing.rate <= maxRate;
+    // If listing has no rating, it passes if minRating is 0. Otherwise, it must be >= minRating.
+    const matchesRating = listing.rating !== undefined ? listing.rating >= minRating : minRating === 0;
+
+
+    return matchesCategory && matchesSearch && matchesLocation && matchesRate && matchesRating;
+  });
+  
 
   const currentYear = new Date().getFullYear();
 
@@ -154,6 +263,11 @@ function LandingPageContent() {
       return newFavorites;
     });
   };
+  
+  const handleApplyFiltersFromSheet = () => {
+    setIsFilterSheetOpen(false);
+    // Filtering happens automatically based on state change
+  };
 
 
   return (
@@ -166,15 +280,38 @@ function LandingPageContent() {
         <p className="mt-2 text-md md:text-lg text-muted-foreground">
           Reserva servicios locales con facilidad.
         </p>
-        <div className="relative mt-4 w-full max-w-xs sm:max-w-md">
-          <Input
-            type="search"
-            placeholder="Buscar servicios..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-md shadow-sm pr-10 h-10 w-full"
-          />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 w-full max-w-lg">
+          <div className="relative w-full flex-grow">
+            <Input
+              type="search"
+              placeholder="Buscar servicios..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="rounded-md shadow-sm pr-10 h-10 w-full"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          </div>
+          <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="h-10 flex-shrink-0 w-full sm:w-auto">
+                <Filter className="mr-2 h-4 w-4" /> Filtros
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
+              <ShadSheetHeader className="p-4 border-b">
+                <ShadSheetTitle>Filtros de Servicios</ShadSheetTitle>
+              </ShadSheetHeader>
+              <ScrollArea className="flex-grow">
+                <ServiceFiltersContent
+                    selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+                    locationFilter={locationFilter} setLocationFilter={setLocationFilter}
+                    minRating={minRating} setMinRating={setMinRating}
+                    maxRate={maxRate} setMaxRate={setMaxRate}
+                    onApplyFilters={handleApplyFiltersFromSheet}
+                />
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
         </div>
       </section>
 
@@ -217,14 +354,16 @@ function LandingPageContent() {
 
 
       {/* Category Tabs & Service Listings */}
-      <Tabs defaultValue="todos" className="w-full px-4 md:px-6 lg:px-8 pb-4">
+      <Tabs defaultValue="todos" value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '')} onValueChange={(value) => {
+        const category = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value);
+        if (category) setSelectedCategory(category.name);
+      }} className="w-full px-4 md:px-6 lg:px-8 pb-4">
          <ScrollArea className="w-full whitespace-nowrap pb-4">
            <TabsList className="inline-flex h-auto sm:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap sm:flex-nowrap">
              {categorias.map(category => (
                <TabsTrigger
                  key={category.name}
                  value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                 onClick={() => setSelectedCategory(category.name)}
                  className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0"
                >
                  {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
@@ -280,6 +419,12 @@ function LandingPageContent() {
                           <span className="text-foreground">{listing.professionalName}</span>
                         </p>
                       )}
+                       {listing.rating !== undefined && (
+                        <div className="flex items-center text-sm">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
+                            <span className="font-semibold text-foreground">{listing.rating.toFixed(1)}</span>
+                        </div>
+                       )}
                       <p className="text-sm text-foreground line-clamp-1 flex items-center">
                          <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
                          <span className="text-muted-foreground">Ubicación: </span>
@@ -387,9 +532,11 @@ function LandingPageContent() {
                                     </div>
                                  </div>
                                  <ShadDialogFooter className="pt-6 mt-4 border-t">
-                                   <Button type="submit" className="w-full">
-                                     Realizar solicitud de reserva
-                                   </Button>
+                                   <DialogClose asChild>
+                                      <Button type="submit" className="w-full">
+                                        Realizar solicitud de reserva
+                                      </Button>
+                                   </DialogClose>
                                  </ShadDialogFooter>
                                </div>
                             </ScrollArea>
@@ -401,7 +548,7 @@ function LandingPageContent() {
               </div>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground p-8 border rounded-lg bg-card">
-                No hay servicios disponibles en esta categoría.
+                No hay servicios disponibles que coincidan con tus filtros.
               </div>
             )}
         </TabsContent>
@@ -419,3 +566,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
