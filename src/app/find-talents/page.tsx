@@ -18,7 +18,6 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import Image from 'next/image';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
-// import { Dumbbell } from 'lucide-react'; // Specific icon for Gimnasio - Already imported
 
 // Define Category type
 interface Category {
@@ -26,32 +25,27 @@ interface Category {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Updated categories for sports facilities
+// Updated categories for sports facilities based on user request
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
-    // Canchas
     { name: 'Canchas al aire libre', icon: Sun },
-    { name: 'Canchas de fútbol (7, 9, 11)', icon: Building }, // Placeholder: SoccerBall if available
-    { name: 'Canchas de baloncesto', icon: Building }, // Placeholder: Basketball if available
-    { name: 'Canchas de vóleibol', icon: Building }, // Placeholder: Volleyball if available
+    { name: 'Canchas de fútbol salon', icon: Building }, // Changed from "Canchas de fútbol (7, 9, 11)"
+    { name: 'Canchas de baloncesto', icon: Building },
+    { name: 'Canchas de vóleibol', icon: Building },
     { name: 'Canchas múltiples', icon: LayoutGrid },
-    // Espacios Techados
     { name: 'Espacios techados o interiores', icon: HomeIcon },
     { name: 'Polideportivos', icon: Building },
     { name: 'Coliseos deportivos', icon: Building },
     { name: 'Gimnasios cubiertos', icon: Dumbbell },
-    // Salones
-    { name: 'Salones de yoga, pilates o danza', icon: Users }, // Or specific wellness/activity icon
-    { name: 'Salones comunes', icon: Users },
-    // Centros y Pistas
+    { name: 'Salones de yoga, pilates o danza', icon: Users },
+    // { name: 'Salones comunes', icon: Users }, // Removed as per implicit instruction (not in new list)
     { name: 'Centros especializados', icon: Target },
     { name: 'Pistas de atletismo', icon: Footprints },
     { name: 'Piscinas olímpicas o recreativas', icon: Waves },
-    { name: 'Tatamis o dojos (artes marciales)', icon: Shield }, // Or a generic person icon
+    { name: 'Tatamis o dojos (artes marciales)', icon: Shield },
     { name: 'Estudios de entrenamiento funcional o crossfit', icon: Dumbbell },
-    // Deportes de Raqueta
-    { name: 'Instalaciones para deportes de raqueta', icon: ListChecks }, // Generic for list/types
-    { name: 'Canchas de tenis', icon: Building }, // Placeholder: TennisBallRacket if available
+    // { name: 'Instalaciones para deportes de raqueta', icon: ListChecks }, // Removed as per implicit instruction (not in new list)
+    { name: 'Canchas de tenis', icon: Building },
     { name: 'Canchas de squash', icon: Building },
     { name: 'Canchas de pádel', icon: Building },
 ];
@@ -78,12 +72,12 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
-    type: 'Fútbol 5 techado', 
+    type: 'Fútbol salon techado', 
     location: 'Chapinero Alto, Bogotá',
     rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
-    description: 'Cancha sintética cubierta con iluminación LED y graderías.',
-    image: 'https://picsum.photos/400/300?random=sf1', dataAiHint: "soccer field indoor",
-    amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños'],
+    description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
+    image: 'https://picsum.photos/400/300?random=sf1', dataAiHint: "futsal court indoor",
+    amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salon'],
   },
   {
     id: 'sf2',
@@ -166,7 +160,7 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
 
     const categoryKeywords: Record<string, string[]> = {
         'canchas al aire libre': ['aire libre', 'outdoor', 'exterior', 'descubierta'],
-        'canchas de fútbol (7, 9, 11)': ['fútbol', 'futbol', 'soccer', 'football'],
+        'canchas de fútbol salon': ['fútbol salon', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'],
         'canchas de baloncesto': ['baloncesto', 'basketball', 'basket'],
         'canchas de vóleibol': ['vóleibol', 'voleibol', 'volleyball'],
         'canchas múltiples': ['múltiple', 'multiuso', 'polivalente'],
@@ -175,13 +169,11 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
         'coliseos deportivos': ['coliseo'],
         'gimnasios cubiertos': ['gimnasio', 'gym'],
         'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile'],
-        'salones comunes': ['salón común', 'salon comunal', 'evento', 'reunión'],
         'centros especializados': ['especializado'], // This is generic, facility.type should be more specific
         'pistas de atletismo': ['atletismo', 'pista', 'track'],
         'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático'],
         'tatamis o dojos (artes marciales)': ['tatami', 'dojo', 'marcial', 'karate', 'judo', 'taekwondo', 'aikido'],
         'estudios de entrenamiento funcional o crossfit': ['funcional', 'crossfit', 'hiit', 'entrenamiento en circuito', 'gym'],
-        'instalaciones para deportes de raqueta': ['raqueta', 'tenis', 'squash', 'pádel', 'badminton', 'ping pong'],
         'canchas de tenis': ['tenis', 'tennis'],
         'canchas de squash': ['squash'],
         'canchas de pádel': ['pádel', 'padel'],
