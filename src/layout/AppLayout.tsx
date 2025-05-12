@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info } from "lucide-react"; // Added Heart, Info
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet"; // Added SheetTrigger
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Dumbbell } from "lucide-react"; // Added Dumbbell
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,7 +29,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle as ShadDialogTitle, // Renamed to avoid conflict with SheetTitle if used directly
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -61,14 +61,14 @@ const navegacion = [
     icon: Home,
   },
   {
-    title: "Buscar Talento",
-    href: "/find-talents",
-    icon: Users,
+    title: "Reserva Deportiva",
+    href: "/?category=Instalaci%C3%B3n%20Deportiva", // Links to homepage with sports category pre-selected
+    icon: Dumbbell, // Changed from Users
   },
   {
-    title: "Publicar Servicio",
+    title: "Publica tu Espacio Deportivo",
     href: "/post-job",
-    icon: UserPlus,
+    icon: Dumbbell, // Was UserPlus, changed to Dumbbell for consistency
   },
   {
     title: "Mis Reservas",
@@ -76,7 +76,7 @@ const navegacion = [
     icon: Briefcase,
   },
   {
-    title: "Mis Favoritos", // New navigation item
+    title: "Mis Favoritos",
     href: "/favorites",
     icon: Heart,
   },
@@ -177,7 +177,6 @@ export default function AppLayout({
     handleLogout,
     openLoginDialog,
     openProfileDialog,
-    currentView,
     setCurrentView,
     loginError,
     handleLoginSubmit: contextHandleLoginSubmit, // Renamed to avoid conflict
@@ -248,7 +247,7 @@ export default function AppLayout({
         <ScrollArea className="max-h-[calc(100vh-10rem)] sm:max-h-[calc(90vh-5rem)]">
            <div className="p-6"> {/* Padding inside ScrollArea */}
               <DialogHeader className="mb-4 text-center">
-                <DialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
+                <ShadDialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</ShadDialogTitle>
                 <DialogDescription>
                   {currentView === 'login'
                     ? 'Ingresa tu correo y contraseña para continuar.'
@@ -445,7 +444,7 @@ export default function AppLayout({
   const renderProfileDialog = () => (
      <DialogContent className="sm:max-w-md">
        <DialogHeader>
-         <DialogTitle>{user?.name ?? 'Perfil'}</DialogTitle>
+         <ShadDialogTitle>{user?.name ?? 'Perfil'}</ShadDialogTitle>
          <DialogDescription>Perfil de Usuario</DialogDescription>
        </DialogHeader>
        <div className="py-4">
@@ -547,7 +546,7 @@ export default function AppLayout({
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                          {/* SheetHeader now correctly uses DialogTitle for accessibility */}
                           <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                            <DialogTitle className="sr-only">Menú principal</DialogTitle> {/* Moved from SheetTitle to DialogTitle */}
+                            <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> {/* Moved from SheetTitle to ShadDialogTitle */}
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
@@ -635,3 +634,4 @@ export default function AppLayout({
       </>
   );
 }
+
