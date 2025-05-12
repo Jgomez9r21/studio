@@ -380,9 +380,9 @@ const FindTalentsContent = () => {
                                 data-ai-hint={talent.dataAiHint}
                             />
                         </div>
-                        <CardHeader className="p-4 pb-2 relative">
-                            <div className="flex justify-between items-start">
-                                <div>
+                        <CardHeader className="p-4 pb-2">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="flex-grow">
                                     <CardTitle className="text-lg font-semibold line-clamp-1">
                                         {talent.name}
                                     </CardTitle>
@@ -391,7 +391,7 @@ const FindTalentsContent = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                                  className="text-muted-foreground hover:text-destructive flex-shrink-0 -mt-1 -mr-1"
                                   onClick={() => toggleFavoriteTalent(talent.id)}
                                   aria-label={favoritedTalents.has(talent.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                                 >

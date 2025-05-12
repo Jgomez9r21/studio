@@ -14,13 +14,12 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, Calendar as CalendarIcon } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, Calendar as CalendarIcon, Heart } from "lucide-react"; // Added Heart
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -49,7 +48,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useAuth } from '@/context/AuthContext';
 
 
 // Navigation Items (centralized)
@@ -70,9 +69,14 @@ const navegacion = [
     icon: UserPlus,
   },
   {
-    title: "Servicios Pendientes", // Changed from "Reservar Servicio"
+    title: "Mis Reservas",
     href: "/book-service",
-    icon: Briefcase, // Keep Briefcase or change if needed
+    icon: Briefcase,
+  },
+  {
+    title: "Mis Favoritos", // New navigation item
+    href: "/favorites",
+    icon: Heart,
   },
   {
     title: "Facturación",
@@ -162,6 +166,7 @@ export default function AppLayout({
   const {
     user,
     isLoggedIn,
+    isLoading,
     showLoginDialog,
     showProfileDialog,
     handleOpenChange,
@@ -236,7 +241,7 @@ export default function AppLayout({
 
   const renderLoginSignupDialog = () => (
      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <ScrollArea className="max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
+        <ScrollArea className="max-h-[calc(100vh-10rem)] sm:max-h-[calc(90vh-5rem)]">
            <div className="p-6"> {/* Padding inside ScrollArea */}
               <DialogHeader className="mb-4 text-center">
                 <DialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</DialogTitle>
@@ -466,7 +471,7 @@ export default function AppLayout({
   );
 
   return (
-      <SidebarProvider>
+      <>
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
              <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
@@ -500,7 +505,7 @@ export default function AppLayout({
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                   <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    <DialogTrigger asChild>
-                     {user ? (
+                     {isLoggedIn && user ? (
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -538,7 +543,7 @@ export default function AppLayout({
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                            <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
                              {/* Use DialogTitle within SheetHeader for accessibility */}
-                             <DialogTitle className="sr-only">Menú principal</DialogTitle>
+                             <SheetTitle className="sr-only">Menú principal</SheetTitle> {/* Added SheetTitle for accessibility */}
                                <div className="flex items-center gap-2 text-lg font-semibold">
                                 <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                 <span className="whitespace-nowrap">sportoffice</span>
@@ -564,7 +569,7 @@ export default function AppLayout({
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                                <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                 <DialogTrigger asChild>
-                                  {user ? (
+                                  {isLoggedIn && user ? (
                                     <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
                                       <Avatar className="h-8 w-8">
                                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -596,7 +601,7 @@ export default function AppLayout({
                    <div className="flex-shrink-0 w-8 sm:w-10">
                        <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                          <DialogTrigger asChild>
-                           {user ? (
+                           {isLoggedIn && user ? (
                              <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
                                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
                                  <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -623,6 +628,6 @@ export default function AppLayout({
             </div>
             <Toaster />
           </div>
-      </SidebarProvider>
+      </>
   );
 }

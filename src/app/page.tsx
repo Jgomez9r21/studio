@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -250,9 +249,9 @@ function LandingPageContent() {
                          data-ai-hint={`${listing.category} service`}
                        />
                      </div>
-                    <CardHeader className="p-4 pb-2 relative"> {/* Added relative positioning for favorite button */}
-                      <div className="flex justify-between items-start">
-                        <div>
+                    <CardHeader className="p-4 pb-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-grow">
                           <CardTitle className="text-lg font-semibold leading-tight line-clamp-1">
                             {listing.title}
                           </CardTitle>
@@ -261,7 +260,7 @@ function LandingPageContent() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                          className="text-muted-foreground hover:text-destructive flex-shrink-0 -mt-1 -mr-1"
                           onClick={() => toggleFavorite(listing.id)}
                           aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
                         >
@@ -419,5 +418,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
-
