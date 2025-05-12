@@ -29,22 +29,16 @@ interface Category {
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
     { name: 'Canchas al aire libre', icon: Sun },
-    { name: 'Canchas de fútbol salon', icon: Building }, // Changed from "Canchas de fútbol (7, 9, 11)"
+    { name: 'Canchas de fútbol salón', icon: Building }, // Accent added
+    { name: 'Canchas de fútbol', icon: Building }, // New category
     { name: 'Canchas de baloncesto', icon: Building },
     { name: 'Canchas de vóleibol', icon: Building },
     { name: 'Canchas múltiples', icon: LayoutGrid },
-    { name: 'Espacios techados o interiores', icon: HomeIcon },
-    { name: 'Polideportivos', icon: Building },
-    { name: 'Coliseos deportivos', icon: Building },
     { name: 'Gimnasios cubiertos', icon: Dumbbell },
     { name: 'Salones de yoga, pilates o danza', icon: Users },
-    // { name: 'Salones comunes', icon: Users }, // Removed as per implicit instruction (not in new list)
-    { name: 'Centros especializados', icon: Target },
     { name: 'Pistas de atletismo', icon: Footprints },
     { name: 'Piscinas olímpicas o recreativas', icon: Waves },
-    { name: 'Tatamis o dojos (artes marciales)', icon: Shield },
     { name: 'Estudios de entrenamiento funcional o crossfit', icon: Dumbbell },
-    // { name: 'Instalaciones para deportes de raqueta', icon: ListChecks }, // Removed as per implicit instruction (not in new list)
     { name: 'Canchas de tenis', icon: Building },
     { name: 'Canchas de squash', icon: Building },
     { name: 'Canchas de pádel', icon: Building },
@@ -72,12 +66,22 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
-    type: 'Fútbol salon techado', 
+    type: 'Fútbol salón techado', 
     location: 'Chapinero Alto, Bogotá',
     rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
     image: 'https://picsum.photos/400/300?random=sf1', dataAiHint: "futsal court indoor",
-    amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salon'],
+    amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salón'],
+  },
+  {
+    id: 'sf9',
+    name: 'Estadio El Campín (Cancha Auxiliar)',
+    type: 'Cancha de fútbol 11, grama natural',
+    location: 'Teusaquillo, Bogotá',
+    rate: 150000, rating: 4.5, reviews: 60, category: 'Instalación Deportiva',
+    description: 'Cancha auxiliar de grama natural para fútbol 11, bien mantenida.',
+    image: 'https://picsum.photos/400/300?random=sf9', dataAiHint: "football field grass",
+    amenities: ['Grama Natural', 'Fútbol 11', 'Camerinos', 'Parqueadero'],
   },
   {
     id: 'sf2',
@@ -86,7 +90,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Usaquén, Bogotá',
     rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
-    image: 'https://picsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
+    image: 'httpsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
   },
   {
@@ -96,7 +100,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Salitre, Bogotá',
     rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
-    image: 'https://picsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
+    image: 'httpsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
     amenities: ['Olímpica', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
   },
   {
@@ -106,17 +110,17 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Suba, Bogotá',
     rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
-    image: 'https://picsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
+    image: 'httpsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
   },
   {
     id: 'sf5',
-    name: 'Dojo "Bushido"',
+    name: 'Dojo "Bushido"', // This facility's category "Tatamis o dojos" was removed. Will only show in "Todos" or by search.
     type: 'Tatami para artes marciales (Karate, Judo) interior', 
     location: 'Kennedy, Bogotá',
     rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
-    image: 'https://picsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
+    image: 'httpsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
     amenities: ['Tatami', 'Espejos', 'Equipo de protección', 'Vestuarios'],
   },
    {
@@ -126,7 +130,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'La Candelaria, Bogotá',
     rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
-    image: 'https://picsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
+    image: 'httpsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
     amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
   },
   {
@@ -136,17 +140,17 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Parque Simón Bolívar, Bogotá',
     rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva', 
     description: 'Pista de tartán de 400m, con carriles marcados y zonas para saltos/lanzamientos.',
-    image: 'https://picsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
+    image: 'httpsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
     amenities: ['Tartán', 'Carriles', 'Acceso público'],
   },
   {
     id: 'sf8',
-    name: 'Polideportivo El Salitre',
-    type: 'Polideportivo techado con canchas múltiples (baloncesto, vóleibol)',
+    name: 'Polideportivo El Salitre', // This facility's category "Polideportivos" was removed.
+    type: 'Canchas múltiples (baloncesto, vóleibol) techado',
     location: 'Salitre, Bogotá',
     rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
-    description: 'Amplio polideportivo con canchas demarcadas para baloncesto y voleibol, graderías.',
-    image: 'https://picsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
+    description: 'Amplio espacio con canchas demarcadas para baloncesto y voleibol, graderías.',
+    image: 'httpsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
     amenities: ['Techado', 'Graderías', 'Baloncesto', 'Vóleibol', 'Baños'],
   }
 ];
@@ -158,25 +162,22 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
 
     if (filterLower === 'todos') return true;
 
+    // Keywords for matching facility types to filter categories
     const categoryKeywords: Record<string, string[]> = {
         'canchas al aire libre': ['aire libre', 'outdoor', 'exterior', 'descubierta'],
-        'canchas de fútbol salon': ['fútbol salon', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'],
+        'canchas de fútbol salón': ['fútbol salón', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'], // Note: Check accent in category name
+        'canchas de fútbol': ['fútbol', 'futbol', 'soccer', 'cancha de 11', 'cancha de 7', 'cancha de 9', 'football', 'grama natural', 'grama sintética'], // Added more specific keywords
         'canchas de baloncesto': ['baloncesto', 'basketball', 'basket'],
         'canchas de vóleibol': ['vóleibol', 'voleibol', 'volleyball'],
-        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente'],
-        'espacios techados o interiores': ['techado', 'cubierto', 'interior', 'indoor'],
-        'polideportivos': ['polideportivo'],
-        'coliseos deportivos': ['coliseo'],
-        'gimnasios cubiertos': ['gimnasio', 'gym'],
-        'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile'],
-        'centros especializados': ['especializado'], // This is generic, facility.type should be more specific
-        'pistas de atletismo': ['atletismo', 'pista', 'track'],
-        'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático'],
-        'tatamis o dojos (artes marciales)': ['tatami', 'dojo', 'marcial', 'karate', 'judo', 'taekwondo', 'aikido'],
-        'estudios de entrenamiento funcional o crossfit': ['funcional', 'crossfit', 'hiit', 'entrenamiento en circuito', 'gym'],
-        'canchas de tenis': ['tenis', 'tennis'],
-        'canchas de squash': ['squash'],
-        'canchas de pádel': ['pádel', 'padel'],
+        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente', 'multifuncional'],
+        'gimnasios cubiertos': ['gimnasio', 'gym', 'fitness center'],
+        'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile', 'meditación'],
+        'pistas de atletismo': ['atletismo', 'pista', 'track', 'correr'],
+        'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático', 'olímpica', 'recreativa'],
+        'estudios de entrenamiento funcional o crossfit': ['funcional', 'crossfit', 'hiit', 'entrenamiento en circuito', 'training studio'],
+        'canchas de tenis': ['tenis', 'tennis', 'campo de tenis'],
+        'canchas de squash': ['squash', 'cancha de squash'],
+        'canchas de pádel': ['pádel', 'padel', 'cancha de pádel'],
     };
 
     const keywords = categoryKeywords[filterCategory]; 
@@ -184,7 +185,9 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
         return keywords.some(keyword => typeLower.includes(keyword.toLowerCase()));
     }
     // Fallback if category name is not in keywords map (less precise)
-    return typeLower.includes(filterLower.split(' ')[0]);
+    // Try to match the first word of the filter category if it's multi-word
+    const firstFilterWord = filterLower.split(' ')[0];
+    return typeLower.includes(firstFilterWord);
 };
 
 
@@ -195,7 +198,7 @@ const FiltersContent = ({
     currentFilterMinRating, setCurrentFilterMinRating,
     currentFilterMaxRate, setCurrentFilterMaxRate,
     onApplyFilters,
-    isSheet = false
+    isSheet = false // To conditionally render the close button for sheets
 }: {
     currentFilterCategory: string; setCurrentFilterCategory: (cat: string) => void;
     currentFilterLocation: string; setCurrentFilterLocation: (loc: string) => void;
@@ -204,7 +207,6 @@ const FiltersContent = ({
     onApplyFilters: () => void;
     isSheet?: boolean;
 }) => {
-    const buttonText = isSheet ? "Mostrar Resultados" : "Aplicar Filtros";
     return (
      <div className="space-y-6 p-4 h-full flex flex-col">
          <div className="space-y-2">
@@ -260,7 +262,7 @@ const FiltersContent = ({
              <Slider
                  id="rate-slider"
                  min={0}
-                 max={200000}
+                 max={200000} // Can be adjusted based on typical rates
                  step={5000}
                  value={[currentFilterMaxRate]}
                  onValueChange={(value) => setCurrentFilterMaxRate(value[0])}
@@ -270,10 +272,10 @@ const FiltersContent = ({
           <div className="mt-auto pt-6 border-t">
             {isSheet ? (
                 <SheetClose asChild>
-                    <Button className="w-full" onClick={onApplyFilters}>{buttonText}</Button>
+                    <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
                 </SheetClose>
             ) : (
-                <Button className="w-full" onClick={onApplyFilters}>{buttonText}</Button>
+                <Button className="w-full" onClick={onApplyFilters}>Aplicar Filtros</Button>
             )}
          </div>
      </div>
@@ -285,11 +287,13 @@ const FindTalentsContent = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [favoritedItems, setFavoritedItems] = useState<Set<string>>(new Set());
 
+  // States for temporary filter changes within the filter components
   const [currentFilterCategory, setCurrentFilterCategory] = useState('Todos');
   const [currentFilterLocation, setCurrentFilterLocation] = useState('');
   const [currentFilterMinRating, setCurrentFilterMinRating] = useState(0);
   const [currentFilterMaxRate, setCurrentFilterMaxRate] = useState(200000);
 
+  // States for applied filters that trigger re-render of listings
   const [appliedFilters, setAppliedFilters] = useState({
     category: 'Todos',
     location: '',
@@ -297,6 +301,8 @@ const FindTalentsContent = () => {
     rate: 200000,
   });
 
+  // Sync current filter states with applied filters when appliedFilters change
+  // This is useful if appliedFilters are loaded from URL params or other sources initially
   useEffect(() => {
     setCurrentFilterCategory(appliedFilters.category);
     setCurrentFilterLocation(appliedFilters.location);
@@ -311,15 +317,16 @@ const FindTalentsContent = () => {
       rating: currentFilterMinRating,
       rate: currentFilterMaxRate,
     });
-    if (isSheetOpen) {
-      setIsSheetOpen(false);
+    if (isSheetOpen) { // Only close if it's the sheet that triggered apply
+        setIsSheetOpen(false);
     }
   }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate, isSheetOpen, setIsSheetOpen]);
 
 
   const filteredFacilities = dummySportsFacilities.filter(facility => {
     const isSportsFacilityCategory = facility.category === 'Instalación Deportiva';
-    const matchesCategory = typeMatchesFilter(facility.type, appliedFilters.category);
+    // Use the actual filter category name from `categoriasDisponibles` for matching
+    const matchesCategory = appliedFilters.category === 'Todos' || typeMatchesFilter(facility.type, appliedFilters.category);
     const matchesLocation = appliedFilters.location === '' || facility.location.toLowerCase().includes(appliedFilters.location.toLowerCase());
     const matchesRating = facility.rating >= appliedFilters.rating;
     const matchesRate = facility.rate <= appliedFilters.rate;
@@ -345,6 +352,7 @@ const FindTalentsContent = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-full">
+        {/* Desktop Filters - Hidden on mobile */}
         <aside className="hidden md:block w-64 lg:w-72 border-r bg-card p-0">
             <ScrollArea className="h-full">
                  <div className="p-4 border-b sticky top-0 bg-card z-10">
@@ -356,12 +364,13 @@ const FindTalentsContent = () => {
                     currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
                     currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
                     onApplyFilters={handleApplyFilters}
-                    isSheet={false}
+                    isSheet={false} // Indicate it's not in a sheet
                 />
             </ScrollArea>
         </aside>
 
         <div className="flex-1 flex flex-col">
+             {/* Header with Search and Mobile Filter Trigger */}
              <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 flex-shrink-0">
                 <h1 className="text-xl font-semibold mr-auto hidden md:block">Buscar Espacios Deportivos</h1>
                 <h1 className="text-lg font-semibold mr-auto md:hidden">Espacios Deportivos</h1>
@@ -376,6 +385,7 @@ const FindTalentsContent = () => {
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
+                {/* Mobile Filters - Trigger */}
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
                       <Button variant="outline" className="md:hidden flex-shrink-0 h-9 text-xs px-3">
@@ -393,7 +403,7 @@ const FindTalentsContent = () => {
                               currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
                               currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
                               onApplyFilters={handleApplyFilters}
-                              isSheet={true}
+                              isSheet={true} // Indicate it's in a sheet
                           />
                       </ScrollArea>
                   </SheetContent>
