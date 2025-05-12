@@ -134,7 +134,7 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 55,
       availability: ['Miércoles 9:00-12:00', 'Sábado 10:00-14:00'],
       category: 'Mantenimiento Hogar',
-      location: 'Ciudad',
+      location: 'Ciudad Ejemplo', // Made more specific as a placeholder for a city
       imageUrl: 'https://picsum.photos/800/600?random=5', // Added placeholder image URL
       policyText: "Garantía de 30 días en todas las reparaciones realizadas. Las visitas de emergencia fuera de horario pueden tener un costo adicional.",
        professionalName: "Repara Hogar Rápido",
@@ -147,7 +147,7 @@ export async function getServiceListings(category?: string, location?: string): 
       rate: 40,
       availability: ['Martes 16:00-18:00', 'Jueves 17:00-19:00'],
       category: 'Profesores',
-      location: 'Online o Presencial',
+      location: 'Remoto', // Changed to focus on remote
       imageUrl: 'https://picsum.photos/800/600?random=6', // Added placeholder image URL
       policyText: "Se requiere el pago por adelantado de paquetes de clases. Las cancelaciones deben realizarse con al menos 12 horas de anticipación.",
        professionalName: "Elena Martínez",
