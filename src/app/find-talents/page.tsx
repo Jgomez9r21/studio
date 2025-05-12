@@ -387,7 +387,7 @@ const FindTalentsContent = () => {
                 {/* Mobile Filters - Trigger */}
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
-                      <Button variant="outline" className="md:hidden flex-shrink-0 h-9 text-xs px-3">
+                      <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
                           <Filter className="mr-2 h-4 w-4" /> Filtros
                       </Button>
                   </SheetTrigger>
