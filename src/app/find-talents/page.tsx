@@ -29,14 +29,13 @@ interface Category {
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
     { name: 'Canchas al aire libre', icon: Sun },
-    { name: 'Canchas de fútbol salón', icon: Building }, // Accent added
-    { name: 'Canchas de fútbol', icon: Building }, // New category
+    { name: 'Canchas de fútbol salón', icon: Building },
+    { name: 'Canchas de fútbol', icon: Building },
     { name: 'Canchas de baloncesto', icon: Building },
     { name: 'Canchas de vóleibol', icon: Building },
     { name: 'Canchas múltiples', icon: LayoutGrid },
     { name: 'Gimnasios cubiertos', icon: Dumbbell },
     { name: 'Salones de yoga, pilates o danza', icon: Users },
-    { name: 'Pistas de atletismo', icon: Footprints },
     { name: 'Piscinas olímpicas o recreativas', icon: Waves },
     { name: 'Estudios de entrenamiento funcional o crossfit', icon: Dumbbell },
     { name: 'Canchas de tenis', icon: Building },
@@ -115,7 +114,7 @@ const dummySportsFacilities: SportsFacility[] = [
   },
   {
     id: 'sf5',
-    name: 'Dojo "Bushido"', // This facility's category "Tatamis o dojos" was removed. Will only show in "Todos" or by search.
+    name: 'Dojo "Bushido"', 
     type: 'Tatami para artes marciales (Karate, Judo) interior',
     location: 'Kennedy, Bogotá',
     rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
@@ -134,18 +133,8 @@ const dummySportsFacilities: SportsFacility[] = [
     amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
   },
   {
-    id: 'sf7',
-    name: 'Pista Atlética Municipal',
-    type: 'Pista de atletismo profesional al aire libre',
-    location: 'Parque Simón Bolívar, Bogotá',
-    rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva',
-    description: 'Pista de tartán de 400m, con carriles marcados y zonas para saltos/lanzamientos.',
-    image: 'https://picsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
-    amenities: ['Tartán', 'Carriles', 'Acceso público'],
-  },
-  {
     id: 'sf8',
-    name: 'Polideportivo El Salitre', // This facility's category "Polideportivos" was removed.
+    name: 'Polideportivo El Salitre', 
     type: 'Canchas múltiples (baloncesto, vóleibol) techado',
     location: 'Salitre, Bogotá',
     rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
@@ -165,14 +154,13 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
     // Keywords for matching facility types to filter categories
     const categoryKeywords: Record<string, string[]> = {
         'canchas al aire libre': ['aire libre', 'outdoor', 'exterior', 'descubierta'],
-        'canchas de fútbol salón': ['fútbol salón', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'], // Note: Check accent in category name
-        'canchas de fútbol': ['fútbol', 'futbol', 'soccer', 'cancha de 11', 'cancha de 7', 'cancha de 9', 'football', 'grama natural', 'grama sintética'], // Added more specific keywords
+        'canchas de fútbol salón': ['fútbol salón', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'],
+        'canchas de fútbol': ['fútbol', 'futbol', 'soccer', 'cancha de 11', 'cancha de 7', 'cancha de 9', 'football', 'grama natural', 'grama sintética'],
         'canchas de baloncesto': ['baloncesto', 'basketball', 'basket'],
         'canchas de vóleibol': ['vóleibol', 'voleibol', 'volleyball'],
-        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente', 'multifuncional'],
+        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente', 'multifuncional', 'polideportivo'], // Added polideportivo
         'gimnasios cubiertos': ['gimnasio', 'gym', 'fitness center'],
         'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile', 'meditación'],
-        'pistas de atletismo': ['atletismo', 'pista', 'track', 'correr'],
         'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático', 'olímpica', 'recreativa'],
         'estudios de entrenamiento funcional o crossfit': ['funcional', 'crossfit', 'hiit', 'entrenamiento en circuito', 'training studio'],
         'canchas de tenis': ['tenis', 'tennis', 'campo de tenis'],
@@ -184,8 +172,7 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
     if (keywords) {
         return keywords.some(keyword => typeLower.includes(keyword.toLowerCase()));
     }
-    // Fallback if category name is not in keywords map (less precise)
-    // Try to match the first word of the filter category if it's multi-word
+    
     const firstFilterWord = filterLower.split(' ')[0];
     return typeLower.includes(firstFilterWord);
 };
@@ -260,7 +247,7 @@ const FiltersContent = ({
              <Slider
                  id="rate-slider"
                  min={0}
-                 max={200000} // Can be adjusted based on typical rates
+                 max={200000} 
                  step={5000}
                  value={[currentFilterMaxRate]}
                  onValueChange={(value) => setCurrentFilterMaxRate(value[0])}
@@ -268,7 +255,6 @@ const FiltersContent = ({
          </div>
 
           <div className="mt-auto pt-6 border-t">
-            {/* Always use SheetClose behavior as FiltersContent is now only in Sheet */}
             <SheetClose asChild>
                 <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
             </SheetClose>
@@ -282,13 +268,11 @@ const FindTalentsContent = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [favoritedItems, setFavoritedItems] = useState<Set<string>>(new Set());
 
-  // States for temporary filter changes within the filter components
   const [currentFilterCategory, setCurrentFilterCategory] = useState('Todos');
   const [currentFilterLocation, setCurrentFilterLocation] = useState('');
   const [currentFilterMinRating, setCurrentFilterMinRating] = useState(0);
   const [currentFilterMaxRate, setCurrentFilterMaxRate] = useState(200000);
 
-  // States for applied filters that trigger re-render of listings
   const [appliedFilters, setAppliedFilters] = useState({
     category: 'Todos',
     location: '',
@@ -296,7 +280,6 @@ const FindTalentsContent = () => {
     rate: 200000,
   });
 
-  // Sync current filter states with applied filters when appliedFilters change
   useEffect(() => {
     setCurrentFilterCategory(appliedFilters.category);
     setCurrentFilterLocation(appliedFilters.location);
@@ -311,7 +294,7 @@ const FindTalentsContent = () => {
       rating: currentFilterMinRating,
       rate: currentFilterMaxRate,
     });
-    setIsSheetOpen(false); // Close sheet after applying filters
+    setIsSheetOpen(false); 
   }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate]);
 
 
@@ -343,120 +326,117 @@ const FindTalentsContent = () => {
 
   return (
     <div className="flex flex-col h-full">
-        {/* Main content area: Header with Search and Filter Trigger, followed by results */}
-        <div className="flex-1 flex flex-col">
-             <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 flex-shrink-0">
-                <h1 className="text-lg font-semibold mr-auto">Espacios Deportivos</h1>
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 flex-shrink-0">
+            <h1 className="text-lg font-semibold mr-auto">Espacios Deportivos</h1>
 
-                <div className="relative w-full max-w-xs sm:max-w-sm ml-auto">
-                    <Input
-                        type="search"
-                        placeholder="Buscar espacios..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="rounded-md shadow-sm pr-10 h-9 text-sm w-full"
-                    />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                </div>
-                
-                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                  <SheetTrigger asChild>
-                      <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
-                          <Filter className="mr-2 h-4 w-4" /> Filtros
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
-                      <SheetHeader className="p-4 border-b">
-                          <SheetTitle>Filtros</SheetTitle>
-                      </SheetHeader>
-                      <ScrollArea className="flex-grow">
-                          <FiltersContent
-                              currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
-                              currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
-                              currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
-                              currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
-                              onApplyFilters={handleApplyFilters}
-                          />
-                      </ScrollArea>
-                  </SheetContent>
-               </Sheet>
-             </header>
+            <div className="relative w-full max-w-xs sm:max-w-sm ml-auto">
+                <Input
+                    type="search"
+                    placeholder="Buscar espacios..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="rounded-md shadow-sm pr-10 h-9 text-sm w-full"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                  <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
+                      <Filter className="mr-2 h-4 w-4" /> Filtros
+                  </Button>
+              </SheetTrigger>
+              <SheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
+                  <SheetHeader className="p-4 border-b">
+                      <SheetTitle>Filtros</SheetTitle>
+                  </SheetHeader>
+                  <ScrollArea className="flex-grow">
+                      <FiltersContent
+                          currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
+                          currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
+                          currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
+                          currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
+                          onApplyFilters={handleApplyFilters}
+                      />
+                  </ScrollArea>
+              </SheetContent>
+           </Sheet>
+        </header>
 
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-            {filteredFacilities.length > 0 ? (
-              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
-                {filteredFacilities.map(facility => (
-                    <Card key={facility.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
-                        <div className="relative aspect-[4/3] w-full overflow-hidden">
-                            <Image
-                                src={facility.image || `https://picsum.photos/400/300?random=${facility.id}`}
-                                alt={facility.name}
-                                layout="fill"
-                                objectFit="cover"
-                                data-ai-hint={facility.dataAiHint}
-                            />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        {filteredFacilities.length > 0 ? (
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+            {filteredFacilities.map(facility => (
+                <Card key={facility.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden">
+                        <Image
+                            src={facility.image || `https://picsum.photos/400/300?random=${facility.id}`}
+                            alt={facility.name}
+                            layout="fill"
+                            objectFit="cover"
+                            data-ai-hint={facility.dataAiHint}
+                        />
+                    </div>
+                    <CardHeader className="p-4 pb-2">
+                        <div className="flex justify-between items-start gap-2">
+                            <div className="flex-grow">
+                                <CardTitle className="text-lg font-semibold">
+                                    {facility.name}
+                                </CardTitle>
+                                <CardDescription className="text-sm text-muted-foreground line-clamp-1">{facility.type}</CardDescription>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-destructive flex-shrink-0 -mt-1 -mr-1"
+                              onClick={() => toggleFavorite(facility.id)}
+                              aria-label={favoritedItems.has(facility.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                            >
+                              <Heart className={cn("h-5 w-5", favoritedItems.has(facility.id) && "fill-destructive text-destructive")} />
+                            </Button>
                         </div>
-                        <CardHeader className="p-4 pb-2">
-                            <div className="flex justify-between items-start gap-2">
-                                <div className="flex-grow">
-                                    <CardTitle className="text-lg font-semibold">
-                                        {facility.name}
-                                    </CardTitle>
-                                    <CardDescription className="text-sm text-muted-foreground line-clamp-1">{facility.type}</CardDescription>
-                                </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-muted-foreground hover:text-destructive flex-shrink-0 -mt-1 -mr-1"
-                                  onClick={() => toggleFavorite(facility.id)}
-                                  aria-label={favoritedItems.has(facility.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                                >
-                                  <Heart className={cn("h-5 w-5", favoritedItems.has(facility.id) && "fill-destructive text-destructive")} />
-                                </Button>
+                    </CardHeader>
+                    <CardContent className="flex-grow p-4 pt-0 space-y-1.5">
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                            {facility.description}
+                        </p>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
+                            <span>{facility.location}</span>
+                        </div>
+                        {facility.amenities && facility.amenities.length > 0 && (
+                            <div className="flex flex-wrap gap-1 pt-1">
+                                {facility.amenities.slice(0,3).map(amenity => (
+                                    <Badge key={amenity} variant="secondary" className="text-xs">{amenity}</Badge>
+                                ))}
                             </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow p-4 pt-0 space-y-1.5">
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                                {facility.description}
+                        )}
+                        <div className="flex items-center gap-1 text-sm">
+                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                            <span className="font-semibold text-foreground">{facility.rating.toFixed(1)}</span>
+                            <span className="text-xs text-muted-foreground">({facility.reviews} reseñas)</span>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-2 border-t mt-auto bg-muted/30">
+                        <div className="flex justify-between items-center w-full">
+                             <p className="text-sm">
+                                Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
+                                {HOURLY_RATE_CATEGORIES.includes('Instalación Deportiva') ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
                             </p>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-primary" />
-                                <span>{facility.location}</span>
-                            </div>
-                            {facility.amenities && facility.amenities.length > 0 && (
-                                <div className="flex flex-wrap gap-1 pt-1">
-                                    {facility.amenities.slice(0,3).map(amenity => (
-                                        <Badge key={amenity} variant="secondary" className="text-xs">{amenity}</Badge>
-                                    ))}
-                                </div>
-                            )}
-                            <div className="flex items-center gap-1 text-sm">
-                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
-                                <span className="font-semibold text-foreground">{facility.rating.toFixed(1)}</span>
-                                <span className="text-xs text-muted-foreground">({facility.reviews} reseñas)</span>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-2 border-t mt-auto bg-muted/30">
-                            <div className="flex justify-between items-center w-full">
-                                 <p className="text-sm">
-                                    Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
-                                    {HOURLY_RATE_CATEGORIES.includes('Instalación Deportiva') ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
-                                </p>
-                                <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
-                            </div>
-                        </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-center p-8 border rounded-lg bg-card mt-6">
-                <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
-                <p className="text-lg font-medium">No se encontraron espacios deportivos</p>
-                <p className="text-sm">Intenta ajustar tu búsqueda o los filtros.</p>
-              </div>
-            )}
-          </main>
-        </div>
+                            <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
+                        </div>
+                    </CardFooter>
+              </Card>
+            ))}
+            </div>
+        ) : (
+            <div className="flex flex-col items-center justify-center h-64 text-muted-foreground text-center p-8 border rounded-lg bg-card mt-6">
+            <Search className="h-12 w-12 mb-4 text-muted-foreground/50" />
+            <p className="text-lg font-medium">No se encontraron espacios deportivos</p>
+            <p className="text-sm">Intenta ajustar tu búsqueda o los filtros.</p>
+            </div>
+        )}
+        </main>
     </div>
   );
 };
