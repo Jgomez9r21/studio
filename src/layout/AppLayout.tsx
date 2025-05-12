@@ -1,8 +1,7 @@
-
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,12 +15,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  useSidebar, 
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, ShieldCheck } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, Image as ImageIconLucide, FileText, Music, Lightbulb, Database, Code, Construction, School2, Palette, HomeIcon as LucideHomeIcon, UserCircle } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,8 +28,9 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle,
-} from "@/components/ui/dialog"; // Removed DialogTrigger as it's not used directly here with open prop
+  DialogTitle as ShadDialogTitle, // Renamed to avoid conflict if DialogTitle is used elsewhere
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -50,6 +50,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
 
 
 // Navigation Items (centralized)
@@ -60,9 +61,9 @@ const navegacion = [
     icon: Home,
   },
   {
-    title: "Ofrecer Servicios", // Changed from "Publica tu Espacio Deportivo"
+    title: "Ofrecer Servicios",
     href: "/post-job",
-    icon: Briefcase, // Changed icon to Briefcase, more generic for offering services
+    icon: Briefcase,
   },
   {
     title: "Buscar Talentos",
@@ -72,7 +73,7 @@ const navegacion = [
   {
     title: "Mis Reservas",
     href: "/book-service",
-    icon: CalendarDays, // Changed from Briefcase to avoid repetition
+    icon: CalendarDays,
   },
   {
     title: "Mis Favoritos",
@@ -136,7 +137,7 @@ const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")), 
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
@@ -162,7 +163,7 @@ export default function AppLayout({
   const router = useRouter();
   const { toast } = useToast();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar(); 
+   const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
 
 
   // Use auth context
@@ -179,11 +180,11 @@ export default function AppLayout({
     openProfileDialog,
     setCurrentView,
     loginError,
-    handleLoginSubmit: contextHandleLoginSubmit, 
+    handleLoginSubmit: contextHandleLoginSubmit,
     signupStep,
     setSignupStep,
-    handleSignupSubmit: contextHandleSignupSubmit, 
-    handleNextStep: contextHandleNextStep, 
+    handleSignupSubmit: contextHandleSignupSubmit,
+    handleNextStep: contextHandleNextStep,
     handlePrevStep: contextHandlePrevStep,
     isVerificationSent,
     phoneVerificationError,
@@ -217,7 +218,7 @@ export default function AppLayout({
     },
     mode: "onChange",
   });
-  
+
   const [verificationCodeInput, setVerificationCodeInput] = useState(""); // For signup phone verification
 
   // Modified submit handlers to call context functions
@@ -474,7 +475,7 @@ export default function AppLayout({
                       </form>
                       </Form>
                   )}
-               </div> 
+               </div>
          </ScrollArea>
        </DialogContent>
       );
@@ -517,7 +518,6 @@ export default function AppLayout({
                </SidebarContent>
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                  <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                 
                    {isLoggedIn && user ? (
                      <DialogTrigger asChild>
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
@@ -531,18 +531,15 @@ export default function AppLayout({
                        </Button>
                      </DialogTrigger>
                    ) : (
-                     <DialogTrigger asChild>
-                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
+                     <DialogTrigger onClick={openLoginDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:border-input group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-background group-data-[collapsible=icon]:hover:bg-accent group-data-[collapsible=icon]:hover:text-accent-foreground h-10 px-4 py-2 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            Ingresar / Crear Cuenta
                          </span>
                          <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
-                       </Button>
                      </DialogTrigger>
                    )}
-                 
-                    {authDialogContent()}
+                   {authDialogContent()}
                  </Dialog>
                </SidebarFooter>
              </Sidebar>
@@ -558,14 +555,14 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                         <DialogHeader className="p-4 border-b"> {/* Changed SheetHeader to DialogHeader */}
-                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> {/* Use ShadDialogTitle */}
+                         <DialogHeader className="p-4 border-b">
+                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle>
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
                              </div>
-                          </DialogHeader> {/* Changed SheetHeader to DialogHeader */}
-                         <ScrollArea className="flex-grow p-2 overflow-y-auto"> {/* Added ScrollArea for mobile menu */}
+                          </DialogHeader>
+                         <ScrollArea className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
                              {navegacion.map((item) => (
                                  <SidebarMenuItem key={item.title}>
@@ -584,7 +581,6 @@ export default function AppLayout({
                          </ScrollArea>
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                                <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                                
                                  {isLoggedIn && user ? (
                                    <DialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
@@ -605,7 +601,6 @@ export default function AppLayout({
                                      </Button>
                                    </DialogTrigger>
                                  )}
-                                 
                                 {authDialogContent()}
                               </Dialog>
                           </SidebarFooter>
@@ -620,7 +615,6 @@ export default function AppLayout({
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10">
                        <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                         
                            {isLoggedIn && user ? (
                              <DialogTrigger asChild>
                                <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
@@ -639,7 +633,6 @@ export default function AppLayout({
                                </Button>
                              </DialogTrigger>
                            )}
-                           
                           {authDialogContent()}
                          </Dialog>
                    </div>
@@ -655,4 +648,3 @@ export default function AppLayout({
       </>
   );
 }
-
