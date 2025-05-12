@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -30,7 +31,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Search } from "lucide-react";
+import { CalendarIcon, Search, MapPin } from "lucide-react"; // Added MapPin
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -253,9 +254,10 @@ function LandingPageContent() {
                           <span className="text-foreground">{listing.professionalName}</span>
                         </p>
                       )}
-                      <p className="text-sm text-foreground line-clamp-1">
-                         <span className="text-muted-foreground">Disponibilidad: </span>
-                         {listing.availability.join(', ').substring(0,100) + (listing.availability.join(', ').length > 100 ? '...' : '')}
+                      <p className="text-sm text-foreground line-clamp-1 flex items-center">
+                         <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
+                         <span className="text-muted-foreground">Ubicación: </span>
+                         <span className="ml-1">{listing.location}</span>
                       </p>
                     </CardContent>
                     <CardFooter className="p-4 pt-3 border-t">
@@ -391,4 +393,5 @@ export default function Page() {
     </AppLayout>
   );
 }
+
 
