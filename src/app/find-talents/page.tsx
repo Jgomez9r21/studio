@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from 'react';
@@ -48,16 +47,16 @@ const categoriasDisponibles: Category[] = [
 // Define SportsFacility interface
 interface SportsFacility {
   id: string;
-  name: string; 
-  type: string; 
+  name: string;
+  type: string;
   location: string;
-  rate: number; 
+  rate: number;
   rating: number;
   reviews: number;
-  category: 'Instalación Deportiva'; 
+  category: 'Instalación Deportiva';
   description: string;
   image: string;
-  dataAiHint: string; 
+  dataAiHint: string;
   amenities?: string[];
 }
 
@@ -66,7 +65,7 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
-    type: 'Fútbol salón techado', 
+    type: 'Fútbol salón techado',
     location: 'Chapinero Alto, Bogotá',
     rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
@@ -86,7 +85,7 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf2',
     name: 'Gimnasio "Músculos de Acero"',
-    type: 'Gimnasio completo y funcional cubierto', 
+    type: 'Gimnasio completo y funcional cubierto',
     location: 'Usaquén, Bogotá',
     rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
@@ -96,7 +95,7 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf3',
     name: 'Piscina Olímpica "El Tritón"',
-    type: 'Piscina olímpica al aire libre', 
+    type: 'Piscina olímpica al aire libre',
     location: 'Salitre, Bogotá',
     rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
@@ -106,7 +105,7 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf4',
     name: 'Club de Tenis "El Grand Slam"',
-    type: 'Canchas de tenis de arcilla al aire libre', 
+    type: 'Canchas de tenis de arcilla al aire libre',
     location: 'Suba, Bogotá',
     rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
@@ -116,7 +115,7 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf5',
     name: 'Dojo "Bushido"', // This facility's category "Tatamis o dojos" was removed. Will only show in "Todos" or by search.
-    type: 'Tatami para artes marciales (Karate, Judo) interior', 
+    type: 'Tatami para artes marciales (Karate, Judo) interior',
     location: 'Kennedy, Bogotá',
     rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
@@ -126,7 +125,7 @@ const dummySportsFacilities: SportsFacility[] = [
    {
     id: 'sf6',
     name: 'Estudio "Zen Yoga"',
-    type: 'Salón de Yoga y Pilates interior', 
+    type: 'Salón de Yoga y Pilates interior',
     location: 'La Candelaria, Bogotá',
     rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
@@ -136,9 +135,9 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf7',
     name: 'Pista Atlética Municipal',
-    type: 'Pista de atletismo profesional al aire libre', 
+    type: 'Pista de atletismo profesional al aire libre',
     location: 'Parque Simón Bolívar, Bogotá',
-    rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva', 
+    rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva',
     description: 'Pista de tartán de 400m, con carriles marcados y zonas para saltos/lanzamientos.',
     image: 'https://picsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
     amenities: ['Tartán', 'Carriles', 'Acceso público'],
@@ -180,7 +179,7 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
         'canchas de pádel': ['pádel', 'padel', 'cancha de pádel'],
     };
 
-    const keywords = categoryKeywords[filterCategory]; 
+    const keywords = categoryKeywords[filterCategory];
     if (keywords) {
         return keywords.some(keyword => typeLower.includes(keyword.toLowerCase()));
     }
@@ -268,7 +267,7 @@ const FiltersContent = ({
                  onValueChange={(value) => setCurrentFilterMaxRate(value[0])}
              />
          </div>
-        
+
           <div className="mt-auto pt-6 border-t">
             {isSheet ? (
                 <SheetClose asChild>
@@ -337,7 +336,7 @@ const FindTalentsContent = () => {
 
     return isSportsFacilityCategory && matchesCategory && matchesLocation && matchesRating && matchesRate && matchesSearch;
   });
-  
+
   const toggleFavorite = (itemId: string) => {
     setFavoritedItems(prevFavorites => {
       const newFavorites = new Set(prevFavorites);
@@ -372,8 +371,8 @@ const FindTalentsContent = () => {
         <div className="flex-1 flex flex-col">
              {/* Header with Search and Mobile Filter Trigger */}
              <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 flex-shrink-0">
-                <h1 className="text-xl font-semibold mr-auto hidden md:block">Buscar Espacios Deportivos</h1>
-                <h1 className="text-lg font-semibold mr-auto md:hidden">Espacios Deportivos</h1>
+                {/* Title removed as per user request */}
+                <h1 className="text-lg font-semibold mr-auto md:hidden">Espacios Deportivos</h1> {/* Keep mobile title for context */}
 
                 <div className="relative w-full max-w-xs sm:max-w-sm ml-auto">
                     <Input
@@ -453,7 +452,7 @@ const FindTalentsContent = () => {
                             </div>
                             {facility.amenities && facility.amenities.length > 0 && (
                                 <div className="flex flex-wrap gap-1 pt-1">
-                                    {facility.amenities.slice(0,3).map(amenity => ( 
+                                    {facility.amenities.slice(0,3).map(amenity => (
                                         <Badge key={amenity} variant="secondary" className="text-xs">{amenity}</Badge>
                                     ))}
                                 </div>
@@ -499,4 +498,3 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
-
