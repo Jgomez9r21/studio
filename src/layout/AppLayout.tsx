@@ -16,12 +16,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  useSidebar, // Import useSidebar
+  useSidebar, 
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Dumbbell } from "lucide-react"; // Added Dumbbell
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Dumbbell, Building } from "lucide-react"; // Added Building
+import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet"; // Renamed SheetTitle
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,7 +29,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle, // Renamed to avoid conflict with SheetTitle if used directly
+  DialogTitle as ShadDialogTitle, 
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -62,13 +62,13 @@ const navegacion = [
   },
   {
     title: "Reserva Deportiva",
-    href: "/?category=Instalaci%C3%B3n%20Deportiva", // Links to homepage with sports category pre-selected
-    icon: Dumbbell, // Changed from Users
+    href: "/?category=Instalaci%C3%B3n%20Deportiva", 
+    icon: Dumbbell, 
   },
   {
     title: "Publica tu Espacio Deportivo",
     href: "/post-job",
-    icon: Dumbbell, // Was UserPlus, changed to Dumbbell for consistency
+    icon: Building, // Changed icon to Building
   },
   {
     title: "Mis Reservas",
@@ -137,7 +137,7 @@ const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país."),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")), // Updated validation
+  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")), 
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
@@ -163,7 +163,7 @@ export default function AppLayout({
   const router = useRouter();
   const { toast } = useToast();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar(); // Get sidebar state
+  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar(); 
 
 
   // Use auth context
@@ -179,12 +179,12 @@ export default function AppLayout({
     openProfileDialog,
     setCurrentView,
     loginError,
-    handleLoginSubmit: contextHandleLoginSubmit, // Renamed to avoid conflict
+    handleLoginSubmit: contextHandleLoginSubmit, 
     signupStep,
     setSignupStep,
-    handleSignupSubmit: contextHandleSignupSubmit, // Renamed to avoid conflict
-    handleNextStep: contextHandleNextStep, // Renamed to avoid conflict
-    handlePrevStep: contextHandlePrevStep, // Renamed to avoid conflict
+    handleSignupSubmit: contextHandleSignupSubmit, 
+    handleNextStep: contextHandleNextStep, 
+    handlePrevStep: contextHandlePrevStep, 
    } = useAuth();
 
 
@@ -241,237 +241,231 @@ export default function AppLayout({
 
    const currentYear = getYear(new Date());
 
+  const authDialogContent = () => {
+    if (showProfileDialog && isLoggedIn && user) {
+      return (
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <ShadDialogTitle>{user.name}</ShadDialogTitle>
+            <DialogDescription>Perfil de Usuario</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Bienvenido/a, {user.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.
+            </p>
+            <p className="text-sm mt-2">Email: {user.email}</p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0 justify-between">
+            <Button variant="outline" onClick={goToSettings}>Configuración</Button>
+            <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
+          </DialogFooter>
+        </DialogContent>
+      );
+    }
 
-  const renderLoginSignupDialog = () => (
-     <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <ScrollArea className="max-h-[calc(100vh-10rem)] sm:max-h-[calc(90vh-5rem)]">
-           <div className="p-6"> {/* Padding inside ScrollArea */}
-              <DialogHeader className="mb-4 text-center">
-                <ShadDialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</ShadDialogTitle>
-                <DialogDescription>
-                  {currentView === 'login'
-                    ? 'Ingresa tu correo y contraseña para continuar.'
-                    : `Paso ${signupStep} de 2: ${signupStep === 1 ? 'Información básica.' : 'Detalles adicionales.'}`}
-                </DialogDescription>
-              </DialogHeader>
-                {currentView === 'login' ? (
-                   <Form {...loginForm}>
-                     <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
-                         <FormField
-                            control={loginForm.control}
-                            name="email"
-                            render={({ field }) => (
-                               <FormItem>
-                                 <FormLabel>Correo</FormLabel>
-                                 <FormControl>
-                                   <Input
-                                     placeholder="tu@correo.com"
-                                     {...field}
-                                   />
-                                 </FormControl>
-                                 <FormMessage />
-                               </FormItem>
-                            )}
-                          />
-                         <FormField
-                            control={loginForm.control}
-                            name="password"
-                            render={({ field }) => (
-                               <FormItem>
-                                 <FormLabel>Contraseña</FormLabel>
-                                 <FormControl>
-                                   <Input
-                                     type="password"
-                                     placeholder="Tu contraseña"
-                                     {...field}
-                                    />
-                                 </FormControl>
-                                 {loginError && <p className="text-sm font-medium text-destructive">{loginError}</p>}
-                                 <FormMessage />
-                               </FormItem>
-                            )}
-                          />
-                         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
-                                ¿No tienes cuenta? Crear una
-                             </Button>
-                            <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
-                                 {loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"}
-                            </Button>
-                         </DialogFooter>
-                   </form>
-                   </Form>
-                ) : (
-                   <Form {...signupForm}>
-                     <form
-                        onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
-                        className="space-y-4"
-                      >
-                         {/* Step 1 Fields */}
-                         {signupStep === 1 && (
-                           <div className="space-y-4">
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               <FormField control={signupForm.control} name="firstName" render={({ field }) => (
-                                 <FormItem> <FormLabel>Nombre</FormLabel> <FormControl><Input placeholder="Tu nombre" {...field} /></FormControl> <FormMessage /> </FormItem>
-                               )}/>
-                               <FormField control={signupForm.control} name="lastName" render={({ field }) => (
-                                 <FormItem> <FormLabel>Apellido</FormLabel> <FormControl><Input placeholder="Tu apellido" {...field} /></FormControl> <FormMessage /> </FormItem>
-                               )}/>
-                             </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               <FormField control={signupForm.control} name="country" render={({ field }) => (
+    if (showLoginDialog) {
+      return (
+        <DialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
+           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(90vh-2rem)]">
+             <div className="p-6">
+                <DialogHeader className="mb-4 text-center">
+                  <ShadDialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</ShadDialogTitle>
+                  <DialogDescription>
+                    {currentView === 'login'
+                      ? 'Ingresa tu correo y contraseña para continuar.'
+                      : `Paso ${signupStep} de 2: ${signupStep === 1 ? 'Información básica.' : 'Detalles adicionales.'}`}
+                  </DialogDescription>
+                </DialogHeader>
+                  {currentView === 'login' ? (
+                     <Form {...loginForm}>
+                       <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
+                           <FormField
+                              control={loginForm.control}
+                              name="email"
+                              render={({ field }) => (
                                  <FormItem>
-                                  <FormLabel>País</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                     <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
-                                     </FormControl>
-                                      <SelectContent>{countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))}</SelectContent>
-                                    </Select>
-                                  <FormMessage />
+                                   <FormLabel>Correo</FormLabel>
+                                   <FormControl>
+                                     <Input
+                                       placeholder="tu@correo.com"
+                                       {...field}
+                                     />
+                                   </FormControl>
+                                   <FormMessage />
                                  </FormItem>
-                               )}/>
-                               <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                                 <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+1234567890" {...field} /></FormControl> <FormMessage /> </FormItem>
-                               )}/>
-                             </div>
-                             <FormField control={signupForm.control} name="profileType" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tipo de perfil</FormLabel>
-                                     <Select onValueChange={field.onChange} value={field.value}>
-                                         <FormControl>
-                                             <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
-                                         </FormControl>
-                                         <SelectContent>{profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}</SelectContent>
-                                     </Select>
+                              )}
+                            />
+                           <FormField
+                              control={loginForm.control}
+                              name="password"
+                              render={({ field }) => (
+                                 <FormItem>
+                                   <FormLabel>Contraseña</FormLabel>
+                                   <FormControl>
+                                     <Input
+                                       type="password"
+                                       placeholder="Tu contraseña"
+                                       {...field}
+                                      />
+                                   </FormControl>
+                                   {loginError && <p className="text-sm font-medium text-destructive">{loginError}</p>}
+                                   <FormMessage />
+                                 </FormItem>
+                              )}
+                            />
+                           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
+                               <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                                  ¿No tienes cuenta? Crear una
+                               </Button>
+                              <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
+                                   {loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"}
+                              </Button>
+                           </DialogFooter>
+                     </form>
+                     </Form>
+                  ) : (
+                     <Form {...signupForm}>
+                       <form
+                          onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
+                          className="space-y-4"
+                        >
+                           {/* Step 1 Fields */}
+                           {signupStep === 1 && (
+                             <div className="space-y-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <FormField control={signupForm.control} name="firstName" render={({ field }) => (
+                                   <FormItem> <FormLabel>Nombre</FormLabel> <FormControl><Input placeholder="Tu nombre" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                 )}/>
+                                 <FormField control={signupForm.control} name="lastName" render={({ field }) => (
+                                   <FormItem> <FormLabel>Apellido</FormLabel> <FormControl><Input placeholder="Tu apellido" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                 )}/>
+                               </div>
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <FormField control={signupForm.control} name="country" render={({ field }) => (
+                                   <FormItem>
+                                    <FormLabel>País</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                       <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
+                                       </FormControl>
+                                        <SelectContent>{countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))}</SelectContent>
+                                      </Select>
                                     <FormMessage />
-                                </FormItem>
-                             )}/>
-                           </div>
-                         )}
-
-                         {/* Step 2 Fields */}
-                         {signupStep === 2 && (
-                           <div className="space-y-4">
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               <FormField control={signupForm.control} name="dob" render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                  <FormLabel>Fecha de Nacimiento</FormLabel>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <FormControl>
-                                        <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                          <CalendarDays className="mr-2 h-4 w-4"/>
-                                          {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elige una fecha</span>}
-                                        </Button>
-                                      </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} locale={es}/>
-                                    </PopoverContent>
-                                  </Popover>
-                                  <FormMessage />
-                                </FormItem>
-                               )}/>
-                               <FormField control={signupForm.control} name="gender" render={({ field }) => (
-                                 <FormItem>
-                                  <FormLabel>Género</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                     <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
-                                     </FormControl>
-                                      <SelectContent>{genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))}</SelectContent>
-                                    </Select>
-                                  <FormMessage />
-                                 </FormItem>
+                                   </FormItem>
+                                 )}/>
+                                 <FormField control={signupForm.control} name="phone" render={({ field }) => (
+                                   <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+1234567890" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                 )}/>
+                               </div>
+                               <FormField control={signupForm.control} name="profileType" render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>Tipo de perfil</FormLabel>
+                                       <Select onValueChange={field.onChange} value={field.value}>
+                                           <FormControl>
+                                               <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
+                                           </FormControl>
+                                           <SelectContent>{profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}</SelectContent>
+                                       </Select>
+                                      <FormMessage />
+                                  </FormItem>
                                )}/>
                              </div>
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                               <FormField control={signupForm.control} name="documentType" render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Tipo de documento</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                     <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
-                                     </FormControl>
-                                      <SelectContent>{documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))}</SelectContent>
-                                    </Select>
-                                  <FormMessage />
-                                 </FormItem>
+                           )}
+
+                           {/* Step 2 Fields */}
+                           {signupStep === 2 && (
+                             <div className="space-y-4">
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <FormField control={signupForm.control} name="dob" render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <FormLabel>Fecha de Nacimiento</FormLabel>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                            <CalendarDays className="mr-2 h-4 w-4"/>
+                                            {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} locale={es}/>
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                 )}/>
+                                 <FormField control={signupForm.control} name="gender" render={({ field }) => (
+                                   <FormItem>
+                                    <FormLabel>Género</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                       <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
+                                       </FormControl>
+                                        <SelectContent>{genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))}</SelectContent>
+                                      </Select>
+                                    <FormMessage />
+                                   </FormItem>
+                                 )}/>
+                               </div>
+                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <FormField control={signupForm.control} name="documentType" render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Tipo de documento</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                       <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
+                                       </FormControl>
+                                        <SelectContent>{documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))}</SelectContent>
+                                      </Select>
+                                    <FormMessage />
+                                   </FormItem>
+                                 )}/>
+                                 <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
+                                   <FormItem> <FormLabel>Número de documento</FormLabel> <FormControl><Input placeholder="Número de documento" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                 )}/>
+                               </div>
+                               <FormField control={signupForm.control} name="email" render={({ field }) => (
+                                 <FormItem> <FormLabel>Correo</FormLabel> <FormControl><Input type="email" placeholder="tu@correo.com" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
-                               <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
-                                 <FormItem> <FormLabel>Número de documento</FormLabel> <FormControl><Input placeholder="Número de documento" {...field} /></FormControl> <FormMessage /> </FormItem>
+                               <FormField control={signupForm.control} name="password" render={({ field }) => (
+                                 <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl><Input type="password" placeholder="Crea una contraseña" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
                              </div>
-                             <FormField control={signupForm.control} name="email" render={({ field }) => (
-                               <FormItem> <FormLabel>Correo</FormLabel> <FormControl><Input type="email" placeholder="tu@correo.com" {...field} /></FormControl> <FormMessage /> </FormItem>
-                             )}/>
-                             <FormField control={signupForm.control} name="password" render={({ field }) => (
-                               <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl><Input type="password" placeholder="Crea una contraseña" {...field} /></FormControl> <FormMessage /> </FormItem>
-                             )}/>
-                           </div>
-                         )}
+                           )}
 
-                          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
-                                ¿Ya tienes cuenta? Ingresar
-                             </Button>
-                             <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto justify-end">
-                                 {signupStep === 2 && (
-                                     <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto">
-                                         Anterior
-                                     </Button>
-                                 )}
-                                 {signupStep === 1 ? (
-                                     <Button type="button" onClick={handleNextStep} className="w-full sm:w-auto">
-                                         Siguiente
-                                     </Button>
-                                 ) : (
-                                     <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting}>
-                                         {signupForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
-                                     </Button>
-                                 )}
-                             </div>
-                          </DialogFooter>
-                    </form>
-                    </Form>
-                )}
-             </div> {/* Close padding div */}
-       </ScrollArea>
-     </DialogContent>
-  );
+                            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
+                               <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                                  ¿Ya tienes cuenta? Ingresar
+                               </Button>
+                               <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto justify-end">
+                                   {signupStep === 2 && (
+                                       <Button type="button" variant="outline" onClick={handlePrevStep} className="w-full sm:w-auto">
+                                           Anterior
+                                       </Button>
+                                   )}
+                                   {signupStep === 1 ? (
+                                       <Button type="button" onClick={handleNextStep} className="w-full sm:w-auto">
+                                           Siguiente
+                                       </Button>
+                                   ) : (
+                                       <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting}>
+                                           {signupForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
+                                       </Button>
+                                   )}
+                               </div>
+                            </DialogFooter>
+                      </form>
+                      </Form>
+                  )}
+               </div> 
+         </ScrollArea>
+       </DialogContent>
+      );
+    }
+    return null; // Return null if neither dialog should be shown
+  };
 
-  const renderProfileDialog = () => (
-     <DialogContent className="sm:max-w-md">
-       <DialogHeader>
-         <ShadDialogTitle>{user?.name ?? 'Perfil'}</ShadDialogTitle>
-         <DialogDescription>Perfil de Usuario</DialogDescription>
-       </DialogHeader>
-       <div className="py-4">
-         <p className="text-sm text-muted-foreground">
-           {user ? `Bienvenido/a, ${user.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.` : 'Inicia sesión para ver tu perfil.'}
-         </p>
-         {user && <p className="text-sm mt-2">Email: {user.email}</p> }
-       </div>
-       <DialogFooter className="gap-2 sm:gap-0 justify-between">
-         {user ? (
-            <>
-              <Button variant="outline" onClick={goToSettings}>Configuración</Button>
-              <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
-            </>
-          ) : (
-             // If somehow profile dialog is shown while not logged in, show login button
-              <Button onClick={() => {
-                 handleOpenChange(false); // Close current dialog
-                 setTimeout(() => openLoginDialog(), 100); // Open login after a short delay
-               }}>
-                Iniciar Sesión
-             </Button>
-         )}
-
-       </DialogFooter>
-    </DialogContent>
-  );
 
   return (
       <>
@@ -506,7 +500,7 @@ export default function AppLayout({
                  </SidebarMenu>
                </SidebarContent>
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                  <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+                 <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    <DialogTrigger asChild>
                      {isLoggedIn && user ? (
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
@@ -528,7 +522,7 @@ export default function AppLayout({
                        </Button>
                      )}
                    </DialogTrigger>
-                    {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                    {authDialogContent()}
                  </Dialog>
                </SidebarFooter>
              </Sidebar>
@@ -544,9 +538,8 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                         {/* SheetHeader now correctly uses DialogTitle for accessibility */}
                           <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                            <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> {/* Moved from SheetTitle to ShadDialogTitle */}
+                            <ShadSheetTitle className="sr-only">Menú principal</ShadSheetTitle> 
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
@@ -589,7 +582,7 @@ export default function AppLayout({
                                     </Button>
                                   )}
                                 </DialogTrigger>
-                                {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                                {authDialogContent()}
                               </Dialog>
                           </SidebarFooter>
                       </SheetContent>
@@ -619,7 +612,7 @@ export default function AppLayout({
                              </Button>
                            )}
                          </DialogTrigger>
-                         {showProfileDialog ? renderProfileDialog() : (showLoginDialog ? renderLoginSignupDialog() : null)}
+                          {authDialogContent()}
                          </Dialog>
                    </div>
                </header>
@@ -634,4 +627,3 @@ export default function AppLayout({
       </>
   );
 }
-
