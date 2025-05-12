@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, Download, Briefcase, AlertTriangle } from 'lucide-react';
 import Link from 'next/link'; // Import Link
 
@@ -189,13 +190,13 @@ const BookServiceContent = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Título Servicio</TableHead>
-                        <TableHead className="hidden md:table-cell">Profesional</TableHead>
-                        <TableHead className="hidden lg:table-cell">Lugar</TableHead>
-                        <TableHead className="hidden xl:table-cell">Email Prof.</TableHead>
-                        <TableHead className="hidden xl:table-cell">Celular Prof.</TableHead>
-                        <TableHead>Fecha</TableHead>
+                        <TableHead>Profesional</TableHead>
+                        <TableHead>Lugar</TableHead>
+                        <TableHead>Email Profesional</TableHead>
+                        <TableHead>Celular Profesional</TableHead>
+                        <TableHead>Fecha Servicio</TableHead>
                         <TableHead>Hora</TableHead>
-                        <TableHead className="hidden sm:table-cell">N° Orden</TableHead>
+                        <TableHead>N° Orden</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -203,13 +204,13 @@ const BookServiceContent = () => {
                       {userBookings.map((booking) => (
                         <TableRow key={booking.id}>
                           <TableCell className="font-medium">{booking.serviceTitle}</TableCell>
-                          <TableCell className="hidden md:table-cell">{booking.professionalName}</TableCell>
-                          <TableCell className="hidden lg:table-cell">{booking.location}</TableCell>
-                          <TableCell className="hidden xl:table-cell">{booking.professionalEmail}</TableCell>
-                          <TableCell className="hidden xl:table-cell">{booking.professionalPhone}</TableCell>
+                          <TableCell>{booking.professionalName}</TableCell>
+                          <TableCell>{booking.location}</TableCell>
+                          <TableCell>{booking.professionalEmail}</TableCell>
+                          <TableCell>{booking.professionalPhone}</TableCell>
                           <TableCell>{new Date(booking.serviceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                           <TableCell>{booking.serviceTime}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{booking.orderNumber}</TableCell>
+                          <TableCell>{booking.orderNumber}</TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleViewServiceInfo(booking.orderNumber, 'user')} title="Ver Información">
                               <Eye className="h-4 w-4" />
@@ -249,13 +250,13 @@ const BookServiceContent = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Título Servicio</TableHead>
-                        <TableHead className="hidden md:table-cell">Cliente</TableHead>
-                        <TableHead className="hidden lg:table-cell">Lugar</TableHead>
-                        <TableHead className="hidden xl:table-cell">Email Cliente</TableHead>
-                        <TableHead className="hidden xl:table-cell">Celular Cliente</TableHead>
-                        <TableHead>Fecha</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Lugar</TableHead>
+                        <TableHead>Email Cliente</TableHead>
+                        <TableHead>Celular Cliente</TableHead>
+                        <TableHead>Fecha Servicio</TableHead>
                         <TableHead>Hora</TableHead>
-                        <TableHead className="hidden sm:table-cell">N° Orden</TableHead>
+                        <TableHead>N° Orden</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -263,13 +264,13 @@ const BookServiceContent = () => {
                       {professionalBookings.map((booking) => (
                         <TableRow key={booking.id}>
                           <TableCell className="font-medium">{booking.serviceTitle}</TableCell>
-                          <TableCell className="hidden md:table-cell">{booking.clientName}</TableCell>
-                          <TableCell className="hidden lg:table-cell">{booking.location}</TableCell>
-                          <TableCell className="hidden xl:table-cell">{booking.clientEmail}</TableCell>
-                          <TableCell className="hidden xl:table-cell">{booking.clientPhone}</TableCell>
+                          <TableCell>{booking.clientName}</TableCell>
+                          <TableCell>{booking.location}</TableCell>
+                          <TableCell>{booking.clientEmail}</TableCell>
+                          <TableCell>{booking.clientPhone}</TableCell>
                           <TableCell>{new Date(booking.serviceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                           <TableCell>{booking.serviceTime}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{booking.orderNumber}</TableCell>
+                          <TableCell>{booking.orderNumber}</TableCell>
                           <TableCell className="flex gap-1">
                             <Button variant="ghost" size="icon" onClick={() => handleViewServiceInfo(booking.orderNumber, 'professional')} title="Ver Información">
                               <Eye className="h-4 w-4" />
@@ -301,3 +302,4 @@ const BookServicePage = () => {
 };
 
 export default BookServicePage;
+
