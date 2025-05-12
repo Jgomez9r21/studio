@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -197,14 +198,12 @@ const FiltersContent = ({
     currentFilterMinRating, setCurrentFilterMinRating,
     currentFilterMaxRate, setCurrentFilterMaxRate,
     onApplyFilters,
-    isSheet = false // To conditionally render the close button for sheets
 }: {
     currentFilterCategory: string; setCurrentFilterCategory: (cat: string) => void;
     currentFilterLocation: string; setCurrentFilterLocation: (loc: string) => void;
     currentFilterMinRating: number; setCurrentFilterMinRating: (rate: number) => void;
     currentFilterMaxRate: number; setCurrentFilterMaxRate: (rate: number) => void;
     onApplyFilters: () => void;
-    isSheet?: boolean;
 }) => {
     return (
      <div className="space-y-6 p-4 h-full flex flex-col">
@@ -269,13 +268,10 @@ const FiltersContent = ({
          </div>
 
           <div className="mt-auto pt-6 border-t">
-            {isSheet ? (
-                <SheetClose asChild>
-                    <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
-                </SheetClose>
-            ) : (
-                <Button className="w-full" onClick={onApplyFilters}>Aplicar Filtros</Button>
-            )}
+            {/* Always use SheetClose behavior as FiltersContent is now only in Sheet */}
+            <SheetClose asChild>
+                <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
+            </SheetClose>
          </div>
      </div>
     );
@@ -301,7 +297,6 @@ const FindTalentsContent = () => {
   });
 
   // Sync current filter states with applied filters when appliedFilters change
-  // This is useful if appliedFilters are loaded from URL params or other sources initially
   useEffect(() => {
     setCurrentFilterCategory(appliedFilters.category);
     setCurrentFilterLocation(appliedFilters.location);
@@ -316,15 +311,12 @@ const FindTalentsContent = () => {
       rating: currentFilterMinRating,
       rate: currentFilterMaxRate,
     });
-    if (isSheetOpen) { // Only close if it's the sheet that triggered apply
-        setIsSheetOpen(false);
-    }
-  }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate, isSheetOpen, setIsSheetOpen]);
+    setIsSheetOpen(false); // Close sheet after applying filters
+  }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate]);
 
 
   const filteredFacilities = dummySportsFacilities.filter(facility => {
     const isSportsFacilityCategory = facility.category === 'Instalación Deportiva';
-    // Use the actual filter category name from `categoriasDisponibles` for matching
     const matchesCategory = appliedFilters.category === 'Todos' || typeMatchesFilter(facility.type, appliedFilters.category);
     const matchesLocation = appliedFilters.location === '' || facility.location.toLowerCase().includes(appliedFilters.location.toLowerCase());
     const matchesRating = facility.rating >= appliedFilters.rating;
@@ -350,29 +342,11 @@ const FindTalentsContent = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-full">
-        {/* Desktop Filters - Hidden on mobile */}
-        <aside className="hidden md:block w-64 lg:w-72 border-r bg-card p-0">
-            <ScrollArea className="h-full">
-                 <div className="p-4 border-b sticky top-0 bg-card z-10">
-                    <h2 className="text-lg font-semibold">Filtros</h2>
-                </div>
-                <FiltersContent
-                    currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
-                    currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
-                    currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
-                    currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
-                    onApplyFilters={handleApplyFilters}
-                    isSheet={false} // Indicate it's not in a sheet
-                />
-            </ScrollArea>
-        </aside>
-
+    <div className="flex flex-col h-full">
+        {/* Main content area: Header with Search and Filter Trigger, followed by results */}
         <div className="flex-1 flex flex-col">
-             {/* Header with Search and Mobile Filter Trigger */}
              <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4 sm:px-6 flex-shrink-0">
-                {/* Title removed as per user request */}
-                <h1 className="text-lg font-semibold mr-auto md:hidden">Espacios Deportivos</h1> {/* Keep mobile title for context */}
+                <h1 className="text-lg font-semibold mr-auto">Espacios Deportivos</h1>
 
                 <div className="relative w-full max-w-xs sm:max-w-sm ml-auto">
                     <Input
@@ -384,7 +358,7 @@ const FindTalentsContent = () => {
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-                {/* Mobile Filters - Trigger */}
+                
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
                       <Button variant="outline" className="flex-shrink-0 h-9 text-xs px-3">
@@ -402,7 +376,6 @@ const FindTalentsContent = () => {
                               currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
                               currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
                               onApplyFilters={handleApplyFilters}
-                              isSheet={true} // Indicate it's in a sheet
                           />
                       </ScrollArea>
                   </SheetContent>
