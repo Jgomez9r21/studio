@@ -21,17 +21,17 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader as ShadDialogHeader, 
   DialogTitle as ShadDialogTitle,
   DialogTrigger,
   DialogFooter as ShadDialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin } from "lucide-react"; // Added MapPin
+import { CalendarIcon, Search, MapPin, Heart } from "lucide-react"; // Added MapPin, Heart
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,6 +113,7 @@ function LandingPageContent() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [favoritedListings, setFavoritedListings] = useState<Set<string>>(new Set());
 
 
   useEffect(() => {
@@ -123,7 +124,7 @@ function LandingPageContent() {
           ...listing,
           category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
            imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`,
-           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : []),
+           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://picsum.photos/800/600?random=service-${listing.id}`]),
         }));
         setListings(updatedData);
       } catch (error) {
@@ -141,6 +142,18 @@ function LandingPageContent() {
   );
 
   const currentYear = new Date().getFullYear();
+
+  const toggleFavorite = (listingId: string) => {
+    setFavoritedListings(prevFavorites => {
+      const newFavorites = new Set(prevFavorites);
+      if (newFavorites.has(listingId)) {
+        newFavorites.delete(listingId);
+      } else {
+        newFavorites.add(listingId);
+      }
+      return newFavorites;
+    });
+  };
 
 
   return (
@@ -237,11 +250,24 @@ function LandingPageContent() {
                          data-ai-hint={`${listing.category} service`}
                        />
                      </div>
-                    <CardHeader className="p-4 pb-2">
-                      <CardTitle className="text-lg font-semibold leading-tight line-clamp-1">
-                        {listing.title}
-                      </CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
+                    <CardHeader className="p-4 pb-2 relative"> {/* Added relative positioning for favorite button */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg font-semibold leading-tight line-clamp-1">
+                            {listing.title}
+                          </CardTitle>
+                          <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                          onClick={() => toggleFavorite(listing.id)}
+                          aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                        >
+                          <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
                        <p className="text-sm">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -5,7 +6,7 @@ import { useState, useEffect } from 'react'; // Added useEffect
 import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Star, Filter, X } from 'lucide-react'; // Added Filter, X; Removed category specific icons
+import { Search, MapPin, Star, Filter, X, Heart } from 'lucide-react'; // Added Filter, X, Heart; Removed category specific icons
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +18,8 @@ import { Slider } from "@/components/ui/slider"; // Added Slider
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Added Sheet components
 import Image from 'next/image'; // Import next/image
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config'; // New import
+import { cn } from "@/lib/utils";
+
 
 // Definir tipos de categorías - Simplificado
 interface Category {
@@ -262,6 +265,7 @@ const FindTalentsContent = () => {
   const [minRating, setMinRating] = useState(0);
   const [maxRate, setMaxRate] = useState(200); // Default max rate
   const [isSheetOpen, setIsSheetOpen] = useState(false); // State for mobile filter sheet
+  const [favoritedTalents, setFavoritedTalents] = useState<Set<string>>(new Set());
 
   // Filter logic using the state values
   const filteredTalents = dummyTalents.filter(talent => {
@@ -283,12 +287,17 @@ const FindTalentsContent = () => {
     // Filtering happens automatically based on state change
   };
   
-  // Placeholder for applying filters from main view (if needed, currently automatic)
-  // const handleApplyFiltersFromView = () => {
-  //   // For explicit apply button on desktop, logic would go here.
-  //   // Currently, filters apply on change.
-  //   console.log("Applying filters from view (desktop)");
-  // };
+  const toggleFavoriteTalent = (talentId: string) => {
+    setFavoritedTalents(prevFavorites => {
+      const newFavorites = new Set(prevFavorites);
+      if (newFavorites.has(talentId)) {
+        newFavorites.delete(talentId);
+      } else {
+        newFavorites.add(talentId);
+      }
+      return newFavorites;
+    });
+  };
 
   return (
     <div className="flex flex-col md:flex-row h-full"> {/* Main flex container */}
@@ -371,11 +380,24 @@ const FindTalentsContent = () => {
                                 data-ai-hint={talent.dataAiHint}
                             />
                         </div>
-                        <CardHeader className="p-4 pb-2">
-                            <CardTitle className="text-lg font-semibold line-clamp-1">
-                                {talent.name}
-                            </CardTitle>
-                             <CardDescription className="text-sm text-muted-foreground line-clamp-1">{talent.title}</CardDescription>
+                        <CardHeader className="p-4 pb-2 relative">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-lg font-semibold line-clamp-1">
+                                        {talent.name}
+                                    </CardTitle>
+                                    <CardDescription className="text-sm text-muted-foreground line-clamp-1">{talent.title}</CardDescription>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                                  onClick={() => toggleFavoriteTalent(talent.id)}
+                                  aria-label={favoritedTalents.has(talent.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                                >
+                                  <Heart className={cn("h-5 w-5", favoritedTalents.has(talent.id) && "fill-destructive text-destructive")} />
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent className="flex-grow p-4 pt-0 space-y-1.5"> {/* Reduced space-y */}
                             <p className="text-xs text-muted-foreground line-clamp-2">
