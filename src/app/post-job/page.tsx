@@ -26,7 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { BarChart, Camera, Code, Construction, Database, DollarSign, Dumbbell, Edit, HomeIcon as LucideHomeIcon, ImageIcon, Lightbulb, Music, Palette, School2, User, X } from 'lucide-react';
+import { BarChart, Camera, Code, Construction, Database, DollarSign, Dumbbell, Edit, HomeIcon as LucideHomeIcon, ImageIcon, Lightbulb, Music, Palette, School2, User, X, Briefcase } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 // Define Category types with explicit icon typing - Reuse from page.tsx for consistency
 interface Category {
@@ -384,6 +385,29 @@ function ServicePublicationForm() {
 
 
 const PostJobContent = () => {
+  const { isLoggedIn, isLoading, openLoginDialog } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto flex justify-center items-center h-64">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center border rounded-lg bg-card">
+        <Briefcase className="h-16 w-16 text-muted-foreground/50 mb-6" />
+        <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Debes iniciar sesión o crear una cuenta para poder publicar un servicio.
+        </p>
+        <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto"> {/* Adjusted max-width and padding */}
       <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publica tu Servicio</h1>
