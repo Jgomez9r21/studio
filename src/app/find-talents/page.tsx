@@ -2,7 +2,7 @@
 "use client";
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -113,25 +113,26 @@ const dummySportsFacilities: SportsFacility[] = [
 
 // Component for Filter Controls
 const FiltersContent = ({
-    selectedCategory, setSelectedCategory,
-    locationFilter, setLocationFilter,
-    minRating, setMinRating,
-    maxRate, setMaxRate,
+    currentFilterCategory, setCurrentFilterCategory,
+    currentFilterLocation, setCurrentFilterLocation,
+    currentFilterMinRating, setCurrentFilterMinRating,
+    currentFilterMaxRate, setCurrentFilterMaxRate,
     onApplyFilters,
-    isSheet = false // Flag to know if rendered in Sheet
+    isSheet = false
 }: {
-    selectedCategory: string; setSelectedCategory: (cat: string) => void;
-    locationFilter: string; setLocationFilter: (loc: string) => void;
-    minRating: number; setMinRating: (rate: number) => void;
-    maxRate: number; setMaxRate: (rate: number) => void;
-    onApplyFilters?: () => void;
+    currentFilterCategory: string; setCurrentFilterCategory: (cat: string) => void;
+    currentFilterLocation: string; setCurrentFilterLocation: (loc: string) => void;
+    currentFilterMinRating: number; setCurrentFilterMinRating: (rate: number) => void;
+    currentFilterMaxRate: number; setCurrentFilterMaxRate: (rate: number) => void;
+    onApplyFilters: () => void;
     isSheet?: boolean;
 }) => {
+    const buttonText = isSheet ? "Mostrar Resultados" : "Aplicar Filtros";
     return (
      <div className="space-y-6 p-4 h-full flex flex-col">
          <div className="space-y-2">
              <Label htmlFor="category-select">Categoría</Label>
-             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+             <Select value={currentFilterCategory} onValueChange={setCurrentFilterCategory}>
                  <SelectTrigger id="category-select">
                      <SelectValue placeholder="Selecciona un tipo de instalación" />
                  </SelectTrigger>
@@ -153,8 +154,8 @@ const FiltersContent = ({
                  <Input
                      id="location-input"
                      placeholder="Ciudad, Localidad o Barrio"
-                     value={locationFilter}
-                     onChange={(e) => setLocationFilter(e.target.value)}
+                     value={currentFilterLocation}
+                     onChange={(e) => setCurrentFilterLocation(e.target.value)}
                      className="pl-9"
                  />
              </div>
@@ -169,65 +170,100 @@ const FiltersContent = ({
                      min={0}
                      max={5}
                      step={0.1}
-                     value={[minRating]}
-                     onValueChange={(value) => setMinRating(value[0])}
+                     value={[currentFilterMinRating]}
+                     onValueChange={(value) => setCurrentFilterMinRating(value[0])}
                      className="flex-grow"
                  />
-                 <span className="text-sm font-medium w-8 text-right">{minRating.toFixed(1)}</span>
+                 <span className="text-sm font-medium w-8 text-right">{currentFilterMinRating.toFixed(1)}</span>
              </div>
          </div>
 
          <div className="space-y-2">
-             <Label htmlFor="rate-slider">Tarifa Máxima (${maxRate.toLocaleString('es-CO')}/hr)</Label>
+             <Label htmlFor="rate-slider">Tarifa Máxima (${currentFilterMaxRate.toLocaleString('es-CO')}/hr)</Label>
              <Slider
                  id="rate-slider"
                  min={0}
                  max={200000}
                  step={5000}
-                 value={[maxRate]}
-                 onValueChange={(value) => setMaxRate(value[0])}
+                 value={[currentFilterMaxRate]}
+                 onValueChange={(value) => setCurrentFilterMaxRate(value[0])}
              />
          </div>
-          <div className="flex-grow"></div>
-         {isSheet && onApplyFilters && (
-          <SheetClose asChild>
-              <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
-          </SheetClose>
-         )}
+        
+          <div className="mt-auto pt-6 border-t">
+            {isSheet ? (
+                <SheetClose asChild>
+                    <Button className="w-full" onClick={onApplyFilters}>{buttonText}</Button>
+                </SheetClose>
+            ) : (
+                <Button className="w-full" onClick={onApplyFilters}>{buttonText}</Button>
+            )}
+         </div>
      </div>
     );
 };
 
 const FindTalentsContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos'); // Default to 'Todos'
-  const [locationFilter, setLocationFilter] = useState('');
-  const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(200000);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [favoritedItems, setFavoritedItems] = useState<Set<string>>(new Set());
+
+  // States for filters currently being edited in the panel
+  const [currentFilterCategory, setCurrentFilterCategory] = useState('Todos');
+  const [currentFilterLocation, setCurrentFilterLocation] = useState('');
+  const [currentFilterMinRating, setCurrentFilterMinRating] = useState(0);
+  const [currentFilterMaxRate, setCurrentFilterMaxRate] = useState(200000);
+
+  // States for applied filters used in search results
+  const [appliedFilters, setAppliedFilters] = useState({
+    category: 'Todos',
+    location: '',
+    rating: 0,
+    rate: 200000,
+  });
+
+  // Sync current editing filters with applied filters when appliedFilters change (e.g. initial load)
+  useEffect(() => {
+    setCurrentFilterCategory(appliedFilters.category);
+    setCurrentFilterLocation(appliedFilters.location);
+    setCurrentFilterMinRating(appliedFilters.rating);
+    setCurrentFilterMaxRate(appliedFilters.rate);
+  }, [appliedFilters]);
+
+  const handleApplyFilters = useCallback(() => {
+    setAppliedFilters({
+      category: currentFilterCategory,
+      location: currentFilterLocation,
+      rating: currentFilterMinRating,
+      rate: currentFilterMaxRate,
+    });
+    if (isSheetOpen) {
+      setIsSheetOpen(false);
+    }
+  }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate, isSheetOpen, setIsSheetOpen]);
+
 
   const filteredFacilities = dummySportsFacilities.filter(facility => {
     const isSportsFacilityCategory = facility.category === 'Instalación Deportiva';
 
     let matchesTypeFilter = false;
-    if (selectedCategory === 'Todos') {
+    if (appliedFilters.category === 'Todos') {
         matchesTypeFilter = true;
-    } else if (selectedCategory === 'Cancha de Fútbol') {
+    } else if (appliedFilters.category === 'Cancha de Fútbol') {
         matchesTypeFilter = facility.type.toLowerCase().includes('fútbol');
-    } else if (selectedCategory === 'Gimnasio') {
+    } else if (appliedFilters.category === 'Gimnasio') {
         matchesTypeFilter = facility.type.toLowerCase().includes('gimnasio');
-    } else if (selectedCategory === 'Cancha de Tenis') {
+    } else if (appliedFilters.category === 'Cancha de Tenis') {
         matchesTypeFilter = facility.type.toLowerCase().includes('tenis') || facility.type.toLowerCase().includes('arcilla');
-    } else if (selectedCategory === 'Piscina') {
+    } else if (appliedFilters.category === 'Piscina') {
         matchesTypeFilter = facility.type.toLowerCase().includes('piscina');
-    } else { // Fallback for any new types added to categoriasDisponibles if not handled above
-        matchesTypeFilter = facility.type === selectedCategory;
+    } else {
+        matchesTypeFilter = facility.type === appliedFilters.category;
     }
     
-    const matchesLocation = locationFilter === '' || facility.location.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesRating = facility.rating >= minRating;
-    const matchesRate = facility.rate <= maxRate;
+    const matchesLocation = appliedFilters.location === '' || facility.location.toLowerCase().includes(appliedFilters.location.toLowerCase());
+    const matchesRating = facility.rating >= appliedFilters.rating;
+    const matchesRate = facility.rate <= appliedFilters.rate;
     const matchesSearch = searchQuery === '' ||
                           facility.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           facility.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -235,10 +271,6 @@ const FindTalentsContent = () => {
 
     return isSportsFacilityCategory && matchesTypeFilter && matchesLocation && matchesRating && matchesRate && matchesSearch;
   });
-
-  const handleApplyFiltersFromSheet = () => {
-    setIsSheetOpen(false);
-  };
   
   const toggleFavorite = (itemId: string) => {
     setFavoritedItems(prevFavorites => {
@@ -254,16 +286,18 @@ const FindTalentsContent = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-full">
+        {/* Desktop Filter Panel */}
         <aside className="hidden md:block w-64 lg:w-72 border-r bg-card p-0">
             <ScrollArea className="h-full">
                  <div className="p-4 border-b sticky top-0 bg-card z-10">
                     <h2 className="text-lg font-semibold">Filtros</h2>
                 </div>
                 <FiltersContent
-                    selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-                    locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                    minRating={minRating} setMinRating={setMinRating}
-                    maxRate={maxRate} setMaxRate={setMaxRate}
+                    currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
+                    currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
+                    currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
+                    currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
+                    onApplyFilters={handleApplyFilters}
                     isSheet={false}
                 />
             </ScrollArea>
@@ -285,6 +319,7 @@ const FindTalentsContent = () => {
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
 
+                {/* Mobile Filter Trigger Button */}
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
                       <Button variant="outline" className="md:hidden flex-shrink-0 h-9 text-xs px-3">
@@ -295,13 +330,13 @@ const FindTalentsContent = () => {
                       <SheetHeader className="p-4 border-b">
                           <SheetTitle>Filtros</SheetTitle>
                       </SheetHeader>
-                      <ScrollArea className="flex-grow">
+                      <ScrollArea className="flex-grow"> {/* Ensure ScrollArea takes remaining height */}
                           <FiltersContent
-                              selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-                              locationFilter={locationFilter} setLocationFilter={setLocationFilter}
-                              minRating={minRating} setMinRating={setMinRating}
-                              maxRate={maxRate} setMaxRate={setMaxRate}
-                              onApplyFilters={handleApplyFiltersFromSheet}
+                              currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
+                              currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
+                              currentFilterMinRating={currentFilterMinRating} setCurrentFilterMinRating={setCurrentFilterMinRating}
+                              currentFilterMaxRate={currentFilterMaxRate} setCurrentFilterMaxRate={setCurrentFilterMaxRate}
+                              onApplyFilters={handleApplyFilters}
                               isSheet={true}
                           />
                       </ScrollArea>
@@ -367,7 +402,6 @@ const FindTalentsContent = () => {
                             <div className="flex justify-between items-center w-full">
                                  <p className="text-sm">
                                     Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
-                                    {/* Sports facilities usually are hourly, so we keep /hr. The category 'Instalación Deportiva' is in HOURLY_RATE_CATEGORIES */}
                                     {HOURLY_RATE_CATEGORIES.includes(facility.category) ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
                                 </p>
                                 <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
