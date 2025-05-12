@@ -21,10 +21,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Building, DollarSign, X, BarChart, Camera, Edit, Music, Lightbulb, Database, ImageIcon as LucideImageIcon, User as UserIconLucide, Code as CodeIcon, Construction as ConstructionIcon, School2 as School2Icon, Palette as PaletteIcon, HomeIcon as LucideHomeIcon } from 'lucide-react';
+import { Briefcase, Building, DollarSign, X, BarChart, Camera, Edit, Music, Lightbulb, Database, ImageIcon as LucideImageIcon, User as UserIconLucide, Code as CodeIcon, Construction as ConstructionIcon, School2 as School2Icon, Palette as PaletteIcon, HomeIcon as LucideHomeIcon, UploadCloud } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
+import Image from 'next/image';
 
 // --- Common Types and Constants ---
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per image
@@ -177,14 +178,30 @@ function SportsFacilityPublicationForm() {
         <FormField control={form.control} name="images" render={({ field: { onChange, value, ...rest } }) => (
           <FormItem>
             <FormLabel>Imágenes del Espacio (Opcional, hasta {MAX_IMAGES})</FormLabel>
-            <FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} /></FormControl>
-            <FormDescription>Sube hasta {MAX_IMAGES} imágenes (JPG, PNG, WEBP, máx 5MB c/u).</FormDescription>
+            <FormControl>
+                <div className="flex items-center justify-center w-full">
+                    <label
+                        htmlFor="facility-image-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors"
+                    >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                            <p className="mb-1 text-sm text-muted-foreground">
+                                <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
+                            </p>
+                            <p className="text-xs text-muted-foreground">SVG, PNG, JPG o WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
+                        </div>
+                        <Input id="facility-image-upload" type="file" className="hidden" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} />
+                    </label>
+                </div>
+            </FormControl>
+             <FormDescription>Sube hasta {MAX_IMAGES} imágenes de tu espacio.</FormDescription>
             {previewImages.length > 0 && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {previewImages.map((src, index) => (
-                  <div key={index} className="relative group">
-                    <img src={src} alt={`Vista previa ${index + 1}`} className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="sports facility image preview" />
-                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity" onClick={() => removeImage(index)}>
+                  <div key={index} className="relative group aspect-video">
+                    <Image src={src} alt={`Vista previa ${index + 1}`} layout="fill" objectFit="cover" className="rounded-md shadow-sm" data-ai-hint="sports facility image preview" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-80 group-hover:opacity-100 transition-opacity p-1" onClick={() => removeImage(index)}>
                       <X className="h-3 w-3" /><span className="sr-only">Eliminar imagen {index + 1}</span>
                     </Button>
                   </div>
@@ -385,17 +402,33 @@ function IndependentServicePublicationForm() {
             <FormMessage />
           </FormItem>
         )} />
-         <FormField control={form.control} name="images" render={({ field: { onChange, value, ...rest } }) => (
+         <FormField control={form.control} name="images" render={({ field : { onChange, value, ...rest }}) => (
           <FormItem>
             <FormLabel>Imágenes del Servicio (Opcional, hasta {MAX_IMAGES})</FormLabel>
-            <FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} /></FormControl>
-            <FormDescription>Sube imágenes de trabajos previos, portafolio, etc. (JPG, PNG, WEBP, máx 5MB c/u).</FormDescription>
+            <FormControl>
+                 <div className="flex items-center justify-center w-full">
+                    <label
+                        htmlFor="service-image-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted transition-colors"
+                    >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                            <p className="mb-1 text-sm text-muted-foreground">
+                                <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
+                            </p>
+                            <p className="text-xs text-muted-foreground">SVG, PNG, JPG o WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
+                        </div>
+                        <Input id="service-image-upload" type="file" className="hidden" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} />
+                    </label>
+                </div>
+            </FormControl>
+            <FormDescription>Sube imágenes de trabajos previos, portafolio, etc.</FormDescription>
             {previewImages.length > 0 && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {previewImages.map((src, index) => (
-                  <div key={index} className="relative group">
-                    <img src={src} alt={`Vista previa ${index + 1}`} className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="service work image preview" />
-                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity" onClick={() => removeImage(index)}>
+                  <div key={index} className="relative group aspect-video">
+                    <Image src={src} alt={`Vista previa ${index + 1}`} layout="fill" objectFit="cover" className="rounded-md shadow-sm" data-ai-hint="service work image preview"/>
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-6 w-6 opacity-80 group-hover:opacity-100 transition-opacity p-1" onClick={() => removeImage(index)}>
                       <X className="h-3 w-3" /><span className="sr-only">Eliminar imagen {index + 1}</span>
                     </Button>
                   </div>
@@ -429,7 +462,7 @@ const PostJobContent = () => {
   if (!isLoggedIn) {
     return (
       <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center border rounded-lg bg-card">
-        <Briefcase className="h-16 w-16 text-muted-foreground/50 mb-6" />
+        <UploadCloud className="h-16 w-16 text-muted-foreground/50 mb-6" />
         <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
         <p className="text-muted-foreground mb-6 max-w-md">
           Debes iniciar sesión o crear una cuenta para poder publicar tus servicios o espacios.
@@ -441,12 +474,12 @@ const PostJobContent = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Ofrecer Servicios</h1>
+      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publicar Servicio</h1>
       <p className="text-muted-foreground mb-6 md:mb-8">
-        Elige el tipo de servicio que deseas publicar en la plataforma.
+        Aquí puedes publicar tus espacios deportivos o servicios profesionales.
       </p>
       <Tabs defaultValue="sports-facility" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-6">
           <TabsTrigger value="sports-facility">
             <Building className="mr-2 h-4 w-4" /> Espacio Deportivo
           </TabsTrigger>
@@ -455,13 +488,13 @@ const PostJobContent = () => {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="sports-facility">
-          <h2 className="text-xl font-semibold mb-1 mt-4">Publica tu Espacio Deportivo</h2>
-           <p className="text-sm text-muted-foreground mb-6">Completa el formulario para ofrecer tu instalación deportiva.</p>
+          <h2 className="text-xl font-semibold mb-1 mt-4">Publicar Espacio Deportivo</h2>
+           <p className="text-sm text-muted-foreground mb-6">Detalla la información de tu espacio deportivo para que los usuarios puedan encontrarlo y reservarlo.</p>
           <SportsFacilityPublicationForm />
         </TabsContent>
         <TabsContent value="independent-service">
-           <h2 className="text-xl font-semibold mb-1 mt-4">Publica tu Servicio Independiente</h2>
-           <p className="text-sm text-muted-foreground mb-6">Completa el formulario para ofrecer tus servicios profesionales.</p>
+           <h2 className="text-xl font-semibold mb-1 mt-4">Publicar Servicio Independiente</h2>
+           <p className="text-sm text-muted-foreground mb-6">Describe tus servicios profesionales para que los clientes puedan contratarte.</p>
           <IndependentServicePublicationForm />
         </TabsContent>
       </Tabs>
@@ -478,4 +511,3 @@ const PostJobPage = () => {
 };
 
 export default PostJobPage;
-

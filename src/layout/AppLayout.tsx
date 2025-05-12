@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, Image as ImageIconLucide, FileText, Music, Lightbulb, Database, Code, Construction, School2, Palette, HomeIcon as LucideHomeIcon, UserCircle } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, Image as ImageIconLucide, FileText, Music, Lightbulb, Database, Code, Construction, School2, Palette, HomeIcon as LucideHomeIcon, UserCircle, Search as SearchIcon } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,7 +28,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle, // Renamed to avoid conflict if DialogTitle is used elsewhere
+  DialogTitle as ShadDialogTitle, 
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -61,14 +61,14 @@ const navegacion = [
     icon: Home,
   },
   {
-    title: "Ofrecer Servicios",
+    title: "Publicar Servicio", // Changed from "Ofrecer Servicios"
     href: "/post-job",
     icon: Briefcase,
   },
   {
-    title: "Buscar Talentos",
-    href: "/find-talents",
-    icon: Users,
+    title: "Buscar Espacios", // Changed from "Buscar Talentos"
+    href: "/find-talents", // Link remains the same, page content will focus on facilities
+    icon: SearchIcon, // Changed icon to reflect searching for spaces
   },
   {
     title: "Mis Reservas",
@@ -124,6 +124,7 @@ const genders = [
 const profileTypes = [
     { value: "usuario", label: "Usuario (Busco servicios)" },
     { value: "profesional", label: "Profesional (Ofrezco servicios)" },
+    { value: "propietario_espacio", label: "Propietario (Ofrezco espacios deportivos)"},
 ]
 
 // Zod Schemas for Login and Signup
@@ -189,8 +190,8 @@ export default function AppLayout({
     isVerificationSent,
     phoneVerificationError,
     isVerifyingCode,
-    sendVerificationCode,
-    verifyCode,
+    // sendVerificationCode, // Not used here, but available from context
+    // verifyCode, // Not used here, but available from context
     resetPhoneVerification,
    } = useAuth();
 
@@ -219,7 +220,7 @@ export default function AppLayout({
     mode: "onChange",
   });
 
-  const [verificationCodeInput, setVerificationCodeInput] = useState(""); // For signup phone verification
+  // const [verificationCodeInput, setVerificationCodeInput] = useState(""); // For signup phone verification
 
   // Modified submit handlers to call context functions
    const handleLoginSubmit = (data: LoginValues) => {
@@ -269,6 +270,7 @@ export default function AppLayout({
               <div className="py-2 space-y-1 text-sm">
                 <p><span className="font-medium text-muted-foreground">País:</span> {user.country || 'No especificado'}</p>
                 <p><span className="font-medium text-muted-foreground">Teléfono:</span> {user.phone || 'No especificado'} {user.phone && (user.isPhoneVerified ? <span className="text-green-600 text-xs ml-1">(Verificado)</span> : <span className="text-orange-600 text-xs ml-1">(No verificado)</span>)}</p>
+                <p><span className="font-medium text-muted-foreground">Fecha de Nacimiento:</span> {user.dob ? format(new Date(user.dob), "PPP", {locale: es}) : 'No especificada'}</p>
               </div>
               <DialogFooter className="mt-6 pt-4 border-t flex-col sm:flex-row sm:justify-between gap-2">
                 <Button variant="outline" onClick={goToSettings} className="w-full sm:w-auto">Configuración</Button>
@@ -531,12 +533,14 @@ export default function AppLayout({
                        </Button>
                      </DialogTrigger>
                    ) : (
-                     <DialogTrigger onClick={openLoginDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:border-input group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:bg-background group-data-[collapsible=icon]:hover:bg-accent group-data-[collapsible=icon]:hover:text-accent-foreground h-10 px-4 py-2 text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                     <DialogTrigger asChild>
+                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            Ingresar / Crear Cuenta
                          </span>
                          <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
+                       </Button>
                      </DialogTrigger>
                    )}
                    {authDialogContent()}
@@ -555,13 +559,13 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                         <DialogHeader className="p-4 border-b">
-                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle>
+                         <SheetHeader className="p-4 border-b"> {/* Changed to SheetHeader */}
+                             <ShadSheetTitle className="sr-only">Menú principal</ShadSheetTitle> {/* Use ShadSheetTitle */}
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
                              </div>
-                          </DialogHeader>
+                          </SheetHeader>
                          <ScrollArea className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
                              {navegacion.map((item) => (
@@ -613,7 +617,7 @@ export default function AppLayout({
                      </div>
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
-                   <div className="flex-shrink-0 w-8 sm:w-10">
+                   <div className="flex-shrink-0 w-8 sm:w-10"> {/* Container for the avatar/login icon */}
                        <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                            {isLoggedIn && user ? (
                              <DialogTrigger asChild>
