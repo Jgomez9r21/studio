@@ -90,7 +90,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Usaquén, Bogotá',
     rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
-    image: 'httpsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
+    image: 'https://picsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
   },
   {
@@ -100,7 +100,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Salitre, Bogotá',
     rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
-    image: 'httpsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
+    image: 'https://picsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
     amenities: ['Olímpica', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
   },
   {
@@ -110,7 +110,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Suba, Bogotá',
     rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
-    image: 'httpsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
+    image: 'https://picsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
   },
   {
@@ -120,7 +120,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Kennedy, Bogotá',
     rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
-    image: 'httpsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
+    image: 'https://picsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
     amenities: ['Tatami', 'Espejos', 'Equipo de protección', 'Vestuarios'],
   },
    {
@@ -130,7 +130,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'La Candelaria, Bogotá',
     rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
-    image: 'httpsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
+    image: 'https://picsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
     amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
   },
   {
@@ -140,7 +140,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Parque Simón Bolívar, Bogotá',
     rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva', 
     description: 'Pista de tartán de 400m, con carriles marcados y zonas para saltos/lanzamientos.',
-    image: 'httpsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
+    image: 'https://picsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
     amenities: ['Tartán', 'Carriles', 'Acceso público'],
   },
   {
@@ -150,7 +150,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Salitre, Bogotá',
     rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
     description: 'Amplio espacio con canchas demarcadas para baloncesto y voleibol, graderías.',
-    image: 'httpsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
+    image: 'https://picsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
     amenities: ['Techado', 'Graderías', 'Baloncesto', 'Vóleibol', 'Baños'],
   }
 ];
