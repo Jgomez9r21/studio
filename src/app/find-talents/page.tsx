@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Star, Filter, X, Heart, Building, Users } from 'lucide-react';
+import { Search, MapPin, Star, Filter, X, Heart, Building, Users, Sun, LayoutGrid, Home as HomeIcon, Target, Footprints, Waves, Shield, ListChecks, Dumbbell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,7 +18,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import Image from 'next/image';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
-import { Dumbbell } from 'lucide-react'; // Specific icon for Gimnasio
+// import { Dumbbell } from 'lucide-react'; // Specific icon for Gimnasio - Already imported
 
 // Define Category type
 interface Category {
@@ -29,87 +29,172 @@ interface Category {
 // Updated categories for sports facilities
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
-    { name: 'Cancha de Fútbol', icon: Building }, // Placeholder, ideally specific icon like a soccer ball
-    { name: 'Gimnasio', icon: Dumbbell },
-    { name: 'Cancha de Tenis', icon: Building }, // Placeholder, ideally specific icon like a tennis racket/ball
-    { name: 'Piscina', icon: Building }, // Placeholder, ideally specific icon for swimming
+    // Canchas
+    { name: 'Canchas al aire libre', icon: Sun },
+    { name: 'Canchas de fútbol (7, 9, 11)', icon: Building }, // Placeholder: SoccerBall if available
+    { name: 'Canchas de baloncesto', icon: Building }, // Placeholder: Basketball if available
+    { name: 'Canchas de vóleibol', icon: Building }, // Placeholder: Volleyball if available
+    { name: 'Canchas múltiples', icon: LayoutGrid },
+    // Espacios Techados
+    { name: 'Espacios techados o interiores', icon: HomeIcon },
+    { name: 'Polideportivos', icon: Building },
+    { name: 'Coliseos deportivos', icon: Building },
+    { name: 'Gimnasios cubiertos', icon: Dumbbell },
+    // Salones
+    { name: 'Salones de yoga, pilates o danza', icon: Users }, // Or specific wellness/activity icon
+    { name: 'Salones comunes', icon: Users },
+    // Centros y Pistas
+    { name: 'Centros especializados', icon: Target },
+    { name: 'Pistas de atletismo', icon: Footprints },
+    { name: 'Piscinas olímpicas o recreativas', icon: Waves },
+    { name: 'Tatamis o dojos (artes marciales)', icon: Shield }, // Or a generic person icon
+    { name: 'Estudios de entrenamiento funcional o crossfit', icon: Dumbbell },
+    // Deportes de Raqueta
+    { name: 'Instalaciones para deportes de raqueta', icon: ListChecks }, // Generic for list/types
+    { name: 'Canchas de tenis', icon: Building }, // Placeholder: TennisBallRacket if available
+    { name: 'Canchas de squash', icon: Building },
+    { name: 'Canchas de pádel', icon: Building },
 ];
+
 
 // Define SportsFacility interface
 interface SportsFacility {
   id: string;
-  name: string; // e.g., "Cancha Sintética El Campín"
-  type: string; // e.g., "Fútbol 5", "Gimnasio Completo", "Piscina Semiolímpica", "Canchas de Arcilla"
+  name: string; 
+  type: string; 
   location: string;
-  rate: number; // Per hour or session
+  rate: number; 
   rating: number;
   reviews: number;
-  category: 'Instalación Deportiva'; // Fixed category, used to identify items as sports facilities
+  category: 'Instalación Deportiva'; 
   description: string;
   image: string;
-  dataAiHint: string; // e.g., "soccer field", "basketball court"
+  dataAiHint: string; 
   amenities?: string[];
 }
 
-// Dummy sports facility data
+// Dummy sports facility data reflecting new categories
 const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
-    type: 'Fútbol 5', // Matches 'Cancha de Fútbol'
+    type: 'Fútbol 5 techado', 
     location: 'Chapinero Alto, Bogotá',
-    rate: 80000,
-    rating: 4.7,
-    reviews: 25,
-    category: 'Instalación Deportiva',
-    description: 'Cancha sintética cubierta con iluminación LED y graderías para espectadores. Ideal para partidos amistosos y torneos.',
-    image: 'https://picsum.photos/400/300?random=sf1',
-    dataAiHint: "soccer field indoor",
+    rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
+    description: 'Cancha sintética cubierta con iluminación LED y graderías.',
+    image: 'https://picsum.photos/400/300?random=sf1', dataAiHint: "soccer field indoor",
     amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños'],
   },
   {
     id: 'sf2',
     name: 'Gimnasio "Músculos de Acero"',
-    type: 'Gimnasio Completo', // Matches 'Gimnasio'
+    type: 'Gimnasio completo y funcional cubierto', 
     location: 'Usaquén, Bogotá',
-    rate: 15000,
-    rating: 4.9,
-    reviews: 72,
-    category: 'Instalación Deportiva',
-    description: 'Gimnasio totalmente equipado con máquinas de última generación, zona de pesas libres y clases grupales.',
-    image: 'https://picsum.photos/400/300?random=sf2',
-    dataAiHint: "gym fitness equipment",
-    amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios', 'Duchas'],
+    rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
+    description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
+    image: 'https://picsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
+    amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
   },
   {
     id: 'sf3',
     name: 'Piscina Olímpica "El Tritón"',
-    type: 'Piscina Semiolímpica', // Matches 'Piscina'
+    type: 'Piscina olímpica al aire libre', 
     location: 'Salitre, Bogotá',
-    rate: 25000,
-    rating: 4.6,
-    reviews: 40,
-    category: 'Instalación Deportiva',
-    description: 'Piscina climatizada de 25 metros, ideal para natación recreativa y entrenamiento. Carriles disponibles.',
-    image: 'https://picsum.photos/400/300?random=sf3',
-    dataAiHint: "swimming pool water",
-    amenities: ['Climatizada', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
+    rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
+    description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
+    image: 'https://picsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
+    amenities: ['Olímpica', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
   },
   {
     id: 'sf4',
-    name: 'Canchas de Tenis "El Grand Slam"',
-    type: 'Canchas de Arcilla', // Matches 'Cancha de Tenis'
+    name: 'Club de Tenis "El Grand Slam"',
+    type: 'Canchas de tenis de arcilla al aire libre', 
     location: 'Suba, Bogotá',
-    rate: 50000,
-    rating: 4.8,
-    reviews: 33,
-    category: 'Instalación Deportiva',
-    description: 'Complejo con 4 canchas de tenis de arcilla en excelente estado. Iluminación disponible para juego nocturno.',
-    image: 'https://picsum.photos/400/300?random=sf4',
-    dataAiHint: "tennis court clay",
+    rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
+    description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
+    image: 'https://picsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
   },
+  {
+    id: 'sf5',
+    name: 'Dojo "Bushido"',
+    type: 'Tatami para artes marciales (Karate, Judo) interior', 
+    location: 'Kennedy, Bogotá',
+    rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
+    description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
+    image: 'https://picsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
+    amenities: ['Tatami', 'Espejos', 'Equipo de protección', 'Vestuarios'],
+  },
+   {
+    id: 'sf6',
+    name: 'Estudio "Zen Yoga"',
+    type: 'Salón de Yoga y Pilates interior', 
+    location: 'La Candelaria, Bogotá',
+    rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
+    description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
+    image: 'https://picsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
+    amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
+  },
+  {
+    id: 'sf7',
+    name: 'Pista Atlética Municipal',
+    type: 'Pista de atletismo profesional al aire libre', 
+    location: 'Parque Simón Bolívar, Bogotá',
+    rate: 0, rating: 4.3, reviews: 100, category: 'Instalación Deportiva', 
+    description: 'Pista de tartán de 400m, con carriles marcados y zonas para saltos/lanzamientos.',
+    image: 'https://picsum.photos/400/300?random=sf7', dataAiHint: "athletic track running",
+    amenities: ['Tartán', 'Carriles', 'Acceso público'],
+  },
+  {
+    id: 'sf8',
+    name: 'Polideportivo El Salitre',
+    type: 'Polideportivo techado con canchas múltiples (baloncesto, vóleibol)',
+    location: 'Salitre, Bogotá',
+    rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
+    description: 'Amplio polideportivo con canchas demarcadas para baloncesto y voleibol, graderías.',
+    image: 'https://picsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
+    amenities: ['Techado', 'Graderías', 'Baloncesto', 'Vóleibol', 'Baños'],
+  }
 ];
+
+// Helper function to match facility type with filter category
+const typeMatchesFilter = (facilityType: string, filterCategory: string): boolean => {
+    const typeLower = facilityType.toLowerCase();
+    const filterLower = filterCategory.toLowerCase();
+
+    if (filterLower === 'todos') return true;
+
+    const categoryKeywords: Record<string, string[]> = {
+        'canchas al aire libre': ['aire libre', 'outdoor', 'exterior', 'descubierta'],
+        'canchas de fútbol (7, 9, 11)': ['fútbol', 'futbol', 'soccer', 'football'],
+        'canchas de baloncesto': ['baloncesto', 'basketball', 'basket'],
+        'canchas de vóleibol': ['vóleibol', 'voleibol', 'volleyball'],
+        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente'],
+        'espacios techados o interiores': ['techado', 'cubierto', 'interior', 'indoor'],
+        'polideportivos': ['polideportivo'],
+        'coliseos deportivos': ['coliseo'],
+        'gimnasios cubiertos': ['gimnasio', 'gym'],
+        'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile'],
+        'salones comunes': ['salón común', 'salon comunal', 'evento', 'reunión'],
+        'centros especializados': ['especializado'], // This is generic, facility.type should be more specific
+        'pistas de atletismo': ['atletismo', 'pista', 'track'],
+        'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático'],
+        'tatamis o dojos (artes marciales)': ['tatami', 'dojo', 'marcial', 'karate', 'judo', 'taekwondo', 'aikido'],
+        'estudios de entrenamiento funcional o crossfit': ['funcional', 'crossfit', 'hiit', 'entrenamiento en circuito', 'gym'],
+        'instalaciones para deportes de raqueta': ['raqueta', 'tenis', 'squash', 'pádel', 'badminton', 'ping pong'],
+        'canchas de tenis': ['tenis', 'tennis'],
+        'canchas de squash': ['squash'],
+        'canchas de pádel': ['pádel', 'padel'],
+    };
+
+    const keywords = categoryKeywords[filterCategory]; 
+    if (keywords) {
+        return keywords.some(keyword => typeLower.includes(keyword.toLowerCase()));
+    }
+    // Fallback if category name is not in keywords map (less precise)
+    return typeLower.includes(filterLower.split(' ')[0]);
+};
+
 
 // Component for Filter Controls
 const FiltersContent = ({
@@ -208,13 +293,11 @@ const FindTalentsContent = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [favoritedItems, setFavoritedItems] = useState<Set<string>>(new Set());
 
-  // States for filters currently being edited in the panel
   const [currentFilterCategory, setCurrentFilterCategory] = useState('Todos');
   const [currentFilterLocation, setCurrentFilterLocation] = useState('');
   const [currentFilterMinRating, setCurrentFilterMinRating] = useState(0);
   const [currentFilterMaxRate, setCurrentFilterMaxRate] = useState(200000);
 
-  // States for applied filters used in search results
   const [appliedFilters, setAppliedFilters] = useState({
     category: 'Todos',
     location: '',
@@ -222,7 +305,6 @@ const FindTalentsContent = () => {
     rate: 200000,
   });
 
-  // Sync current editing filters with applied filters when appliedFilters change (e.g. initial load)
   useEffect(() => {
     setCurrentFilterCategory(appliedFilters.category);
     setCurrentFilterLocation(appliedFilters.location);
@@ -245,22 +327,7 @@ const FindTalentsContent = () => {
 
   const filteredFacilities = dummySportsFacilities.filter(facility => {
     const isSportsFacilityCategory = facility.category === 'Instalación Deportiva';
-
-    let matchesTypeFilter = false;
-    if (appliedFilters.category === 'Todos') {
-        matchesTypeFilter = true;
-    } else if (appliedFilters.category === 'Cancha de Fútbol') {
-        matchesTypeFilter = facility.type.toLowerCase().includes('fútbol');
-    } else if (appliedFilters.category === 'Gimnasio') {
-        matchesTypeFilter = facility.type.toLowerCase().includes('gimnasio');
-    } else if (appliedFilters.category === 'Cancha de Tenis') {
-        matchesTypeFilter = facility.type.toLowerCase().includes('tenis') || facility.type.toLowerCase().includes('arcilla');
-    } else if (appliedFilters.category === 'Piscina') {
-        matchesTypeFilter = facility.type.toLowerCase().includes('piscina');
-    } else {
-        matchesTypeFilter = facility.type === appliedFilters.category;
-    }
-    
+    const matchesCategory = typeMatchesFilter(facility.type, appliedFilters.category);
     const matchesLocation = appliedFilters.location === '' || facility.location.toLowerCase().includes(appliedFilters.location.toLowerCase());
     const matchesRating = facility.rating >= appliedFilters.rating;
     const matchesRate = facility.rate <= appliedFilters.rate;
@@ -269,7 +336,7 @@ const FindTalentsContent = () => {
                           facility.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (facility.amenities && facility.amenities.some(amenity => amenity.toLowerCase().includes(searchQuery.toLowerCase())));
 
-    return isSportsFacilityCategory && matchesTypeFilter && matchesLocation && matchesRating && matchesRate && matchesSearch;
+    return isSportsFacilityCategory && matchesCategory && matchesLocation && matchesRating && matchesRate && matchesSearch;
   });
   
   const toggleFavorite = (itemId: string) => {
@@ -286,7 +353,6 @@ const FindTalentsContent = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-full">
-        {/* Desktop Filter Panel */}
         <aside className="hidden md:block w-64 lg:w-72 border-r bg-card p-0">
             <ScrollArea className="h-full">
                  <div className="p-4 border-b sticky top-0 bg-card z-10">
@@ -318,8 +384,6 @@ const FindTalentsContent = () => {
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-
-                {/* Mobile Filter Trigger Button */}
                 <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
                       <Button variant="outline" className="md:hidden flex-shrink-0 h-9 text-xs px-3">
@@ -330,7 +394,7 @@ const FindTalentsContent = () => {
                       <SheetHeader className="p-4 border-b">
                           <SheetTitle>Filtros</SheetTitle>
                       </SheetHeader>
-                      <ScrollArea className="flex-grow"> {/* Ensure ScrollArea takes remaining height */}
+                      <ScrollArea className="flex-grow">
                           <FiltersContent
                               currentFilterCategory={currentFilterCategory} setCurrentFilterCategory={setCurrentFilterCategory}
                               currentFilterLocation={currentFilterLocation} setCurrentFilterLocation={setCurrentFilterLocation}
@@ -402,7 +466,7 @@ const FindTalentsContent = () => {
                             <div className="flex justify-between items-center w-full">
                                  <p className="text-sm">
                                     Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
-                                    {HOURLY_RATE_CATEGORIES.includes(facility.category) ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
+                                    {HOURLY_RATE_CATEGORIES.includes('Instalación Deportiva') ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
                                 </p>
                                 <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
                             </div>
