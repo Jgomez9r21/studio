@@ -383,7 +383,7 @@ const FindTalentsContent = () => {
                         <CardHeader className="p-4 pb-2">
                             <div className="flex justify-between items-start gap-2">
                                 <div className="flex-grow">
-                                    <CardTitle className="text-lg font-semibold line-clamp-1">
+                                    <CardTitle className="text-lg font-semibold">
                                         {talent.name}
                                     </CardTitle>
                                     <CardDescription className="text-sm text-muted-foreground line-clamp-1">{talent.title}</CardDescription>

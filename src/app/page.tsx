@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -137,7 +138,7 @@ function LandingPageContent() {
   const filteredListings = listings.filter(listing =>
     (selectedCategory === 'Todos' || listing.category === selectedCategory) &&
     (listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listing.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   const currentYear = new Date().getFullYear();
@@ -252,7 +253,7 @@ function LandingPageContent() {
                     <CardHeader className="p-4 pb-2">
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex-grow">
-                          <CardTitle className="text-lg font-semibold leading-tight line-clamp-1">
+                          <CardTitle className="text-lg font-semibold leading-tight">
                             {listing.title}
                           </CardTitle>
                           <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
