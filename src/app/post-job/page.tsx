@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, Building, DollarSign, Dumbbell, X, BarChart, Camera, Edit, Music, Lightbulb, Database, ImageIcon as LucideImageIcon, User as UserIconLucide, Code as CodeIcon, Construction as ConstructionIcon, School2 as School2Icon, Palette as PaletteIcon, HomeIcon as LucideHomeIcon } from 'lucide-react';
+import { Briefcase, Building, DollarSign, X, BarChart, Camera, Edit, Music, Lightbulb, Database, ImageIcon as LucideImageIcon, User as UserIconLucide, Code as CodeIcon, Construction as ConstructionIcon, School2 as School2Icon, Palette as PaletteIcon, HomeIcon as LucideHomeIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
@@ -40,7 +40,7 @@ interface SportsFacilityCategory {
   name: 'Instalación Deportiva'; // Literal type
   icon: React.ComponentType<{ className?: string }>;
 }
-const facilityCategory: SportsFacilityCategory = { name: 'Instalación Deportiva', icon: Dumbbell };
+const facilityCategory: SportsFacilityCategory = { name: 'Instalación Deportiva', icon: Building };
 
 const sportsFacilityFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
