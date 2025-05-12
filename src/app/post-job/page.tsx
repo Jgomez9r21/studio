@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -18,42 +19,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { BarChart, Camera, Code, Construction, Database, DollarSign, Dumbbell, Edit, HomeIcon as LucideHomeIcon, ImageIcon, Lightbulb, Music, Palette, School2, User, X, Briefcase } from 'lucide-react';
+import { Dumbbell, DollarSign, X, Briefcase } from 'lucide-react'; // Keep Dumbbell for display
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
-// Define Category types with explicit icon typing - Reuse from page.tsx for consistency
+// Define Category types with explicit icon typing - Only "Instalación Deportiva"
 interface Category {
   name: string;
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Service Categories - Reuse from page.tsx for consistency
-const categorias: Category[] = [
-  { name: 'Instalación Deportiva', icon: Dumbbell },
-  { name: 'Tecnología', icon: Code },
-  { name: 'Entrenador Personal', icon: User },
-  { name: 'Contratista', icon: Construction },
-  { name: 'Mantenimiento Hogar', icon: LucideHomeIcon },
-  { name: 'Profesores', icon: School2 },
-  { name: 'Diseñadores', icon: Palette },
-  { name: 'Marketing Digital', icon: BarChart },
-  { name: 'Video & Animación', icon: Camera },
-  { name: 'Redacción & Traducción', icon: Edit },
-  { name: 'Música & Audio', icon: Music },
-  { name: 'Finanzas', icon: DollarSign },
-  // { name: 'Servicios de IA', icon: Bot }, // Assuming Bot is not in lucide-react, remove or replace
-  { name: 'Crecimiento Personal', icon: Lightbulb },
-  { name: 'Datos', icon: Database },
-  { name: 'Fotografía', icon: ImageIcon },
-];
+// Service Categories - Only "Instalación Deportiva"
+const facilityCategory: Category = { name: 'Instalación Deportiva', icon: Dumbbell };
 
 // Define the form schema using Zod
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per image
@@ -67,7 +44,7 @@ const fileSchema = z.instanceof(File)
 const serviceFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
   description: z.string().min(20, "La descripción debe tener al menos 20 caracteres.").max(500, "La descripción no puede tener más de 500 caracteres."),
-  category: z.string({ required_error: "Debes seleccionar una categoría." }).min(1, "Debes seleccionar una categoría."),
+  category: z.literal(facilityCategory.name).default(facilityCategory.name), // Hardcode category
   rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
   availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
   location: z.string().min(2, "Ingresa la ubicación o área de servicio.").max(100, "La ubicación no puede tener más de 100 caracteres."),
@@ -83,7 +60,7 @@ type ServiceFormValues = z.infer<typeof serviceFormSchema>;
 const defaultValues: Partial<ServiceFormValues> = {
   title: "",
   description: "",
-  category: "",
+  category: facilityCategory.name, // Default to the only category
   // rate: undefined, // Use undefined for number inputs to allow placeholder
   availability: "",
   location: "",
@@ -104,37 +81,17 @@ function ServicePublicationForm() {
 
    // Placeholder for actual submission logic
    async function onSubmit(data: ServiceFormValues) {
-     console.log("Datos del servicio enviados (simulado):", {
+     console.log("Datos del espacio deportivo enviados (simulado):", {
          ...data,
-         images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null, // Log image details array
+         category: facilityCategory.name, // Ensure category is always set
+         images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null,
      });
-     // --- BACKEND INTEGRATION NEEDED ---
-     // const formData = new FormData();
-     // Object.entries(data).forEach(([key, value]) => {
-     //   if (key === 'images' && Array.isArray(value)) {
-     //      value.forEach((file, index) => {
-     //        formData.append(`image_${index}`, file); // Send files with unique keys
-     //      });
-     //   } else if (value != null && !(value instanceof File)) { // Append other non-null, non-File values
-     //     formData.append(key, String(value));
-     //   }
-     // });
-     // try {
-     //   const response = await fetch('/api/services', { method: 'POST', body: formData });
-     //   if (!response.ok) throw new Error('Failed to publish service');
-     //   toast({ title: "Servicio Publicado", description: "Tu servicio ha sido publicado correctamente." });
-     //   form.reset();
-     //   setPreviewImages([]);
-     // } catch (error) {
-     //   console.error("Failed to publish service:", error);
-     //   toast({ title: "Error", description: "No se pudo publicar el servicio. Inténtalo de nuevo.", variant: "destructive" });
-     // }
 
      // Simulate API call delay
      await new Promise(resolve => setTimeout(resolve, 1000));
      toast({
-         title: "Servicio Publicado (Simulado)",
-         description: "Tu servicio ha sido publicado correctamente.",
+         title: "Espacio Deportivo Publicado (Simulado)",
+         description: "Tu espacio deportivo ha sido publicado correctamente.",
        });
      form.reset(); // Reset form after successful submission
      setPreviewImages([]); // Reset preview images
@@ -195,12 +152,12 @@ function ServicePublicationForm() {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título del Servicio</FormLabel>
+              <FormLabel>Nombre del Espacio Deportivo</FormLabel>
               <FormControl>
-                <Input placeholder="Ej: Entrenamiento Personalizado de Fitness" {...field} />
+                <Input placeholder="Ej: Cancha de Fútbol La Central" {...field} />
               </FormControl>
               <FormDescription>
-                Un título claro y conciso que describa tu servicio.
+                Un nombre claro y conciso que describa tu espacio deportivo.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -216,49 +173,33 @@ function ServicePublicationForm() {
               <FormLabel>Descripción Detallada</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe tu servicio en detalle, qué incluye, tu experiencia, etc."
+                  placeholder="Describe tu espacio, qué incluye (ej: vestuarios, iluminación), dimensiones, etc."
                   className="resize-y min-h-[100px]"
                   {...field}
                 />
               </FormControl>
                <FormDescription>
-                 Explica qué ofreces, tu metodología y experiencia relevante.
+                 Explica qué ofreces, las características del espacio y cualquier detalle relevante.
                </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {/* Category */}
-            <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Categoría</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Selecciona una categoría" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {categorias.map((category) => (
-                            <SelectItem key={category.name} value={category.name}>
-                                <div className="flex items-center gap-2">
-                                {category.icon && <category.icon className="h-4 w-4 text-muted-foreground" />}
-                                {category.name}
-                                </div>
-                            </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
+        {/* Category Display (Read-only) */}
+        <FormItem>
+            <FormLabel>Categoría</FormLabel>
+            <div className="flex items-center gap-2 p-2 border rounded-md bg-muted text-muted-foreground">
+                {facilityCategory.icon && <facilityCategory.icon className="h-5 w-5" />}
+                <span>{facilityCategory.name}</span>
+            </div>
+            <FormDescription>
+                Este formulario es exclusivamente para publicar espacios deportivos.
+            </FormDescription>
+        </FormItem>
 
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
              {/* Rate */}
              <FormField
                  control={form.control}
@@ -273,21 +214,39 @@ function ServicePublicationForm() {
                          </FormControl>
                      </div>
                      <FormDescription>
-                        Ingresa tu tarifa base por hora.
+                        Ingresa tu tarifa base por hora para el alquiler del espacio.
                      </FormDescription>
                      <FormMessage />
                  </FormItem>
                  )}
              />
+
+            {/* Location */}
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ubicación del Espacio</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ej: Calle Falsa 123, Ciudad Capital" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Especifica la dirección completa de tu espacio deportivo.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
         </div>
 
          {/* Image Upload */}
          <FormField
              control={form.control}
              name="images"
-             render={({ field: { onChange, value, ...rest } }) => ( // Destructure onChange
+             render={({ field: { onChange, value, ...rest } }) => ( 
                  <FormItem>
-                 <FormLabel>Imágenes del Servicio (Opcional, hasta {MAX_IMAGES})</FormLabel>
+                 <FormLabel>Imágenes del Espacio (Opcional, hasta {MAX_IMAGES})</FormLabel>
                  <FormControl>
                      <Input
                      type="file"
@@ -295,7 +254,6 @@ function ServicePublicationForm() {
                      multiple // Allow multiple file selection
                      onChange={handleFileChange} // Use custom handler
                      {...rest} // Spread remaining field props (name, ref, etc.)
-                     // Reset input value to allow re-uploading the same file(s) if needed
                      onClick={(event) => {
                         const element = event.target as HTMLInputElement
                         element.value = ''
@@ -303,7 +261,7 @@ function ServicePublicationForm() {
                      />
                  </FormControl>
                  <FormDescription>
-                     Sube hasta {MAX_IMAGES} imágenes representativas (JPG, PNG, WEBP, máx 5MB c/u).
+                     Sube hasta {MAX_IMAGES} imágenes representativas de tu espacio (JPG, PNG, WEBP, máx 5MB c/u).
                  </FormDescription>
                  {previewImages.length > 0 && (
                      <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -312,7 +270,7 @@ function ServicePublicationForm() {
                          <img
                              src={src}
                              alt={`Vista previa ${index + 1}`}
-                             className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="service image preview"
+                             className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="sports facility image preview"
                          />
                          <Button
                             type="button" // Prevent form submission
@@ -340,34 +298,16 @@ function ServicePublicationForm() {
           name="availability"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Disponibilidad</FormLabel>
+              <FormLabel>Disponibilidad y Horarios</FormLabel>
               <FormControl>
                  <Textarea
-                  placeholder="Ej: Lunes a Viernes 9am-5pm, Sábados 10am-1pm"
+                  placeholder="Ej: Lunes a Viernes 9am-10pm, Sábados y Domingos 8am-11pm. Cerrado festivos."
                   className="resize-y min-h-[60px]"
                   {...field}
                 />
               </FormControl>
                <FormDescription>
-                 Indica los días y horarios generales en que ofreces el servicio.
-               </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-         {/* Location */}
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Ubicación / Área de Servicio</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: Ciudad, Remoto, A domicilio en Zona Norte" {...field} />
-              </FormControl>
-               <FormDescription>
-                 Especifica dónde ofreces el servicio (ciudad, remoto, área específica).
+                 Indica los días y horarios generales en que tu espacio deportivo está disponible para alquiler.
                </FormDescription>
               <FormMessage />
             </FormItem>
@@ -375,7 +315,7 @@ function ServicePublicationForm() {
         />
 
         <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isValid || (currentImages.length > MAX_IMAGES)}>
-             {form.formState.isSubmitting ? "Publicando..." : "Publicar Servicio"}
+             {form.formState.isSubmitting ? "Publicando..." : "Publicar Espacio Deportivo"}
          </Button>
 
       </form>
@@ -401,7 +341,7 @@ const PostJobContent = () => {
         <Briefcase className="h-16 w-16 text-muted-foreground/50 mb-6" />
         <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
         <p className="text-muted-foreground mb-6 max-w-md">
-          Debes iniciar sesión o crear una cuenta para poder publicar un servicio.
+          Debes iniciar sesión o crear una cuenta para poder publicar un espacio deportivo.
         </p>
         <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
       </div>
@@ -409,10 +349,10 @@ const PostJobContent = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto"> {/* Adjusted max-width and padding */}
-      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publica tu Servicio</h1>
+    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
+      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publica tu Espacio Deportivo</h1>
       <p className="text-muted-foreground mb-6 md:mb-8">
-        Completa el formulario para ofrecer tus habilidades y servicios en la plataforma.
+        Completa el formulario para ofrecer tu espacio deportivo en la plataforma.
       </p>
        <ServicePublicationForm />
     </div>
