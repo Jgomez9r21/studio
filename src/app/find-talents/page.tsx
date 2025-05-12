@@ -28,7 +28,6 @@ interface Category {
 // Updated categories for sports facilities based on user request
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
-    { name: 'Canchas al aire libre', icon: Sun },
     { name: 'Canchas de fútbol salón', icon: Building },
     { name: 'Canchas de fútbol', icon: Building },
     { name: 'Canchas de baloncesto', icon: Building },
@@ -153,12 +152,11 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
 
     // Keywords for matching facility types to filter categories
     const categoryKeywords: Record<string, string[]> = {
-        'canchas al aire libre': ['aire libre', 'outdoor', 'exterior', 'descubierta'],
         'canchas de fútbol salón': ['fútbol salón', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'],
         'canchas de fútbol': ['fútbol', 'futbol', 'soccer', 'cancha de 11', 'cancha de 7', 'cancha de 9', 'football', 'grama natural', 'grama sintética'],
         'canchas de baloncesto': ['baloncesto', 'basketball', 'basket'],
         'canchas de vóleibol': ['vóleibol', 'voleibol', 'volleyball'],
-        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente', 'multifuncional', 'polideportivo'], // Added polideportivo
+        'canchas múltiples': ['múltiple', 'multiuso', 'polivalente', 'multifuncional', 'polideportivo'],
         'gimnasios cubiertos': ['gimnasio', 'gym', 'fitness center'],
         'salones de yoga, pilates o danza': ['yoga', 'pilates', 'danza', 'baile', 'meditación'],
         'piscinas olímpicas o recreativas': ['piscina', 'swimming', 'nado', 'acuático', 'olímpica', 'recreativa'],
@@ -255,6 +253,7 @@ const FiltersContent = ({
          </div>
 
           <div className="mt-auto pt-6 border-t">
+            {/* This button is always present for applying filters from the sheet */}
             <SheetClose asChild>
                 <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
             </SheetClose>
