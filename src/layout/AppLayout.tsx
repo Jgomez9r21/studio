@@ -1,3 +1,4 @@
+
 'use client';
 
 import type React from 'react';
@@ -15,11 +16,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  useSidebar, // Import useSidebar
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, Calendar as CalendarIcon, Heart } from "lucide-react"; // Added Heart
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info } from "lucide-react"; // Added Heart, Info
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet"; // Added SheetTrigger
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -161,6 +163,8 @@ export default function AppLayout({
   const router = useRouter();
   const { toast } = useToast();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar(); // Get sidebar state
+
 
   // Use auth context
   const {
@@ -358,7 +362,7 @@ export default function AppLayout({
                                     <PopoverTrigger asChild>
                                       <FormControl>
                                         <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                          <CalendarIcon className="mr-2 h-4 w-4"/>
+                                          <CalendarDays className="mr-2 h-4 w-4"/>
                                           {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elige una fecha</span>}
                                         </Button>
                                       </FormControl>
@@ -541,14 +545,14 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                           <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                             {/* Use DialogTitle within SheetHeader for accessibility */}
-                             <SheetTitle className="sr-only">Menú principal</SheetTitle> {/* Added SheetTitle for accessibility */}
-                               <div className="flex items-center gap-2 text-lg font-semibold">
-                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
-                                <span className="whitespace-nowrap">sportoffice</span>
-                              </div>
-                           </SheetHeader>
+                         {/* SheetHeader now correctly uses DialogTitle for accessibility */}
+                          <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
+                            <DialogTitle className="sr-only">Menú principal</DialogTitle> {/* Moved from SheetTitle to DialogTitle */}
+                              <div className="flex items-center gap-2 text-lg font-semibold">
+                               <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
+                               <span className="whitespace-nowrap">sportoffice</span>
+                             </div>
+                          </SheetHeader>
                          <SidebarContent className="flex-grow p-2 overflow-y-auto">
                              <SidebarMenu>
                              {navegacion.map((item) => (
