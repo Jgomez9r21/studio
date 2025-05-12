@@ -2,11 +2,11 @@
 "use client";
 
 import type React from 'react';
-import { useState } from 'react'; // Import useState
+import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import AppLayout from '@/layout/AppLayout'; // Import the reusable layout
+import AppLayout from '@/layout/AppLayout';
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,20 +19,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
-import { Dumbbell, DollarSign, X, Briefcase } from 'lucide-react'; // Keep Dumbbell for display
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Briefcase, Building, DollarSign, Dumbbell, X, BarChart, Camera, Edit, Music, Lightbulb, Database, ImageIcon as LucideImageIcon, User as UserIconLucide, Code as CodeIcon, Construction as ConstructionIcon, School2 as School2Icon, Palette as PaletteIcon, HomeIcon as LucideHomeIcon } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
-// Define Category types with explicit icon typing - Only "Instalación Deportiva"
-interface Category {
-  name: string;
-  icon?: React.ComponentType<{ className?: string }>;
-}
-
-// Service Categories - Only "Instalación Deportiva"
-const facilityCategory: Category = { name: 'Instalación Deportiva', icon: Dumbbell };
-
-// Define the form schema using Zod
+// --- Common Types and Constants ---
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB per image
 const MAX_IMAGES = 8;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -41,10 +35,17 @@ const fileSchema = z.instanceof(File)
   .refine(file => file.size <= MAX_FILE_SIZE, `El tamaño máximo por imagen es 5MB.`)
   .refine(file => ACCEPTED_IMAGE_TYPES.includes(file.type), "Solo se aceptan formatos .jpg, .jpeg, .png y .webp.");
 
-const serviceFormSchema = z.object({
+// --- Sports Facility Form: Schema, Types, Categories, Component ---
+interface SportsFacilityCategory {
+  name: 'Instalación Deportiva'; // Literal type
+  icon: React.ComponentType<{ className?: string }>;
+}
+const facilityCategory: SportsFacilityCategory = { name: 'Instalación Deportiva', icon: Dumbbell };
+
+const sportsFacilityFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
   description: z.string().min(20, "La descripción debe tener al menos 20 caracteres.").max(500, "La descripción no puede tener más de 500 caracteres."),
-  category: z.literal(facilityCategory.name).default(facilityCategory.name), // Hardcode category
+  category: z.literal(facilityCategory.name).default(facilityCategory.name),
   rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
   availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
   location: z.string().min(2, "Ingresa la ubicación o área de servicio.").max(100, "La ubicación no puede tener más de 100 caracteres."),
@@ -53,277 +54,367 @@ const serviceFormSchema = z.object({
     .optional()
     .nullable(),
 });
+type SportsFacilityFormValues = z.infer<typeof sportsFacilityFormSchema>;
 
-type ServiceFormValues = z.infer<typeof serviceFormSchema>;
-
-// Default values for the form
-const defaultValues: Partial<ServiceFormValues> = {
+const sportsFacilityDefaultValues: Partial<SportsFacilityFormValues> = {
   title: "",
   description: "",
-  category: facilityCategory.name, // Default to the only category
-  // rate: undefined, // Use undefined for number inputs to allow placeholder
+  category: facilityCategory.name,
   availability: "",
   location: "",
-  images: [], // Initialize as empty array
+  images: [],
 };
 
-
-function ServicePublicationForm() {
-   const { toast } = useToast(); // Initialize toast hook
-   const [previewImages, setPreviewImages] = useState<string[]>([]); // State for image previews
-   const form = useForm<ServiceFormValues>({
-    resolver: zodResolver(serviceFormSchema),
-    defaultValues,
-    mode: "onChange", // Validate on change for better UX
+function SportsFacilityPublicationForm() {
+  const { toast } = useToast();
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const form = useForm<SportsFacilityFormValues>({
+    resolver: zodResolver(sportsFacilityFormSchema),
+    defaultValues: sportsFacilityDefaultValues,
+    mode: "onChange",
   });
+  const currentImages = form.watch("images") || [];
 
-   const currentImages = form.watch("images") || []; // Watch current files
+  async function onSubmit(data: SportsFacilityFormValues) {
+    console.log("Datos del Espacio Deportivo enviados (simulado):", {
+        ...data,
+        images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null,
+    });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast({
+        title: "Espacio Deportivo Publicado (Simulado)",
+        description: "Tu espacio deportivo ha sido publicado correctamente.",
+    });
+    form.reset();
+    setPreviewImages([]);
+  }
 
-   // Placeholder for actual submission logic
-   async function onSubmit(data: ServiceFormValues) {
-     console.log("Datos del espacio deportivo enviados (simulado):", {
-         ...data,
-         category: facilityCategory.name, // Ensure category is always set
-         images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null,
-     });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    const existingFiles = form.getValues("images") || [];
+    const totalFiles = existingFiles.length + files.length;
 
-     // Simulate API call delay
-     await new Promise(resolve => setTimeout(resolve, 1000));
-     toast({
-         title: "Espacio Deportivo Publicado (Simulado)",
-         description: "Tu espacio deportivo ha sido publicado correctamente.",
-       });
-     form.reset(); // Reset form after successful submission
-     setPreviewImages([]); // Reset preview images
-   }
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files ? Array.from(e.target.files) : [];
-        const existingFiles = form.getValues("images") || [];
-        const totalFiles = existingFiles.length + files.length;
-
-        if (totalFiles > MAX_IMAGES) {
-            toast({
-                title: "Límite de imágenes excedido",
-                description: `Solo puedes subir hasta ${MAX_IMAGES} imágenes. Se han ignorado las últimas seleccionadas.`,
-                variant: "destructive",
-            });
-            // Take only enough files to reach the limit
-            files.splice(MAX_IMAGES - existingFiles.length);
-        }
-
-        const newFiles = [...existingFiles, ...files];
-        form.setValue("images", newFiles, { shouldValidate: true }); // Update form state and trigger validation
-
-        // Update previews
-        const newPreviews: string[] = [];
-        const readFile = (file: File): Promise<string> => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        };
-
-        Promise.all(newFiles.map(readFile)).then(previews => {
-            setPreviewImages(previews);
-        }).catch(error => {
-             console.error("Error generando vistas previas de imágenes:", error);
-             toast({ title: "Error", description: "No se pudieron generar las vistas previas de las imágenes.", variant: "destructive" });
+    if (totalFiles > MAX_IMAGES) {
+        toast({
+            title: "Límite de imágenes excedido",
+            description: `Solo puedes subir hasta ${MAX_IMAGES} imágenes. Se han ignorado las últimas seleccionadas.`,
+            variant: "destructive",
         });
-    };
+        files.splice(MAX_IMAGES - existingFiles.length);
+    }
+    const newFiles = [...existingFiles, ...files];
+    form.setValue("images", newFiles, { shouldValidate: true });
 
-     const removeImage = (indexToRemove: number) => {
-        const updatedFiles = (form.getValues("images") || []).filter((_, index) => index !== indexToRemove);
-        form.setValue("images", updatedFiles, { shouldValidate: true }); // Update form state
+    const newPreviews: string[] = [];
+    Promise.all(newFiles.map(file => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    }))).then(previews => {
+        setPreviewImages(previews);
+    }).catch(error => {
+         console.error("Error generando vistas previas de imágenes:", error);
+         toast({ title: "Error", description: "No se pudieron generar las vistas previas de las imágenes.", variant: "destructive" });
+    });
+  };
 
-        const updatedPreviews = previewImages.filter((_, index) => index !== indexToRemove);
-        setPreviewImages(updatedPreviews); // Update previews
-    };
-
+  const removeImage = (indexToRemove: number) => {
+    const updatedFiles = (form.getValues("images") || []).filter((_, index) => index !== indexToRemove);
+    form.setValue("images", updatedFiles, { shouldValidate: true });
+    const updatedPreviews = previewImages.filter((_, index) => index !== indexToRemove);
+    setPreviewImages(updatedPreviews);
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
-        {/* Title */}
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre del Espacio Deportivo</FormLabel>
-              <FormControl>
-                <Input placeholder="Ej: Cancha de Fútbol La Central" {...field} />
-              </FormControl>
-              <FormDescription>
-                Un nombre claro y conciso que describa tu espacio deportivo.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripción Detallada</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Describe tu espacio, qué incluye (ej: vestuarios, iluminación), dimensiones, etc."
-                  className="resize-y min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-               <FormDescription>
-                 Explica qué ofreces, las características del espacio y cualquier detalle relevante.
-               </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Category Display (Read-only) */}
+        <FormField control={form.control} name="title" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Nombre del Espacio Deportivo</FormLabel>
+            <FormControl><Input placeholder="Ej: Cancha de Fútbol La Central" {...field} /></FormControl>
+            <FormDescription>Un nombre claro y conciso que describa tu espacio deportivo.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="description" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Descripción Detallada</FormLabel>
+            <FormControl><Textarea placeholder="Describe tu espacio, qué incluye (ej: vestuarios, iluminación), dimensiones, etc." className="resize-y min-h-[100px]" {...field} /></FormControl>
+            <FormDescription>Explica qué ofreces, las características del espacio y cualquier detalle relevante.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
         <FormItem>
             <FormLabel>Categoría</FormLabel>
-            <div className="flex items-center gap-2 p-2 border rounded-md bg-muted text-muted-foreground">
+            <div className="flex items-center gap-2 p-3 border rounded-md bg-muted text-muted-foreground text-sm">
                 {facilityCategory.icon && <facilityCategory.icon className="h-5 w-5" />}
                 <span>{facilityCategory.name}</span>
             </div>
-            <FormDescription>
-                Este formulario es exclusivamente para publicar espacios deportivos.
-            </FormDescription>
+            <FormDescription>Este formulario es exclusivamente para publicar espacios deportivos.</FormDescription>
         </FormItem>
-
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-             {/* Rate */}
-             <FormField
-                 control={form.control}
-                 name="rate"
-                 render={({ field }) => (
-                 <FormItem>
-                     <FormLabel>Tarifa (por hora)</FormLabel>
-                     <div className="relative">
-                         <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                         <FormControl>
-                             <Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} />
-                         </FormControl>
-                     </div>
-                     <FormDescription>
-                        Ingresa tu tarifa base por hora para el alquiler del espacio.
-                     </FormDescription>
-                     <FormMessage />
-                 </FormItem>
-                 )}
-             />
-
-            {/* Location */}
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ubicación del Espacio</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Calle Falsa 123, Ciudad Capital" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Especifica la dirección completa de tu espacio deportivo.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        </div>
-
-         {/* Image Upload */}
-         <FormField
-             control={form.control}
-             name="images"
-             render={({ field: { onChange, value, ...rest } }) => ( 
-                 <FormItem>
-                 <FormLabel>Imágenes del Espacio (Opcional, hasta {MAX_IMAGES})</FormLabel>
-                 <FormControl>
-                     <Input
-                     type="file"
-                     accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                     multiple // Allow multiple file selection
-                     onChange={handleFileChange} // Use custom handler
-                     {...rest} // Spread remaining field props (name, ref, etc.)
-                     onClick={(event) => {
-                        const element = event.target as HTMLInputElement
-                        element.value = ''
-                     }}
-                     />
-                 </FormControl>
-                 <FormDescription>
-                     Sube hasta {MAX_IMAGES} imágenes representativas de tu espacio (JPG, PNG, WEBP, máx 5MB c/u).
-                 </FormDescription>
-                 {previewImages.length > 0 && (
-                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                     {previewImages.map((src, index) => (
-                         <div key={index} className="relative group">
-                         <img
-                             src={src}
-                             alt={`Vista previa ${index + 1}`}
-                             className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="sports facility image preview"
-                         />
-                         <Button
-                            type="button" // Prevent form submission
-                            variant="destructive"
-                            size="icon"
-                            className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity"
-                            onClick={() => removeImage(index)}
-                          >
-                            <X className="h-3 w-3" />
-                            <span className="sr-only">Eliminar imagen {index + 1}</span>
-                          </Button>
-                         </div>
-                     ))}
-                     </div>
-                 )}
-                 <FormMessage />
-                 </FormItem>
-             )}
-         />
-
-
-        {/* Availability */}
-        <FormField
-          control={form.control}
-          name="availability"
-          render={({ field }) => (
+          <FormField control={form.control} name="rate" render={({ field }) => (
             <FormItem>
-              <FormLabel>Disponibilidad y Horarios</FormLabel>
-              <FormControl>
-                 <Textarea
-                  placeholder="Ej: Lunes a Viernes 9am-10pm, Sábados y Domingos 8am-11pm. Cerrado festivos."
-                  className="resize-y min-h-[60px]"
-                  {...field}
-                />
-              </FormControl>
-               <FormDescription>
-                 Indica los días y horarios generales en que tu espacio deportivo está disponible para alquiler.
-               </FormDescription>
+              <FormLabel>Tarifa (por hora)</FormLabel>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <FormControl><Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
+              </div>
+              <FormDescription>Ingresa tu tarifa base por hora para el alquiler del espacio.</FormDescription>
               <FormMessage />
             </FormItem>
-          )}
-        />
-
+          )} />
+          <FormField control={form.control} name="location" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Ubicación del Espacio</FormLabel>
+              <FormControl><Input placeholder="Ej: Calle Falsa 123, Ciudad Capital" {...field} /></FormControl>
+              <FormDescription>Especifica la dirección completa de tu espacio deportivo.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="images" render={({ field: { onChange, value, ...rest } }) => (
+          <FormItem>
+            <FormLabel>Imágenes del Espacio (Opcional, hasta {MAX_IMAGES})</FormLabel>
+            <FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} /></FormControl>
+            <FormDescription>Sube hasta {MAX_IMAGES} imágenes (JPG, PNG, WEBP, máx 5MB c/u).</FormDescription>
+            {previewImages.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {previewImages.map((src, index) => (
+                  <div key={index} className="relative group">
+                    <img src={src} alt={`Vista previa ${index + 1}`} className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="sports facility image preview" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity" onClick={() => removeImage(index)}>
+                      <X className="h-3 w-3" /><span className="sr-only">Eliminar imagen {index + 1}</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="availability" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Disponibilidad y Horarios</FormLabel>
+            <FormControl><Textarea placeholder="Ej: Lunes a Viernes 9am-10pm, Sábados y Domingos 8am-11pm." className="resize-y min-h-[60px]" {...field} /></FormControl>
+            <FormDescription>Indica los días y horarios generales en que tu espacio deportivo está disponible.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
         <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isValid || (currentImages.length > MAX_IMAGES)}>
              {form.formState.isSubmitting ? "Publicando..." : "Publicar Espacio Deportivo"}
-         </Button>
+        </Button>
+      </form>
+    </Form>
+  );
+}
 
+// --- Independent Service Form: Schema, Types, Categories, Component ---
+interface IndependentServiceCategory {
+  name: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+const independentServiceCategories: IndependentServiceCategory[] = [
+  { name: 'Tecnología', icon: CodeIcon },
+  { name: 'Entrenador Personal', icon: UserIconLucide },
+  { name: 'Contratista', icon: ConstructionIcon },
+  { name: 'Mantenimiento Hogar', icon: LucideHomeIcon },
+  { name: 'Profesores', icon: School2Icon },
+  { name: 'Diseñadores', icon: PaletteIcon },
+  { name: 'Marketing Digital', icon: BarChart },
+  { name: 'Video & Animación', icon: Camera },
+  { name: 'Redacción & Traducción', icon: Edit },
+  { name: 'Música & Audio', icon: Music },
+  { name: 'Finanzas', icon: DollarSign },
+  { name: 'Crecimiento Personal', icon: Lightbulb },
+  { name: 'Datos', icon: Database },
+  { name: 'Fotografía', icon: LucideImageIcon },
+];
+
+const independentServiceFormSchema = z.object({
+  title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
+  description: z.string().min(20, "La descripción debe tener al menos 20 caracteres.").max(1000, "La descripción no puede tener más de 1000 caracteres."),
+  category: z.string().min(1, "Debes seleccionar una categoría."),
+  rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
+  availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm, fines de semana con previa cita).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
+  location: z.string().min(2, "Ingresa la ubicación, área de servicio o 'Remoto'.").max(100, "La ubicación no puede tener más de 100 caracteres."),
+  images: z.array(fileSchema)
+    .max(MAX_IMAGES, `Puedes subir un máximo de ${MAX_IMAGES} imágenes.`)
+    .optional()
+    .nullable(),
+});
+type IndependentServiceFormValues = z.infer<typeof independentServiceFormSchema>;
+
+const independentServiceDefaultValues: Partial<IndependentServiceFormValues> = {
+  title: "",
+  description: "",
+  category: "",
+  availability: "",
+  location: "",
+  images: [],
+};
+
+function IndependentServicePublicationForm() {
+  const { toast } = useToast();
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const form = useForm<IndependentServiceFormValues>({
+    resolver: zodResolver(independentServiceFormSchema),
+    defaultValues: independentServiceDefaultValues,
+    mode: "onChange",
+  });
+  const currentImages = form.watch("images") || [];
+  const selectedCategory = form.watch("category");
+
+  async function onSubmit(data: IndependentServiceFormValues) {
+    console.log("Datos del Servicio Independiente enviados (simulado):", {
+        ...data,
+        images: data.images ? data.images.map(img => ({ name: img.name, size: img.size, type: img.type })) : null,
+    });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    toast({
+        title: "Servicio Independiente Publicado (Simulado)",
+        description: "Tu servicio ha sido publicado correctamente.",
+    });
+    form.reset();
+    setPreviewImages([]);
+  }
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    const existingFiles = form.getValues("images") || [];
+    const totalFiles = existingFiles.length + files.length;
+
+    if (totalFiles > MAX_IMAGES) {
+        toast({
+            title: "Límite de imágenes excedido",
+            description: `Solo puedes subir hasta ${MAX_IMAGES} imágenes. Se han ignorado las últimas seleccionadas.`,
+            variant: "destructive",
+        });
+        files.splice(MAX_IMAGES - existingFiles.length);
+    }
+    const newFiles = [...existingFiles, ...files];
+    form.setValue("images", newFiles, { shouldValidate: true });
+
+    const newPreviews: string[] = [];
+    Promise.all(newFiles.map(file => new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    }))).then(previews => {
+        setPreviewImages(previews);
+    }).catch(error => {
+         console.error("Error generando vistas previas de imágenes:", error);
+         toast({ title: "Error", description: "No se pudieron generar las vistas previas de las imágenes.", variant: "destructive" });
+    });
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    const updatedFiles = (form.getValues("images") || []).filter((_, index) => index !== indexToRemove);
+    form.setValue("images", updatedFiles, { shouldValidate: true });
+    const updatedPreviews = previewImages.filter((_, index) => index !== indexToRemove);
+    setPreviewImages(updatedPreviews);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
+        <FormField control={form.control} name="title" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Título del Servicio</FormLabel>
+            <FormControl><Input placeholder="Ej: Desarrollo Web Frontend Avanzado" {...field} /></FormControl>
+            <FormDescription>Un título claro y atractivo para tu servicio.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="description" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Descripción Detallada del Servicio</FormLabel>
+            <FormControl><Textarea placeholder="Describe tu servicio, qué ofreces, tu experiencia, etc." className="resize-y min-h-[120px]" {...field} /></FormControl>
+            <FormDescription>Proporciona detalles completos sobre tu servicio para atraer clientes.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <FormField control={form.control} name="category" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Categoría del Servicio</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger></FormControl>
+                <SelectContent>
+                  {independentServiceCategories.map(cat => (
+                    <SelectItem key={cat.name} value={cat.name}>
+                      {cat.icon && <cat.icon className="inline-block h-4 w-4 mr-2 text-muted-foreground" />}
+                      {cat.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>Elige la categoría que mejor describa tu servicio.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )} />
+           <FormField control={form.control} name="rate" render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tarifa</FormLabel>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <FormControl><Input type="number" placeholder="75" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
+              </div>
+              <FormDescription>
+                Ingresa tu tarifa. {selectedCategory && HOURLY_RATE_CATEGORIES.includes(selectedCategory) ? "Esta categoría usualmente es por hora." : "Esta categoría puede ser por proyecto."}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )} />
+        </div>
+        <FormField control={form.control} name="availability" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Disponibilidad</FormLabel>
+            <FormControl><Textarea placeholder="Ej: L-V 9am-6pm, Fines de semana contactar." className="resize-y min-h-[60px]" {...field} /></FormControl>
+            <FormDescription>Indica tus horarios y días de trabajo.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="location" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Ubicación / Área de Servicio</FormLabel>
+            <FormControl><Input placeholder="Ej: Remoto, Bogotá, Medellín y alrededores" {...field} /></FormControl>
+            <FormDescription>Especifica dónde ofreces tus servicios. Escribe 'Remoto' si aplica.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+         <FormField control={form.control} name="images" render={({ field: { onChange, value, ...rest } }) => (
+          <FormItem>
+            <FormLabel>Imágenes del Servicio (Opcional, hasta {MAX_IMAGES})</FormLabel>
+            <FormControl><Input type="file" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} /></FormControl>
+            <FormDescription>Sube imágenes de trabajos previos, portafolio, etc. (JPG, PNG, WEBP, máx 5MB c/u).</FormDescription>
+            {previewImages.length > 0 && (
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {previewImages.map((src, index) => (
+                  <div key={index} className="relative group">
+                    <img src={src} alt={`Vista previa ${index + 1}`} className="w-full h-24 object-cover rounded-md shadow-sm" data-ai-hint="service work image preview" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-1 right-1 h-5 w-5 opacity-80 group-hover:opacity-100 transition-opacity" onClick={() => removeImage(index)}>
+                      <X className="h-3 w-3" /><span className="sr-only">Eliminar imagen {index + 1}</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <FormMessage />
+          </FormItem>
+        )} />
+        <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isValid || (currentImages.length > MAX_IMAGES)}>
+          {form.formState.isSubmitting ? "Publicando Servicio..." : "Publicar Servicio Independiente"}
+        </Button>
       </form>
     </Form>
   );
 }
 
 
+// --- Main Page Content ---
 const PostJobContent = () => {
   const { isLoggedIn, isLoading, openLoginDialog } = useAuth();
 
@@ -341,7 +432,7 @@ const PostJobContent = () => {
         <Briefcase className="h-16 w-16 text-muted-foreground/50 mb-6" />
         <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
         <p className="text-muted-foreground mb-6 max-w-md">
-          Debes iniciar sesión o crear una cuenta para poder publicar un espacio deportivo.
+          Debes iniciar sesión o crear una cuenta para poder publicar tus servicios o espacios.
         </p>
         <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
       </div>
@@ -350,17 +441,35 @@ const PostJobContent = () => {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Publica tu Espacio Deportivo</h1>
+      <h1 className="text-2xl md:text-3xl font-semibold mb-2">Ofrecer Servicios</h1>
       <p className="text-muted-foreground mb-6 md:mb-8">
-        Completa el formulario para ofrecer tu espacio deportivo en la plataforma.
+        Elige el tipo de servicio que deseas publicar en la plataforma.
       </p>
-       <ServicePublicationForm />
+      <Tabs defaultValue="sports-facility" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="sports-facility">
+            <Building className="mr-2 h-4 w-4" /> Espacio Deportivo
+          </TabsTrigger>
+          <TabsTrigger value="independent-service">
+            <Briefcase className="mr-2 h-4 w-4" /> Servicio Independiente
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="sports-facility">
+          <h2 className="text-xl font-semibold mb-1 mt-4">Publica tu Espacio Deportivo</h2>
+           <p className="text-sm text-muted-foreground mb-6">Completa el formulario para ofrecer tu instalación deportiva.</p>
+          <SportsFacilityPublicationForm />
+        </TabsContent>
+        <TabsContent value="independent-service">
+           <h2 className="text-xl font-semibold mb-1 mt-4">Publica tu Servicio Independiente</h2>
+           <p className="text-sm text-muted-foreground mb-6">Completa el formulario para ofrecer tus servicios profesionales.</p>
+          <IndependentServicePublicationForm />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
 
-
-const PostJob = () => {
+const PostJobPage = () => {
   return (
      <AppLayout>
       <PostJobContent />
@@ -368,4 +477,5 @@ const PostJob = () => {
   );
 };
 
-export default PostJob;
+export default PostJobPage;
+

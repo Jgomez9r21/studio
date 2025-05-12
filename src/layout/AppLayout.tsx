@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building } from "lucide-react"; // Added Building
-import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet"; // Renamed SheetTitle
+import { Home, Users, Settings, CreditCard, UserPlus, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, ShieldCheck } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,9 +29,8 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle, 
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTitle as ShadDialogTitle,
+} from "@/components/ui/dialog"; // Removed DialogTrigger as it's not used directly here with open prop
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -61,14 +60,19 @@ const navegacion = [
     icon: Home,
   },
   {
-    title: "Publica tu Espacio Deportivo",
+    title: "Ofrecer Servicios", // Changed from "Publica tu Espacio Deportivo"
     href: "/post-job",
-    icon: Building,
+    icon: Briefcase, // Changed icon to Briefcase, more generic for offering services
+  },
+  {
+    title: "Buscar Talentos",
+    href: "/find-talents",
+    icon: Users,
   },
   {
     title: "Mis Reservas",
     href: "/book-service",
-    icon: Briefcase,
+    icon: CalendarDays, // Changed from Briefcase to avoid repetition
   },
   {
     title: "Mis Favoritos",
@@ -117,8 +121,8 @@ const genders = [
 ]
 
 const profileTypes = [
-    { value: "usuario", label: "Usuario" },
-    { value: "profesional", label: "Profesional" },
+    { value: "usuario", label: "Usuario (Busco servicios)" },
+    { value: "profesional", label: "Profesional (Ofrezco servicios)" },
 ]
 
 // Zod Schemas for Login and Signup
@@ -180,7 +184,13 @@ export default function AppLayout({
     setSignupStep,
     handleSignupSubmit: contextHandleSignupSubmit, 
     handleNextStep: contextHandleNextStep, 
-    handlePrevStep: contextHandlePrevStep, 
+    handlePrevStep: contextHandlePrevStep,
+    isVerificationSent,
+    phoneVerificationError,
+    isVerifyingCode,
+    sendVerificationCode,
+    verifyCode,
+    resetPhoneVerification,
    } = useAuth();
 
 
@@ -207,6 +217,8 @@ export default function AppLayout({
     },
     mode: "onChange",
   });
+  
+  const [verificationCodeInput, setVerificationCodeInput] = useState(""); // For signup phone verification
 
   // Modified submit handlers to call context functions
    const handleLoginSubmit = (data: LoginValues) => {
@@ -240,21 +252,29 @@ export default function AppLayout({
   const authDialogContent = () => {
     if (showProfileDialog && isLoggedIn && user) {
       return (
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <ShadDialogTitle>{user.name}</ShadDialogTitle>
-            <DialogDescription>Perfil de Usuario</DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground">
-              Bienvenido/a, {user.name}. Desde aquí puedes acceder a tu configuración o cerrar sesión.
-            </p>
-            <p className="text-sm mt-2">Email: {user.email}</p>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0 justify-between">
-            <Button variant="outline" onClick={goToSettings}>Configuración</Button>
-            <Button variant="destructive" onClick={handleLogout}>Cerrar Sesión</Button>
-          </DialogFooter>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+          <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(80vh-5rem)]">
+            <div className="p-6">
+              <DialogHeader className="text-center mb-4">
+                <div className="flex flex-col items-center mb-3">
+                  <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
+                    <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder large" />
+                    <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
+                  </Avatar>
+                  <ShadDialogTitle className="text-xl">{user.name}</ShadDialogTitle>
+                  <DialogDescription className="text-sm">{user.email}</DialogDescription>
+                </div>
+              </DialogHeader>
+              <div className="py-2 space-y-1 text-sm">
+                <p><span className="font-medium text-muted-foreground">País:</span> {user.country || 'No especificado'}</p>
+                <p><span className="font-medium text-muted-foreground">Teléfono:</span> {user.phone || 'No especificado'} {user.phone && (user.isPhoneVerified ? <span className="text-green-600 text-xs ml-1">(Verificado)</span> : <span className="text-orange-600 text-xs ml-1">(No verificado)</span>)}</p>
+              </div>
+              <DialogFooter className="mt-6 pt-4 border-t flex-col sm:flex-row sm:justify-between gap-2">
+                <Button variant="outline" onClick={goToSettings} className="w-full sm:w-auto">Configuración</Button>
+                <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">Cerrar Sesión</Button>
+              </DialogFooter>
+            </div>
+          </ScrollArea>
         </DialogContent>
       );
     }
@@ -262,14 +282,14 @@ export default function AppLayout({
     if (showLoginDialog) {
       return (
         <DialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
-           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(80vh-5rem)]"> {/* Adjusted max-h */}
+           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
              <div className="p-6">
                 <DialogHeader className="mb-4 text-center">
                   <ShadDialogTitle className="text-2xl">{currentView === 'login' ? 'Ingresar' : 'Crear Cuenta'}</ShadDialogTitle>
                   <DialogDescription>
                     {currentView === 'login'
                       ? 'Ingresa tu correo y contraseña para continuar.'
-                      : `Paso ${signupStep} de 2: ${signupStep === 1 ? 'Información básica.' : 'Detalles adicionales.'}`}
+                      : `Paso ${signupStep} de 2: ${signupStep === 1 ? 'Información básica.' : 'Detalles adicionales y de cuenta.'}`}
                   </DialogDescription>
                 </DialogHeader>
                   {currentView === 'login' ? (
@@ -304,17 +324,17 @@ export default function AppLayout({
                                        {...field}
                                       />
                                    </FormControl>
-                                   {loginError && <p className="text-sm font-medium text-destructive">{loginError}</p>}
+                                   {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
                                    <FormMessage />
                                  </FormItem>
                               )}
                             />
-                           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                               <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
+                               <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                   ¿No tienes cuenta? Crear una
                                </Button>
-                              <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting}>
-                                   {loginForm.formState.isSubmitting ? "Ingresando..." : "Ingresar"}
+                              <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || isLoading}>
+                                   {loginForm.formState.isSubmitting || isLoading ? "Ingresando..." : "Ingresar"}
                               </Button>
                            </DialogFooter>
                      </form>
@@ -328,7 +348,7 @@ export default function AppLayout({
                            {/* Step 1 Fields */}
                            {signupStep === 1 && (
                              <div className="space-y-4">
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                  <FormField control={signupForm.control} name="firstName" render={({ field }) => (
                                    <FormItem> <FormLabel>Nombre</FormLabel> <FormControl><Input placeholder="Tu nombre" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
@@ -336,7 +356,7 @@ export default function AppLayout({
                                    <FormItem> <FormLabel>Apellido</FormLabel> <FormControl><Input placeholder="Tu apellido" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                  <FormField control={signupForm.control} name="country" render={({ field }) => (
                                    <FormItem>
                                     <FormLabel>País</FormLabel>
@@ -350,7 +370,7 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                  <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                                   <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+1234567890" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                   <FormItem> <FormLabel>Teléfono (Opcional)</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
@@ -371,7 +391,7 @@ export default function AppLayout({
                            {/* Step 2 Fields */}
                            {signupStep === 2 && (
                              <div className="space-y-4">
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                  <FormField control={signupForm.control} name="dob" render={({ field }) => (
                                   <FormItem className="flex flex-col">
                                     <FormLabel>Fecha de Nacimiento</FormLabel>
@@ -393,7 +413,7 @@ export default function AppLayout({
                                  )}/>
                                  <FormField control={signupForm.control} name="gender" render={({ field }) => (
                                    <FormItem>
-                                    <FormLabel>Género</FormLabel>
+                                    <FormLabel>Género (Opcional)</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
@@ -404,10 +424,10 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                </div>
-                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                  <FormField control={signupForm.control} name="documentType" render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Tipo de documento</FormLabel>
+                                    <FormLabel>Tipo de documento (Opcional)</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
@@ -418,20 +438,20 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                  <FormField control={signupForm.control} name="documentNumber" render={({ field }) => (
-                                   <FormItem> <FormLabel>Número de documento</FormLabel> <FormControl><Input placeholder="Número de documento" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                   <FormItem> <FormLabel>Número de documento (Opcional)</FormLabel> <FormControl><Input placeholder="Número de documento" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
                                <FormField control={signupForm.control} name="email" render={({ field }) => (
                                  <FormItem> <FormLabel>Correo</FormLabel> <FormControl><Input type="email" placeholder="tu@correo.com" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
                                <FormField control={signupForm.control} name="password" render={({ field }) => (
-                                 <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl><Input type="password" placeholder="Crea una contraseña" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                 <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl><Input type="password" placeholder="Crea una contraseña (mín. 6 caract.)" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
                              </div>
                            )}
 
-                            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-4">
-                               <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
+                               <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                   ¿Ya tienes cuenta? Ingresar
                                </Button>
                                <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto justify-end">
@@ -445,8 +465,8 @@ export default function AppLayout({
                                            Siguiente
                                        </Button>
                                    ) : (
-                                       <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting}>
-                                           {signupForm.formState.isSubmitting ? "Creando..." : "Crear Cuenta"}
+                                       <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting || isLoading}>
+                                           {signupForm.formState.isSubmitting || isLoading ? "Creando..." : "Crear Cuenta"}
                                        </Button>
                                    )}
                                </div>
@@ -497,8 +517,9 @@ export default function AppLayout({
                </SidebarContent>
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                  <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                   <DialogTrigger asChild>
-                     {isLoggedIn && user ? (
+                 
+                   {isLoggedIn && user ? (
+                     <DialogTrigger asChild>
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -508,7 +529,9 @@ export default function AppLayout({
                            <span className="font-semibold truncate">{user.name}</span>
                          </div>
                        </Button>
-                     ) : (
+                     </DialogTrigger>
+                   ) : (
+                     <DialogTrigger asChild>
                        <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -516,8 +539,9 @@ export default function AppLayout({
                          </span>
                          <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
                        </Button>
-                     )}
-                   </DialogTrigger>
+                     </DialogTrigger>
+                   )}
+                 
                     {authDialogContent()}
                  </Dialog>
                </SidebarFooter>
@@ -534,14 +558,14 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                          <SheetHeader className="p-4 border-b flex items-center flex-shrink-0">
-                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> 
+                         <DialogHeader className="p-4 border-b"> {/* Changed SheetHeader to DialogHeader */}
+                             <ShadDialogTitle className="sr-only">Menú principal</ShadDialogTitle> {/* Use ShadDialogTitle */}
                               <div className="flex items-center gap-2 text-lg font-semibold">
                                <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
                                <span className="whitespace-nowrap">sportoffice</span>
                              </div>
-                          </SheetHeader>
-                         <SidebarContent className="flex-grow p-2 overflow-y-auto">
+                          </DialogHeader> {/* Changed SheetHeader to DialogHeader */}
+                         <ScrollArea className="flex-grow p-2 overflow-y-auto"> {/* Added ScrollArea for mobile menu */}
                              <SidebarMenu>
                              {navegacion.map((item) => (
                                  <SidebarMenuItem key={item.title}>
@@ -557,27 +581,31 @@ export default function AppLayout({
                                  </SidebarMenuItem>
                              ))}
                              </SidebarMenu>
-                         </SidebarContent>
+                         </ScrollArea>
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                                <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                                <DialogTrigger asChild>
-                                  {isLoggedIn && user ? (
-                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
-                                      <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                                        <AvatarFallback>{user.initials}</AvatarFallback>
-                                      </Avatar>
-                                      <div className="flex flex-col text-sm">
-                                        <span className="font-semibold">{user.name}</span>
-                                      </div>
-                                    </Button>
-                                  ) : (
-                                    <Button variant="outline" onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
-                                      <LogIn className="mr-2 h-4 w-4" />
-                                      Ingresar / Crear Cuenta
-                                    </Button>
-                                  )}
-                                </DialogTrigger>
+                                
+                                 {isLoggedIn && user ? (
+                                   <DialogTrigger asChild>
+                                     <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
+                                       <Avatar className="h-8 w-8">
+                                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                                         <AvatarFallback>{user.initials}</AvatarFallback>
+                                       </Avatar>
+                                       <div className="flex flex-col text-sm">
+                                         <span className="font-semibold">{user.name}</span>
+                                       </div>
+                                     </Button>
+                                   </DialogTrigger>
+                                 ) : (
+                                   <DialogTrigger asChild>
+                                     <Button variant="outline" onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
+                                       <LogIn className="mr-2 h-4 w-4" />
+                                       Ingresar / Crear Cuenta
+                                     </Button>
+                                   </DialogTrigger>
+                                 )}
+                                 
                                 {authDialogContent()}
                               </Dialog>
                           </SidebarFooter>
@@ -592,29 +620,33 @@ export default function AppLayout({
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10">
                        <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                         <DialogTrigger asChild>
+                         
                            {isLoggedIn && user ? (
-                             <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
-                               <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
-                                 <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                                 <AvatarFallback>{user.initials}</AvatarFallback>
-                               </Avatar>
-                               <span className="sr-only">Abrir perfil</span>
-                             </Button>
+                             <DialogTrigger asChild>
+                               <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
+                                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
+                                   <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                                   <AvatarFallback>{user.initials}</AvatarFallback>
+                                 </Avatar>
+                                 <span className="sr-only">Abrir perfil</span>
+                               </Button>
+                             </DialogTrigger>
                            ) : (
-                             <Button variant="ghost" onClick={openLoginDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
-                               <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                               <span className="sr-only">Ingresar / Crear Cuenta</span>
-                             </Button>
+                             <DialogTrigger asChild>
+                               <Button variant="ghost" onClick={openLoginDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
+                                 <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                                 <span className="sr-only">Ingresar / Crear Cuenta</span>
+                               </Button>
+                             </DialogTrigger>
                            )}
-                         </DialogTrigger>
+                           
                           {authDialogContent()}
                          </Dialog>
                    </div>
                </header>
 
               {/* Main Content Area */}
-              <SidebarInset>
+              <SidebarInset className="flex-1 overflow-auto"> {/* Make main content scrollable */}
                   {children}
               </SidebarInset>
             </div>
