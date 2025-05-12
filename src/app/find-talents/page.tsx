@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Star, Filter, X, Heart, Building } from 'lucide-react';
+import { Search, MapPin, Star, Filter, X, Heart, Building, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +18,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import Image from 'next/image';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
+import { Dumbbell } from 'lucide-react'; // Specific icon for Gimnasio
 
 // Define Category type
 interface Category {
@@ -25,22 +26,25 @@ interface Category {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Categories available for filtering - now focused on sports facilities
+// Updated categories for sports facilities
 const categoriasDisponibles: Category[] = [
-    { name: 'Todos', icon: Building }, // Using Building as a generic icon for "All Sports Facilities"
-    { name: 'Instalación Deportiva', icon: Building },
+    { name: 'Todos', icon: Building },
+    { name: 'Cancha de Fútbol', icon: Building }, // Placeholder, ideally specific icon like a soccer ball
+    { name: 'Gimnasio', icon: Dumbbell },
+    { name: 'Cancha de Tenis', icon: Building }, // Placeholder, ideally specific icon like a tennis racket/ball
+    { name: 'Piscina', icon: Building }, // Placeholder, ideally specific icon for swimming
 ];
 
 // Define SportsFacility interface
 interface SportsFacility {
   id: string;
   name: string; // e.g., "Cancha Sintética El Campín"
-  type: string; // e.g., "Fútbol 5", "Baloncesto", "Gimnasio"
+  type: string; // e.g., "Fútbol 5", "Gimnasio Completo", "Piscina Semiolímpica", "Canchas de Arcilla"
   location: string;
   rate: number; // Per hour or session
   rating: number;
   reviews: number;
-  category: 'Instalación Deportiva'; // Fixed category
+  category: 'Instalación Deportiva'; // Fixed category, used to identify items as sports facilities
   description: string;
   image: string;
   dataAiHint: string; // e.g., "soccer field", "basketball court"
@@ -52,9 +56,9 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
-    type: 'Fútbol 5',
+    type: 'Fútbol 5', // Matches 'Cancha de Fútbol'
     location: 'Chapinero Alto, Bogotá',
-    rate: 80000, // Assuming COP per hour
+    rate: 80000,
     rating: 4.7,
     reviews: 25,
     category: 'Instalación Deportiva',
@@ -66,9 +70,9 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf2',
     name: 'Gimnasio "Músculos de Acero"',
-    type: 'Gimnasio Completo',
+    type: 'Gimnasio Completo', // Matches 'Gimnasio'
     location: 'Usaquén, Bogotá',
-    rate: 15000, // Per pase diario o tarifa horaria
+    rate: 15000,
     rating: 4.9,
     reviews: 72,
     category: 'Instalación Deportiva',
@@ -80,9 +84,9 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf3',
     name: 'Piscina Olímpica "El Tritón"',
-    type: 'Piscina Semiolímpica',
+    type: 'Piscina Semiolímpica', // Matches 'Piscina'
     location: 'Salitre, Bogotá',
-    rate: 25000, // Por hora por persona
+    rate: 25000,
     rating: 4.6,
     reviews: 40,
     category: 'Instalación Deportiva',
@@ -94,9 +98,9 @@ const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf4',
     name: 'Canchas de Tenis "El Grand Slam"',
-    type: 'Canchas de Arcilla',
+    type: 'Canchas de Arcilla', // Matches 'Cancha de Tenis'
     location: 'Suba, Bogotá',
-    rate: 50000, // Por hora por cancha
+    rate: 50000,
     rating: 4.8,
     reviews: 33,
     category: 'Instalación Deportiva',
@@ -113,13 +117,15 @@ const FiltersContent = ({
     locationFilter, setLocationFilter,
     minRating, setMinRating,
     maxRate, setMaxRate,
-    onApplyFilters
+    onApplyFilters,
+    isSheet = false // Flag to know if rendered in Sheet
 }: {
     selectedCategory: string; setSelectedCategory: (cat: string) => void;
     locationFilter: string; setLocationFilter: (loc: string) => void;
     minRating: number; setMinRating: (rate: number) => void;
     maxRate: number; setMaxRate: (rate: number) => void;
     onApplyFilters?: () => void;
+    isSheet?: boolean;
 }) => {
     return (
      <div className="space-y-6 p-4 h-full flex flex-col">
@@ -127,7 +133,7 @@ const FiltersContent = ({
              <Label htmlFor="category-select">Categoría</Label>
              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                  <SelectTrigger id="category-select">
-                     <SelectValue placeholder="Selecciona una categoría" />
+                     <SelectValue placeholder="Selecciona un tipo de instalación" />
                  </SelectTrigger>
                  <SelectContent>
                      {categoriasDisponibles.map(category => (
@@ -176,16 +182,16 @@ const FiltersContent = ({
              <Slider
                  id="rate-slider"
                  min={0}
-                 max={200000} // Adjusted max rate for COP
+                 max={200000}
                  step={5000}
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
          </div>
           <div className="flex-grow"></div>
-         {onApplyFilters && (
+         {isSheet && onApplyFilters && (
           <SheetClose asChild>
-              <Button className="w-full md:hidden" onClick={onApplyFilters}>Mostrar Resultados</Button>
+              <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
           </SheetClose>
          )}
      </div>
@@ -194,15 +200,31 @@ const FiltersContent = ({
 
 const FindTalentsContent = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Instalación Deportiva'); // Default to sports facilities
+  const [selectedCategory, setSelectedCategory] = useState('Todos'); // Default to 'Todos'
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(200000); // Default max rate for COP
+  const [maxRate, setMaxRate] = useState(200000);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [favoritedItems, setFavoritedItems] = useState<Set<string>>(new Set());
 
   const filteredFacilities = dummySportsFacilities.filter(facility => {
-    const matchesCategory = selectedCategory === 'Todos' || facility.category === selectedCategory;
+    const isSportsFacilityCategory = facility.category === 'Instalación Deportiva';
+
+    let matchesTypeFilter = false;
+    if (selectedCategory === 'Todos') {
+        matchesTypeFilter = true;
+    } else if (selectedCategory === 'Cancha de Fútbol') {
+        matchesTypeFilter = facility.type.toLowerCase().includes('fútbol');
+    } else if (selectedCategory === 'Gimnasio') {
+        matchesTypeFilter = facility.type.toLowerCase().includes('gimnasio');
+    } else if (selectedCategory === 'Cancha de Tenis') {
+        matchesTypeFilter = facility.type.toLowerCase().includes('tenis') || facility.type.toLowerCase().includes('arcilla');
+    } else if (selectedCategory === 'Piscina') {
+        matchesTypeFilter = facility.type.toLowerCase().includes('piscina');
+    } else { // Fallback for any new types added to categoriasDisponibles if not handled above
+        matchesTypeFilter = facility.type === selectedCategory;
+    }
+    
     const matchesLocation = locationFilter === '' || facility.location.toLowerCase().includes(locationFilter.toLowerCase());
     const matchesRating = facility.rating >= minRating;
     const matchesRate = facility.rate <= maxRate;
@@ -211,7 +233,7 @@ const FindTalentsContent = () => {
                           facility.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (facility.amenities && facility.amenities.some(amenity => amenity.toLowerCase().includes(searchQuery.toLowerCase())));
 
-    return matchesCategory && matchesLocation && matchesRating && matchesRate && matchesSearch;
+    return isSportsFacilityCategory && matchesTypeFilter && matchesLocation && matchesRating && matchesRate && matchesSearch;
   });
 
   const handleApplyFiltersFromSheet = () => {
@@ -242,6 +264,7 @@ const FindTalentsContent = () => {
                     locationFilter={locationFilter} setLocationFilter={setLocationFilter}
                     minRating={minRating} setMinRating={setMinRating}
                     maxRate={maxRate} setMaxRate={setMaxRate}
+                    isSheet={false}
                 />
             </ScrollArea>
         </aside>
@@ -279,6 +302,7 @@ const FindTalentsContent = () => {
                               minRating={minRating} setMinRating={setMinRating}
                               maxRate={maxRate} setMaxRate={setMaxRate}
                               onApplyFilters={handleApplyFiltersFromSheet}
+                              isSheet={true}
                           />
                       </ScrollArea>
                   </SheetContent>
@@ -328,7 +352,7 @@ const FindTalentsContent = () => {
                             </div>
                             {facility.amenities && facility.amenities.length > 0 && (
                                 <div className="flex flex-wrap gap-1 pt-1">
-                                    {facility.amenities.slice(0,3).map(amenity => ( // Show up to 3 amenities
+                                    {facility.amenities.slice(0,3).map(amenity => ( 
                                         <Badge key={amenity} variant="secondary" className="text-xs">{amenity}</Badge>
                                     ))}
                                 </div>
@@ -343,6 +367,7 @@ const FindTalentsContent = () => {
                             <div className="flex justify-between items-center w-full">
                                  <p className="text-sm">
                                     Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
+                                    {/* Sports facilities usually are hourly, so we keep /hr. The category 'Instalación Deportiva' is in HOURLY_RATE_CATEGORIES */}
                                     {HOURLY_RATE_CATEGORIES.includes(facility.category) ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
                                 </p>
                                 <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
@@ -374,3 +399,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+
