@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialog primitives
 import {
   Sidebar,
   SidebarContent,
@@ -20,16 +21,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, Image as ImageIconLucide, FileText, Music, Lightbulb, Database, Code, Construction, School2, Palette, HomeIcon as LucideHomeIcon, UserCircle, Search as SearchIcon, UploadCloud, Lock } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle as ShadSheetTitle, SheetDescription, SheetClose } from "@/components/ui/sheet";
+import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle as ShadSheetTitle,
+  SheetDescription,
+  SheetClose
+  // SheetTrigger removed as we'll use DialogPrimitive.Trigger
+} from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
+  Dialog, // This is the custom Dialog from /ui/dialog
+  DialogContent, // This is the custom DialogContent from /ui/dialog
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle,
+  DialogTitle as ShadDialogTitle, // Alias to avoid conflict if Radix DialogTitle is used directly
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,7 +58,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext'; // Import ForgotPasswordValues
+import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
 
 
@@ -62,8 +71,8 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents",
-    icon: Building,
+    href: "/find-talents", // This was previously "Buscar Talentos"
+    icon: Building, // Changed from Users to Building
   },
   {
     title: "Publicar",
@@ -195,7 +204,7 @@ export default function AppLayout({
     phoneVerificationError,
     isVerifyingCode,
     resetPhoneVerification,
-    handleForgotPasswordSubmit: contextHandleForgotPasswordSubmit, // Import forgot password handler
+    handleForgotPasswordSubmit: contextHandleForgotPasswordSubmit,
    } = useAuth();
 
 
@@ -220,7 +229,7 @@ export default function AppLayout({
       email: "",
       password: "",
     },
-    mode: "onChange",
+    mode: "onChange", // Validate on change and submit
   });
   
   const forgotPasswordForm = useForm<ForgotPasswordValues>({
@@ -238,7 +247,7 @@ export default function AppLayout({
     };
 
      const handleNextStep = async () => {
-        contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
+        await contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
     };
 
      const handlePrevStep = () => {
@@ -571,23 +580,27 @@ export default function AppLayout({
                <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                  <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                    {isLoggedIn && user ? (
-                     <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
-                       <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                         <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                         <AvatarFallback>{user.initials}</AvatarFallback>
-                       </Avatar>
-                       <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                         <span className="font-semibold truncate">{user.name}</span>
-                       </div>
-                     </Button>
+                     <DialogPrimitive.Trigger asChild>
+                       <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                         <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                           <AvatarFallback>{user.initials}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                           <span className="font-semibold truncate">{user.name}</span>
+                         </div>
+                       </Button>
+                     </DialogPrimitive.Trigger>
                    ) : (
-                     <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
-                       <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-                       <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                         Ingresar / Crear Cuenta
-                       </span>
-                       <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
-                     </Button>
+                     <DialogPrimitive.Trigger asChild>
+                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
+                         <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                           Ingresar / Crear Cuenta
+                         </span>
+                         <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
+                       </Button>
+                     </DialogPrimitive.Trigger>
                    )}
                    {authDialogContent()}
                  </Dialog>
@@ -598,12 +611,12 @@ export default function AppLayout({
               {/* Mobile Header */}
                <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
-                      <SheetTrigger asChild>
+                      <DialogPrimitive.Trigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
                           <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                           <span className="sr-only">Abrir menú</span>
                         </Button>
-                      </SheetTrigger>
+                      </DialogPrimitive.Trigger>
                        <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
                          <SheetHeader className="p-4 border-b">
                              <ShadSheetTitle className="sr-only">Menú principal</ShadSheetTitle>
@@ -632,6 +645,7 @@ export default function AppLayout({
                           <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                                <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                                  {isLoggedIn && user ? (
+                                   <DialogPrimitive.Trigger asChild>
                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
                                      <Avatar className="h-8 w-8">
                                        <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -641,11 +655,14 @@ export default function AppLayout({
                                        <span className="font-semibold">{user.name}</span>
                                      </div>
                                    </Button>
+                                   </DialogPrimitive.Trigger>
                                  ) : (
+                                   <DialogPrimitive.Trigger asChild>
                                    <Button variant="outline" onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
                                      <LogIn className="mr-2 h-4 w-4" />
                                      Ingresar / Crear Cuenta
                                    </Button>
+                                   </DialogPrimitive.Trigger>
                                  )}
                                 {authDialogContent()}
                               </Dialog>
@@ -662,6 +679,7 @@ export default function AppLayout({
                    <div className="flex-shrink-0 w-8 sm:w-10">
                        <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
                            {isLoggedIn && user ? (
+                            <DialogPrimitive.Trigger asChild>
                              <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
                                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
                                  <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -669,11 +687,14 @@ export default function AppLayout({
                                </Avatar>
                                <span className="sr-only">Abrir perfil</span>
                              </Button>
+                             </DialogPrimitive.Trigger>
                            ) : (
+                            <DialogPrimitive.Trigger asChild>
                              <Button variant="ghost" onClick={openLoginDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
                                <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                <span className="sr-only">Ingresar / Crear Cuenta</span>
                              </Button>
+                             </DialogPrimitive.Trigger>
                            )}
                           {authDialogContent()}
                          </Dialog>
