@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft } from "lucide-react"; // Added ArrowLeft
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -77,7 +77,7 @@ interface Category {
 }
 
 const categorias: Category[] = [
-  { name: 'Todos', icon: ArrowLeft }, // Changed icon to ArrowLeft
+  { name: 'Todos', icon: ArrowLeft },
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -375,9 +375,9 @@ function LandingPageContent() {
                     opts={{ align: "start", dragFree: true }}
                     className="w-full"
                 >
-                    <CarouselContent className="py-1">
-                        <CarouselItem className="basis-auto">
-                            <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none">
+                    <CarouselContent>
+                         <TabsList asChild className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none">
+                            <CarouselItem className="basis-auto p-0"> {/* Single item containing the entire list */}
                                 {categorias.map(category => (
                                 <TabsTrigger
                                     key={category.name}
@@ -392,11 +392,10 @@ function LandingPageContent() {
                                     {category.name}
                                 </TabsTrigger>
                                 ))}
-                            </TabsList>
-                        </CarouselItem>
+                            </CarouselItem>
+                        </TabsList>
                     </CarouselContent>
-                    <CarouselPrevious variant="ghost" size="icon" className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-muted-foreground hover:text-foreground bg-background/70 hover:bg-background" />
-                    <CarouselNext variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-muted-foreground hover:text-foreground bg-background/70 hover:bg-background" />
+                    {/* Navigation arrows are removed as per user request */}
                 </Carousel>
             </div>
             <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
@@ -412,6 +411,15 @@ function LandingPageContent() {
                             objectFit="cover"
                             data-ai-hint={`${listing.category} service`}
                         />
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/50 hover:text-destructive"
+                            onClick={() => toggleFavorite(listing.id)}
+                            aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                            >
+                            <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
+                         </Button>
                         </div>
                         <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
@@ -421,15 +429,7 @@ function LandingPageContent() {
                             </CardTitle>
                             <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
                             </div>
-                            <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground hover:text-destructive flex-shrink-0 -mt-1 -mr-1"
-                            onClick={() => toggleFavorite(listing.id)}
-                            aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                            >
-                            <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
-                            </Button>
+                           
                         </div>
                         </CardHeader>
                         <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
