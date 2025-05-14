@@ -43,7 +43,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle as ShadDialogDialogTitle, // Use Shadcn DialogTitle here
-  DialogTrigger, // Explicitly import DialogTrigger
+  DialogTrigger, 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,13 +76,13 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents", // This was previously "Buscar Talento"
-    icon: Building, // Changed from SearchIcon
+    href: "/find-talents", 
+    icon: Building, 
   },
   {
     title: "Publicar",
     href: "/post-job",
-    icon: UploadCloud, // Changed from PlusCircle
+    icon: UploadCloud, 
   },
   {
     title: "Mis Reservas",
@@ -151,7 +151,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
-  country: z.string().min(1, "Debes seleccionar un país.").default("CO"), // Default to Colombia
+  country: z.string().min(1, "Debes seleccionar un país.").default("CO"), 
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
@@ -222,7 +222,7 @@ export default function AppLayout({
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO", // Default country Colombia
+      country: "CO", 
       phone: "",
       profileType: "",
       dob: null,
@@ -286,7 +286,7 @@ export default function AppLayout({
               <DialogHeader className="text-center mb-4">
                 <div className="flex flex-col items-center mb-3">
                   <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder large" />
+                    <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar large" />
                     <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
                   </Avatar>
                   <ShadDialogDialogTitle className="text-xl">{user.name}</ShadDialogDialogTitle>
@@ -553,11 +553,10 @@ export default function AppLayout({
   return (
       <>
           <div className="flex h-screen overflow-hidden">
-            {/* Desktop Sidebar - Visible on lg screens and up */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                  <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
-                 <h3 className="text-lg font-semibold text-sidebar-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">Sportoffice</h3>
+                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">Sportoffice</h3>
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
@@ -609,7 +608,6 @@ export default function AppLayout({
             </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
-              {/* Mobile Header - Visible on screens smaller than lg */}
                <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
@@ -622,7 +620,7 @@ export default function AppLayout({
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center gap-2">
                                  <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                                 <ShadSheetTitle className="text-lg font-semibold">Sportoffice</ShadSheetTitle>
+                                 <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">
@@ -631,7 +629,7 @@ export default function AppLayout({
                                   </Button>
                                 </SheetClose>
                           </ShadSheetHeader>
-                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Altura ajustada */}
+                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> 
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
                                       {navegacion.map((item) => (
@@ -650,12 +648,12 @@ export default function AppLayout({
                                    </SidebarMenu>
                               </SidebarContent>
                           </ScrollArea>
-                           <SidebarFooter className="p-2 border-t h-14"> {/* Altura fija para pie de página */}
+                           <SidebarFooter className="p-2 border-t h-14"> 
                                {isLoggedIn && user ? (
                                  <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
                                    <DialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openProfileDialog(); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
-                                          <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
+                                          <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                           <span className="font-medium truncate">{user.name}</span>
                                      </Button>
                                    </DialogTrigger>
@@ -675,17 +673,14 @@ export default function AppLayout({
                       </SheetContent>
                   </Sheet>
 
-                 {/* Centered Logo/Brand for mobile top header */}
                  <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                      <span className="font-semibold text-foreground">Sportoffice</span>
+                      <span className="font-semibold text-primary">Sportoffice</span>
                   </div>
 
-                   {/* Placeholder for balance or future icons on the right */}
                    <div className="flex-shrink-0 w-8 sm:w-10"></div>
                </header>
 
-              {/* Main Content Area */}
               <SidebarInset className="flex-1 overflow-auto">
                   {children}
               </SidebarInset>
@@ -695,4 +690,3 @@ export default function AppLayout({
       </>
   );
 }
-
