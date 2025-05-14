@@ -4,7 +4,7 @@
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { z } from "zod"; 
+import { z } from "zod"; // Ensure z is imported
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 import {
   getAuth,
@@ -151,7 +151,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // In a real app, this would be replaced by Firebase's onAuthStateChanged listener
+      await new Promise(resolve => setTimeout(resolve, 500)); 
       setIsLoading(false);
     };
     checkAuth();
@@ -185,43 +186,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
    const signup = useCallback(async (details: SignupValues) => {
     setIsLoading(true);
-    setLoginError(null); // Clear previous errors
+    setLoginError(null); 
 
     try {
-      // Step 1: Create user with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(firebaseAuth, details.email, details.password);
       const firebaseUser = userCredential.user;
 
-      // Step 2: Update Firebase Auth user profile (optional, but good practice)
       await updateFirebaseProfile(firebaseUser, {
         displayName: `${details.firstName} ${details.lastName}`,
-        // photoURL: can be set after image upload
       });
       
-      // Step 3: Prepare user data for Firestore
       const newUserForFirestore: Omit<User, 'id' | 'initials' | 'name' | 'avatarUrl'> & { uid: string, createdAt: any } = {
-        uid: firebaseUser.uid, // Use Firebase UID as the document ID
+        uid: firebaseUser.uid, 
         firstName: details.firstName,
         lastName: details.lastName,
-        email: details.email, // Firebase email is canonical
-        phone: details.phone || "", // Store as empty string if undefined
+        email: details.email, 
+        phone: details.phone || "", 
         country: details.country || "",
         dob: details.dob ? details.dob.toISOString() : null,
-        isPhoneVerified: false, // Default to false for new signups
+        isPhoneVerified: false, 
         profileType: details.profileType || "",
         gender: details.gender || "",
         documentType: details.documentType || "",
         documentNumber: details.documentNumber || "",
-        createdAt: serverTimestamp(), // Firestore server timestamp
+        createdAt: serverTimestamp(), 
       };
 
-      // Step 4: Save user data to Firestore
       if (!db) {
+        toast({ title: "Error de Base de Datos", description: "La conexión con la base de datos no está disponible. Inténtalo más tarde.", variant: "destructive" });
         throw new Error("Firestore database instance is not available.");
       }
       await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
 
-      // Step 5: Update local state
       const appUser: User = {
         id: firebaseUser.uid,
         name: `${details.firstName} ${details.lastName}`,
@@ -229,7 +225,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastName: details.lastName,
         initials: `${details.firstName[0]}${details.lastName[0]}`,
         avatarUrl: firebaseUser.photoURL || `https://picsum.photos/50/50?random=${Math.random()}`,
-        email: firebaseUser.email || details.email, // Prefer Firebase email
+        email: firebaseUser.email || details.email, 
         phone: newUserForFirestore.phone,
         country: newUserForFirestore.country,
         dob: newUserForFirestore.dob,
@@ -238,7 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: newUserForFirestore.gender,
         documentType: newUserForFirestore.documentType,
         documentNumber: newUserForFirestore.documentNumber,
-        createdAt: newUserForFirestore.createdAt, // Keep timestamp if needed
+        createdAt: newUserForFirestore.createdAt, 
       };
       setUser(appUser);
       setIsLoggedIn(true);
@@ -256,8 +252,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "La contraseña es demasiado débil.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "El correo electrónico no es válido.";
+      } else if (error.message === "Firestore database instance is not available.") {
+        errorMessage = "Error de base de datos al guardar perfil. Por favor, contacta al soporte.";
       }
-      setLoginError(errorMessage); // Use loginError for signup errors too for simplicity, or add signupError state
+      setLoginError(errorMessage); 
       toast({ title: "Error al Crear Cuenta", description: errorMessage, variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -289,14 +287,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 500));
 
       let newAvatarUrl = user.avatarUrl;
-      let objectUrlToRevoke: string | null = null;
+      // let objectUrlToRevoke: string | null = null; // Not strictly needed if not revoking immediately
 
       if (data.avatarFile) {
           console.log("Simulating avatar upload for:", data.avatarFile.name);
           try {
+              // For preview purposes only in this dummy setup
               newAvatarUrl = URL.createObjectURL(data.avatarFile);
-              objectUrlToRevoke = newAvatarUrl; 
+              // objectUrlToRevoke = newAvatarUrl; 
               console.log("Simulation: Using generated object URL for avatar preview:", newAvatarUrl);
+              // In a real Firebase app, you'd upload to Firebase Storage and get a persistent URL.
+              // Example:
+              // const storageRef = ref(storage, `avatars/${user.id}/${data.avatarFile.name}`);
+              // await uploadBytes(storageRef, data.avatarFile);
+              // newAvatarUrl = await getDownloadURL(storageRef);
           } catch (error) {
                 console.error("Error creating object URL for preview:", error);
                  toast({
@@ -308,10 +312,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
       }
 
-      const updatedFirstName = data.firstName || user.firstName;
-      const updatedLastName = data.lastName || user.lastName;
+      const updatedFirstName = data.firstName !== undefined ? data.firstName : user.firstName;
+      const updatedLastName = data.lastName !== undefined ? data.lastName : user.lastName;
       const updatedName = `${updatedFirstName} ${updatedLastName}`;
-      const updatedInitials = `${updatedFirstName?.[0] ?? ''}${updatedLastName?.[0] ?? ''}`;
+      const updatedInitials = `${updatedFirstName?.[0] ?? ''}${updatedLastName?.[0] ?? ''}`.toUpperCase();
       const newPhone = data.phone !== undefined ? data.phone : user.phone;
       const isPhoneUpdated = newPhone !== user.phone;
       const needsVerification = isPhoneUpdated && !!newPhone && !(user.isPhoneVerified && newPhone === user.phone);
@@ -330,9 +334,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(updatedUser);
 
-      if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
-         console.log("Consider revoking previous blob URL if no longer needed:", user.avatarUrl);
-      }
+      // If newAvatarUrl is a blob URL and different from the old one, and the old one was also a blob,
+      // you might consider revoking the old one if it's no longer used.
+      // if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
+      //    URL.revokeObjectURL(user.avatarUrl);
+      // }
 
       if (!needsVerification) {
         toast({
@@ -353,7 +359,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    const sendVerificationCode = useCallback(async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => {
        setPhoneVerificationError(null);
        setIsLoading(true);
-       if (!firebaseAuth) {
+       if (!firebaseAuth) { // Check if firebaseAuth itself is initialized
            setPhoneVerificationError("Error de Firebase: Servicio de autenticación no disponible.");
            toast({ title: "Error de Firebase", description: "El servicio de autenticación no está disponible.", variant: "destructive" });
            setIsLoading(false);
@@ -408,6 +414,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  phone: verifiedFirebaseUser.phoneNumber && verifiedFirebaseUser.phoneNumber !== user.phone ? verifiedFirebaseUser.phoneNumber : user.phone
                };
                setUser(updatedUser);
+               // Here you would also update the user's profile in Firestore
+               if (db) {
+                   await setDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true }, { merge: true });
+               } else {
+                   console.warn("Firestore (db) not available, phone verification status not saved to backend.");
+               }
            }
            setConfirmationResult(null);
            setIsVerificationSent(false);
@@ -472,12 +484,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
    const handleSignupSubmit = useCallback((data: SignupValues, resetForm: UseFormReset<SignupValues>) => {
        signup(data).then(() => {
-           resetForm();
+           // resetForm(); // Consider resetting form after successful API call in signup if needed
        }).catch((err) => {
-           console.error("Signup error:", err);
-           toast({ title: "Error al Crear Cuenta", description: "No se pudo crear la cuenta. Inténtalo de nuevo.", variant: "destructive" });
+           console.error("Signup error propagated to submit handler:", err);
+           // Toasting is handled within the signup function
        });
-   }, [signup, toast]);
+   }, [signup]);
 
     const handleForgotPasswordSubmit = useCallback(async (data: ForgotPasswordValues, resetForm: UseFormReset<ForgotPasswordValues>) => {
     setIsLoading(true);
@@ -566,9 +578,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleForgotPasswordSubmit, 
   };
 
-  if (isLoading && !user) { 
-     return <div>Cargando...</div>;
+  // This initial loading state ensures children are not rendered prematurely
+  // before the simulated auth check (or real onAuthStateChanged) completes.
+  if (isLoading && typeof window !== 'undefined') { // Added typeof window !== 'undefined' to prevent SSR issues with this simple loader
+     return (
+        <div className="flex justify-center items-center h-screen">
+           <p>Cargando autenticación...</p> {/* Or a more sophisticated loader component */}
+        </div>
+     );
   }
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -580,3 +599,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
