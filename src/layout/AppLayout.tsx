@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X } from "lucide-react";
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk } from "lucide-react"; // Added XIcon and Asterisk
 
 import { Button } from '@/components/ui/button';
 import {
@@ -40,7 +40,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle as ShadDialogDialogTitle,
-  DialogTrigger,
+  // DialogTrigger, // This is already imported from Radix primitives if needed directly. Sheet uses it internally.
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -261,16 +261,14 @@ export default function AppLayout({
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
-    // If sheet is being closed, also call the context's handleOpenChange
-    // to ensure any auth dialogs are also reset/closed.
     if (!open) {
       handleOpenChange(false);
     }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); // Close any open auth dialog
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false); // Close mobile sheet if open
+      handleOpenChange(false);
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false);
       router.push('/settings');
   };
 
@@ -555,12 +553,8 @@ export default function AppLayout({
             {/* Desktop Sidebar - Visible on lg screens and up */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                  <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
-                    SO
-                  </div>
-                <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
-                     <h3 className="font-semibold text-lg whitespace-nowrap">sportoffice</h3>
-                 </div>
+                 {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
+                 <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
@@ -584,7 +578,7 @@ export default function AppLayout({
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                  <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
                    {isLoggedIn && user ? (
-                     <DialogTrigger asChild>
+                     <DialogPrimitive.Trigger asChild>
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -594,9 +588,9 @@ export default function AppLayout({
                            <span className="font-semibold truncate">{user.name}</span>
                          </div>
                        </Button>
-                     </DialogTrigger>
+                     </DialogPrimitive.Trigger>
                    ) : (
-                     <DialogTrigger asChild>
+                     <DialogPrimitive.Trigger asChild>
                        <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -604,7 +598,7 @@ export default function AppLayout({
                          </span>
                          <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
                        </Button>
-                     </DialogTrigger>
+                     </DialogPrimitive.Trigger>
                    )}
                    {authDialogContent()}
                  </Dialog>
@@ -623,13 +617,12 @@ export default function AppLayout({
                       </SheetTrigger>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-start h-14">
-                               <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-2 flex-shrink-0">
-                                SO
-                               </div>
-                              <ShadSheetTitle className="font-semibold text-lg text-left flex-grow">sportoffice</ShadSheetTitle>
+                               {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
+                               <Asterisk className="h-7 w-7 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
+                               <div className="flex-grow"></div> {/* Spacer to push close button to the right */}
                                <SheetClose asChild>
                                 <Button variant="ghost" size="icon" className="ml-auto">
-                                    <X className="h-5 w-5" />
+                                    <XIcon className="h-5 w-5" />
                                     <span className="sr-only">Cerrar menú</span>
                                 </Button>
                             </SheetClose>
@@ -656,21 +649,21 @@ export default function AppLayout({
                            <SidebarFooter className="p-2 border-t h-14"> {/* Fixed height for footer */}
                                {isLoggedIn && user ? (
                                  <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
-                                   <DialogTrigger asChild>
+                                   <DialogPrimitive.Trigger asChild>
                                      <Button variant="ghost" onClick={() => { openProfileDialog(); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
                                           <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                           <span className="font-medium truncate">{user.name}</span>
                                      </Button>
-                                   </DialogTrigger>
+                                   </DialogPrimitive.Trigger>
                                    {authDialogContent()}
                                  </Dialog>
                                ) : (
                                  <Dialog open={showLoginDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openLoginDialog(); }}}>
-                                   <DialogTrigger asChild>
+                                   <DialogPrimitive.Trigger asChild>
                                      <Button variant="ghost" onClick={() => { openLoginDialog();}} className="w-full justify-start">
                                          <LogIn className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
                                      </Button>
-                                   </DialogTrigger>
+                                   </DialogPrimitive.Trigger>
                                    {authDialogContent()}
                                  </Dialog>
                                )}
@@ -679,9 +672,8 @@ export default function AppLayout({
                   </Sheet>
 
                  <div className="flex items-center flex-grow justify-center">
-                     <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">
-                        SO
-                     </div>
+                      {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
+                     <Asterisk className="h-6 w-6 text-primary mr-1.5 flex-shrink-0" aria-label="sportoffice logo" />
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10"></div> {/* Placeholder for balance */}
