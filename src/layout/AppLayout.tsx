@@ -1,3 +1,4 @@
+
 // src/layout/AppLayout.tsx
 'use client';
 
@@ -9,12 +10,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialog primitives
 import {
-  Sheet, 
+  Sheet,
   SheetContent,
   SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
   SheetTitle as ShadSheetTitle,   // Renamed to avoid conflict
-  SheetTrigger, // Ensure SheetTrigger is imported
-  SheetClose, // Make sure SheetClose is imported
+  SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import {
   Sidebar,
@@ -29,17 +30,17 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle } from "lucide-react";
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X } from "lucide-react";
 
 import { Button } from '@/components/ui/button';
 import {
-  Dialog, 
-  DialogContent, 
+  Dialog,
+  DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader, 
-  DialogTitle as ShadDialogDialogTitle, 
-  DialogTrigger, 
+  DialogHeader,
+  DialogTitle as ShadDialogDialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,8 +73,8 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents", 
-    icon: Building, 
+    href: "/find-talents",
+    icon: Building,
   },
   {
     title: "Publicar",
@@ -177,8 +178,8 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false); 
-   const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
 
 
   const {
@@ -221,16 +222,16 @@ export default function AppLayout({
       country: "",
       phone: "",
       profileType: "",
-      dob: null, // Initialize dob as null
+      dob: null,
       gender: "",
       documentType: "",
       documentNumber: "",
       email: "",
       password: "",
     },
-    mode: "onChange", 
+    mode: "onChange",
   });
-  
+
   const forgotPasswordForm = useForm<ForgotPasswordValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
@@ -260,10 +261,16 @@ export default function AppLayout({
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
+    // If sheet is being closed, also call the context's handleOpenChange
+    // to ensure any auth dialogs are also reset/closed.
+    if (!open) {
+      handleOpenChange(false);
+    }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); 
+      handleOpenChange(false); // Close any open auth dialog
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false); // Close mobile sheet if open
       router.push('/settings');
   };
 
@@ -384,7 +391,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="country" render={({ field }) => (
                                    <FormItem>
                                     <FormLabel>País</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
                                        </FormControl>
@@ -400,7 +407,7 @@ export default function AppLayout({
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
                                   <FormItem>
                                       <FormLabel>Tipo de perfil</FormLabel>
-                                       <Select onValueChange={field.onChange} value={field.value}>
+                                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                                            <FormControl>
                                                <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
                                            </FormControl>
@@ -437,7 +444,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="gender" render={({ field }) => (
                                    <FormItem>
                                     <FormLabel>Género (Opcional)</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
                                        </FormControl>
@@ -451,7 +458,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="documentType" render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Tipo de documento (Opcional)</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
                                        </FormControl>
@@ -538,7 +545,7 @@ export default function AppLayout({
        </DialogContent>
       );
     }
-    return null; 
+    return null;
   };
 
 
@@ -605,7 +612,7 @@ export default function AppLayout({
             </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
-              {/* Mobile Header - Hidden on lg screens and up */}
+              {/* Mobile Header - Visible on screens smaller than lg */}
                <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
@@ -615,13 +622,19 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
-                          <ShadSheetHeader className="p-4 border-b flex items-center justify-start h-14">
+                          <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-start h-14">
                                <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-2 flex-shrink-0">
                                 SO
                                </div>
-                              <ShadSheetTitle className="font-semibold text-lg">sportoffice</ShadSheetTitle>
+                              <ShadSheetTitle className="font-semibold text-lg text-left flex-grow">sportoffice</ShadSheetTitle>
+                               <SheetClose asChild>
+                                <Button variant="ghost" size="icon" className="ml-auto">
+                                    <X className="h-5 w-5" />
+                                    <span className="sr-only">Cerrar menú</span>
+                                </Button>
+                            </SheetClose>
                           </ShadSheetHeader>
-                          <ScrollArea className="flex-grow">
+                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Adjusted height */}
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
                                       {navegacion.map((item) => (
@@ -640,9 +653,9 @@ export default function AppLayout({
                                    </SidebarMenu>
                               </SidebarContent>
                           </ScrollArea>
-                           <SidebarFooter className="p-2 border-t">
+                           <SidebarFooter className="p-2 border-t h-14"> {/* Fixed height for footer */}
                                {isLoggedIn && user ? (
-                                 <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) handleOpenChange(false); else openProfileDialog();}}>
+                                 <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
                                    <DialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openProfileDialog(); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
                                           <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
@@ -652,7 +665,7 @@ export default function AppLayout({
                                    {authDialogContent()}
                                  </Dialog>
                                ) : (
-                                 <Dialog open={showLoginDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) handleOpenChange(false); else openLoginDialog();}}>
+                                 <Dialog open={showLoginDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openLoginDialog(); }}}>
                                    <DialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openLoginDialog();}} className="w-full justify-start">
                                          <LogIn className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
@@ -671,8 +684,7 @@ export default function AppLayout({
                      </div>
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
-                  {/* Placeholder for potential right-side icons on mobile header if needed */}
-                   <div className="flex-shrink-0 w-8 sm:w-10"></div>
+                   <div className="flex-shrink-0 w-8 sm:w-10"></div> {/* Placeholder for balance */}
                </header>
 
               {/* Main Content Area */}
