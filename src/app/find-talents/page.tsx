@@ -72,8 +72,6 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "futsal court indoor",
     amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salón'],
-    reservationDate: '2024-07-28',
-    reservationTime: '16:00',
   },
   {
     id: 'sf9',
@@ -94,8 +92,6 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
-    reservationDate: '2024-07-30',
-    reservationTime: '09:00',
   },
   {
     id: 'sf3',
@@ -116,8 +112,6 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
-    reservationDate: '2024-08-01',
-    reservationTime: '11:00',
   },
   {
     id: 'sf5',
@@ -382,20 +376,6 @@ const FindTalentsContent = () => {
                             objectFit="cover"
                             data-ai-hint={facility.dataAiHint}
                         />
-                        {facility.reservationDate && facility.reservationTime && (
-                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/70 text-white">
-                                <div className="flex items-center justify-between text-xs">
-                                    <div className="flex items-center gap-1">
-                                        <CalendarClock className="h-3.5 w-3.5" />
-                                        <span>
-                                            {new Date(facility.reservationDate).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
-                                            {' - '}
-                                            {facility.reservationTime}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
@@ -470,3 +450,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+
