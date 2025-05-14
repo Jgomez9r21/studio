@@ -22,23 +22,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
 import { Home, Settings, CreditCard, Briefcase, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle as ShadSheetTitle,
-  SheetDescription,
-  SheetClose
-  // SheetTrigger removed as we'll use DialogPrimitive.Trigger
-} from "@/components/ui/sheet";
+
 import { Button } from '@/components/ui/button';
 import {
-  Dialog, // This is the custom Dialog from /ui/dialog
-  DialogContent, // This is the custom DialogContent from /ui/dialog
+  Dialog, 
+  DialogContent, 
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogTitle, // Alias to avoid conflict if Radix DialogTitle is used directly
+  DialogTitle as ShadDialogTitle, 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,8 +63,8 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents", // This was previously "Buscar Talentos"
-    icon: Building, // Changed from Users to Building
+    href: "/find-talents", 
+    icon: Building, 
   },
   {
     title: "Publicar",
@@ -152,7 +144,7 @@ const signupStep1Schema = z.object({
 });
 
 const signupStep2Schema = z.object({
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional(),
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(),
   gender: z.string().optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
@@ -176,7 +168,7 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false); // State for mobile sheet
    const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
 
 
@@ -229,7 +221,7 @@ export default function AppLayout({
       email: "",
       password: "",
     },
-    mode: "onChange", // Validate on change and submit
+    mode: "onChange", 
   });
   
   const forgotPasswordForm = useForm<ForgotPasswordValues>({
@@ -264,7 +256,7 @@ export default function AppLayout({
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); // Close profile dialog
+      handleOpenChange(false); 
       router.push('/settings');
   };
 
@@ -371,7 +363,6 @@ export default function AppLayout({
                           onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
                           className="space-y-4"
                         >
-                           {/* Step 1 Fields */}
                            {signupStep === 1 && (
                              <div className="space-y-4">
                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -414,7 +405,6 @@ export default function AppLayout({
                              </div>
                            )}
 
-                           {/* Step 2 Fields */}
                            {signupStep === 2 && (
                              <div className="space-y-4">
                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -431,7 +421,7 @@ export default function AppLayout({
                                         </FormControl>
                                       </PopoverTrigger>
                                       <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} locale={es}/>
+                                        <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={currentYear} locale={es}/>
                                       </PopoverContent>
                                     </Popover>
                                     <FormMessage />
@@ -541,7 +531,7 @@ export default function AppLayout({
        </DialogContent>
       );
     }
-    return null; // Return null if neither dialog should be shown
+    return null; 
   };
 
 
@@ -549,126 +539,70 @@ export default function AppLayout({
       <>
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
-             <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
-               <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
-                     SO
-                   </div>
-                 <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
-                      <h3 className="font-semibold text-lg whitespace-nowrap">sportoffice</h3>
+            <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
+              <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
+                  <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
+                    SO
                   </div>
-               </SidebarHeader>
-               <SidebarContent className="flex-grow p-2 overflow-y-auto">
-                 <SidebarMenu>
-                   {navegacion.map((item) => (
-                     <SidebarMenuItem key={item.title}>
-                       <SidebarMenuButton
-                         href={item.href}
-                         isActive={pathname === item.href}
-                         className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
-                          tooltip={{ children: item.title, side: 'right', align: 'center' }}
-                       >
-                         <item.icon className="h-4 w-4" />
-                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
-                             {item.title}
-                         </span>
-                       </SidebarMenuButton>
-                     </SidebarMenuItem>
-                   ))}
-                 </SidebarMenu>
-               </SidebarContent>
-               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                 <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                   {isLoggedIn && user ? (
-                     <DialogPrimitive.Trigger asChild>
-                       <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
-                         <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                           <AvatarFallback>{user.initials}</AvatarFallback>
-                         </Avatar>
-                         <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                           <span className="font-semibold truncate">{user.name}</span>
-                         </div>
-                       </Button>
-                     </DialogPrimitive.Trigger>
-                   ) : (
-                     <DialogPrimitive.Trigger asChild>
-                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
-                         <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                           Ingresar / Crear Cuenta
-                         </span>
-                         <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
-                       </Button>
-                     </DialogPrimitive.Trigger>
-                   )}
-                   {authDialogContent()}
-                 </Dialog>
-               </SidebarFooter>
-             </Sidebar>
+                <div className="overflow-hidden transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 ml-2">
+                     <h3 className="font-semibold text-lg whitespace-nowrap">sportoffice</h3>
+                 </div>
+              </SidebarHeader>
+              <SidebarContent className="flex-grow p-2 overflow-y-auto">
+                <SidebarMenu>
+                  {navegacion.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        href={item.href}
+                        isActive={pathname === item.href}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
+                      >
+                        <item.icon className="h-4 w-4" />
+                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
+                            {item.title}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarContent>
+              <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
+                {/* Desktop Auth/Profile Trigger */}
+                <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
+                  {isLoggedIn && user ? (
+                    <DialogPrimitive.Trigger asChild>
+                      <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                        <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                          <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                          <AvatarFallback>{user.initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                          <span className="font-semibold truncate">{user.name}</span>
+                        </div>
+                      </Button>
+                    </DialogPrimitive.Trigger>
+                  ) : (
+                    <DialogPrimitive.Trigger asChild>
+                      <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
+                        <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+                        <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                          Ingresar / Crear Cuenta
+                        </span>
+                        <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
+                      </Button>
+                    </DialogPrimitive.Trigger>
+                  )}
+                  {authDialogContent()}
+                </Dialog>
+              </SidebarFooter>
+            </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
               {/* Mobile Header */}
                <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
-                  <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
-                      <DialogPrimitive.Trigger asChild>
-                        <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                          <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
-                          <span className="sr-only">Abrir menú</span>
-                        </Button>
-                      </DialogPrimitive.Trigger>
-                       <SheetContent side="left" className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground flex flex-col" style={{ '--sidebar-width': '16rem' } as React.CSSProperties}>
-                         <SheetHeader className="p-4 border-b">
-                             <ShadSheetTitle className="sr-only">Menú principal</ShadSheetTitle>
-                              <div className="flex items-center gap-2 text-lg font-semibold">
-                               <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">SO</div>
-                               <span className="whitespace-nowrap">sportoffice</span>
-                             </div>
-                          </SheetHeader>
-                         <ScrollArea className="flex-grow p-2 overflow-y-auto">
-                             <SidebarMenu>
-                             {navegacion.map((item) => (
-                                 <SidebarMenuItem key={item.title}>
-                                 <SidebarMenuButton
-                                     href={item.href}
-                                     isActive={pathname === item.href}
-                                     className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
-                                     onClick={() => handleMobileSheetOpenChange(false)}
-                                 >
-                                     <item.icon className="h-4 w-4" />
-                                     <span>{item.title}</span>
-                                 </SidebarMenuButton>
-                                 </SidebarMenuItem>
-                             ))}
-                             </SidebarMenu>
-                         </ScrollArea>
-                          <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                               <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
-                                 {isLoggedIn && user ? (
-                                   <DialogPrimitive.Trigger asChild>
-                                   <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md w-full text-left">
-                                     <Avatar className="h-8 w-8">
-                                       <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                                       <AvatarFallback>{user.initials}</AvatarFallback>
-                                     </Avatar>
-                                     <div className="flex flex-col text-sm">
-                                       <span className="font-semibold">{user.name}</span>
-                                     </div>
-                                   </Button>
-                                   </DialogPrimitive.Trigger>
-                                 ) : (
-                                   <DialogPrimitive.Trigger asChild>
-                                   <Button variant="outline" onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }} className="w-full justify-start hover:bg-sidebar-accent/10">
-                                     <LogIn className="mr-2 h-4 w-4" />
-                                     Ingresar / Crear Cuenta
-                                   </Button>
-                                   </DialogPrimitive.Trigger>
-                                 )}
-                                {authDialogContent()}
-                              </Dialog>
-                          </SidebarFooter>
-                      </SheetContent>
-                  </Sheet>
+                  {/* Placeholder for potential future mobile menu trigger if re-added, or it can be an empty div to maintain layout if other elements expect a left-aligned item */}
+                  <div className="w-8 sm:w-10"></div> {/* Or an empty button placeholder if needed for spacing */}
 
                  <div className="flex items-center flex-grow justify-center">
                      <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">
@@ -677,7 +611,11 @@ export default function AppLayout({
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
                    <div className="flex-shrink-0 w-8 sm:w-10">
-                       <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+                       <Dialog open={(showProfileDialog || showLoginDialog) && isMobile} onOpenChange={open => {
+                         if (!open) {
+                           handleOpenChange(false); // Close any auth dialog if mobile "profile" area is closed
+                         }
+                       }}>
                            {isLoggedIn && user ? (
                             <DialogPrimitive.Trigger asChild>
                              <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
