@@ -2,6 +2,7 @@
 
 import * as admin from 'firebase-admin';
 import type { ServiceAccount } from 'firebase-admin';
+import { bd} from '..'
 
 // Extend the ServiceAccount type to make privateKeyId and privateKey optional
 type OptionalServiceAccount = ServiceAccount & {
