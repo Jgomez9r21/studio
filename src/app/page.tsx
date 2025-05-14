@@ -3,7 +3,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'; // Added useSearchParams and useRouter
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'; 
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
 import AppLayout from '@/layout/AppLayout';
@@ -23,7 +23,7 @@ import {
   DialogContent,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger,
+  DialogTrigger, // Ensure DialogTrigger is imported
   DialogClose,
   DialogFooter as ShadDialogFooter,
   DialogDescription
@@ -59,7 +59,7 @@ import {
   Construction,
   School2,
   Palette,
-  HomeIcon as LucideHomeIcon,
+  HomeIcon as LucideHomeIcon, // Renamed to avoid conflict with local Home
   Info
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -104,10 +104,10 @@ const categorias: Category[] = [
 
 // Featured Services for Carousel - Moved outside component for stability
 const featuredServices = [
-  { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://picsum.photos/400/300?random=1', dataAiHint: "web development code" },
-  { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://picsum.photos/400/300?random=3', dataAiHint: "logo design graphic" },
-  { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://picsum.photos/400/300?random=4', dataAiHint: "language class conversation" },
-  { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://picsum.photos/400/300?random=5', dataAiHint: "electrician repair home" },
+  { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://placehold.co/400x300.png', dataAiHint: "web development code" },
+  { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://placehold.co/400x300.png', dataAiHint: "logo design graphic" },
+  { id: 'f4', title: 'Clases de Inglés Conversacional', description: 'Aprende a comunicarte con fluidez.', category: 'Profesores', image: 'https://placehold.co/400x300.png', dataAiHint: "language class conversation" },
+  { id: 'f5', title: 'Reparaciones Eléctricas Urgentes', description: 'Soluciones rápidas y seguras.', category: 'Mantenimiento Hogar', image: 'https://placehold.co/400x300.png', dataAiHint: "electrician repair home" },
 ];
 
 
@@ -176,12 +176,12 @@ const ServiceFiltersContent = ({
          </div>
 
          <div className="space-y-2">
-             <Label htmlFor="rate-filter-slider">Tarifa Máxima (${maxRate}/hr)</Label>
+             <Label htmlFor="rate-filter-slider">Tarifa Máxima (${maxRate.toLocaleString('es-CO')})</Label>
              <Slider
                  id="rate-filter-slider"
                  min={0}
-                 max={500} // Adjust max rate as needed
-                 step={5}
+                 max={500000} // Adjust max rate as needed (e.g. for COP)
+                 step={10000}  // Adjust step for COP
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
@@ -201,13 +201,13 @@ function LandingPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | undefined>();
-  const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
+  const [selectedCategoryState, setSelectedCategoryState] = useState<string>('Todos');
   const [favoritedListings, setFavoritedListings] = useState<Set<string>>(new Set());
 
   // New filter states
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(500);
+  const [maxRate, setMaxRate] = useState(500000); // Default max rate for COP
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   const router = useRouter();
@@ -221,10 +221,9 @@ function LandingPageContent() {
         const data = await getServiceListings();
         const updatedData = data.map(listing => ({
           ...listing,
-          // Ensure category exists or default to 'Otros' if necessary
           category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
-           imageUrl: listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`,
-           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://picsum.photos/800/600?random=service-${listing.id}`]),
+           imageUrl: listing.imageUrl || `https://placehold.co/400x300.png`,
+           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://placehold.co/800x600.png`]),
         }));
         setListings(updatedData);
       } catch (error) {
@@ -235,10 +234,10 @@ function LandingPageContent() {
     fetchListings();
   }, []);
 
-  // Effect to sync selectedCategory with URL query parameter
+  // Effect to sync selectedCategoryState with URL query parameter
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category');
-    let targetCategory = 'Todos'; // Default to 'Todos'
+    let targetCategory = 'Todos'; 
 
     if (categoryFromUrl) {
       const decodedCategory = decodeURIComponent(categoryFromUrl);
@@ -246,17 +245,16 @@ function LandingPageContent() {
       if (foundCategory) {
         targetCategory = foundCategory.name;
       }
-      // If categoryFromUrl is present but not in `categorias`, it defaults to 'Todos' (initial targetCategory value)
     }
 
-    if (selectedCategory !== targetCategory) {
-      setSelectedCategory(targetCategory);
+    if (selectedCategoryState !== targetCategory) {
+      setSelectedCategoryState(targetCategory);
     }
-  }, [searchParams, selectedCategory]); // `categorias` is stable (moved outside), `setSelectedCategory` is stable
+  }, [searchParams, selectedCategoryState]); 
 
 
   const filteredListings = listings.filter(listing => {
-    const matchesCategory = selectedCategory === 'Todos' || listing.category === selectedCategory;
+    const matchesCategory = selectedCategoryState === 'Todos' || listing.category === selectedCategoryState;
     const matchesSearch = searchQuery === '' ||
                           listing.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (listing.description && listing.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -278,12 +276,14 @@ function LandingPageContent() {
       } else {
         newFavorites.add(listingId);
       }
+      // Here you would typically also update backend/localStorage
       return newFavorites;
     });
   };
 
   const handleApplyFiltersFromSheet = () => {
     setIsFilterSheetOpen(false);
+    // Filtering is already reactive to state changes, so just closing is enough
   };
 
 
@@ -320,7 +320,7 @@ function LandingPageContent() {
               </ShadSheetHeader>
               <ScrollArea className="flex-grow">
                 <ServiceFiltersContent
-                    selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+                    selectedCategory={selectedCategoryState} setSelectedCategory={setSelectedCategoryState}
                     locationFilter={locationFilter} setLocationFilter={setLocationFilter}
                     minRating={minRating} setMinRating={setMinRating}
                     maxRate={maxRate} setMaxRate={setMaxRate}
@@ -338,7 +338,7 @@ function LandingPageContent() {
          <Carousel
           opts={{
             align: "start",
-             loop: true,
+             loop: featuredServices.length > 1, // Enable loop only if more than 1 item
           }}
           className="w-full"
         >
@@ -360,7 +360,7 @@ function LandingPageContent() {
               </CarouselItem>
             ))}
           </CarouselContent>
-           {featuredServices.length > 1 && (
+           {featuredServices.length > 3 && ( // Show arrows if more items than typically visible
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -372,11 +372,10 @@ function LandingPageContent() {
 
       {/* Category Tabs & Service Listings */}
        <Tabs
-        value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
+        value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
         onValueChange={(value) => {
           const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
-          setSelectedCategory(categoryName);
-          // Update URL query parameter when tab changes
+          setSelectedCategoryState(categoryName);
           if (categoryName === 'Todos') {
             router.push(pathname, { scroll: false });
           } else {
@@ -386,7 +385,7 @@ function LandingPageContent() {
         className="w-full px-4 md:px-6 lg:px-8 pb-4"
       >
          <ScrollArea className="w-full whitespace-nowrap pb-4">
-           <TabsList className="inline-flex h-auto sm:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap sm:flex-nowrap">
+           <TabsList className="inline-flex h-auto lg:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap lg:flex-nowrap">
              {categorias.map(category => (
                <TabsTrigger
                  key={category.name}
@@ -402,14 +401,14 @@ function LandingPageContent() {
          </ScrollArea>
 
 
-         <TabsContent value={selectedCategory.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
+         <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
             {filteredListings.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
                   <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
                      <div className="relative aspect-video w-full overflow-hidden">
                        <Image
-                         src={listing.imageUrl || `https://picsum.photos/400/300?random=${listing.id}`}
+                         src={listing.imageUrl || `https://placehold.co/400x300.png`}
                          alt={listing.title}
                          layout="fill"
                          objectFit="cover"
@@ -438,7 +437,7 @@ function LandingPageContent() {
                     <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
                        <p className="text-sm">
                           <span className="text-muted-foreground">Tarifa: </span>
-                          <span className="font-medium text-foreground">${listing.rate}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
+                          <span className="font-medium text-foreground">${listing.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
                        </p>
                       {listing.professionalName && (
                         <p className="text-sm">
@@ -454,8 +453,7 @@ function LandingPageContent() {
                        )}
                       <p className="text-sm text-foreground line-clamp-1 flex items-center">
                          <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
-                         <span className="text-muted-foreground">Ubicación: </span>
-                         <span className="ml-1">{listing.location}</span>
+                         {listing.location}
                       </p>
                     </CardContent>
                     <CardFooter className="p-4 pt-3 border-t">
@@ -501,7 +499,7 @@ function LandingPageContent() {
                                    {listing.professionalName && (
                                        <div className="flex items-center gap-2 pt-2">
                                            <Avatar className="h-8 w-8">
-                                               <AvatarImage src={listing.professionalAvatar || `https://picsum.photos/50/50?random=prof-${listing.id}`} alt={listing.professionalName} data-ai-hint="professional avatar" />
+                                               <AvatarImage src={listing.professionalAvatar || `https://placehold.co/50x50.png`} alt={listing.professionalName} data-ai-hint="professional avatar" />
                                                <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
                                            </Avatar>
                                            <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
@@ -593,4 +591,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
