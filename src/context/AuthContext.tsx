@@ -4,7 +4,7 @@
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { z } from "zod";
+import { z } from "zod"; // Import z explicitly
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 import {
   getAuth,
@@ -14,10 +14,11 @@ import {
   sendPasswordResetEmail,
   createUserWithEmailAndPassword,
   updateProfile as updateFirebaseProfile,
-  type User as FirebaseUser
+  type User as FirebaseUser // Renamed to avoid conflict with local User type
 } from 'firebase/auth';
-import { auth as firebaseAuth, db, app as firebaseApp } from '@/lib/firebase';
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { auth as firebaseAuth, db, app as firebaseApp } from '@/lib/firebase'; // Import the initialized Firebase app and auth
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+// import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase Storage
 
 
 interface User {
@@ -32,11 +33,11 @@ interface User {
   country?: string;
   dob?: Date | string | null;
   isPhoneVerified?: boolean;
-  profileType?: string;
-  gender?: string;
-  documentType?: string;
-  documentNumber?: string;
-  createdAt?: any;
+  profileType?: string; // Added from signup form
+  gender?: string;      // Added from signup form
+  documentType?: string;// Added from signup form
+  documentNumber?: string;// Added from signup form
+  createdAt?: any; // Firestore timestamp
 }
 
 const DUMMY_EMAIL = "user@ejemplo.com";
@@ -53,7 +54,7 @@ const dummyUser: User = {
   country: "CO",
   dob: new Date(1990, 5, 15).toISOString(),
   isPhoneVerified: true,
-  profileType: "usuario",
+  profileType: "usuario", // Example
 };
 
 const loginSchema = z.object({
@@ -135,7 +136,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Initialize to false
+  const [isLoading, setIsLoading] = useState(false); // Initial state to false to prevent immediate loading UI flash
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'forgotPassword'>('login');
@@ -150,11 +151,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkAuth = async () => {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // Actual Firebase auth listener (onAuthStateChanged) would go here.
+      setIsLoading(true); // Set loading true when auth check starts
+      // Simulate Firebase auth listener (onAuthStateChanged)
       // This would set the user, isLoggedIn, and then setIsLoading(false).
-      // For now, we just finish loading.
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async check
       setIsLoading(false);
     };
     checkAuth();
@@ -199,8 +199,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await updateFirebaseProfile(firebaseUser, {
         displayName: `${details.firstName} ${details.lastName}`,
+        // photoURL could be set here if a default placeholder is uploaded during signup
       });
 
+      // Prepare user data for Firestore
       const newUserForFirestore: Omit<User, 'id' | 'initials' | 'name' | 'avatarUrl'> & { uid: string, createdAt: any } = {
         uid: firebaseUser.uid,
         firstName: details.firstName,
@@ -209,32 +211,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         phone: details.phone || "",
         country: details.country || "",
         dob: details.dob ? details.dob.toISOString() : null,
-        isPhoneVerified: false,
+        isPhoneVerified: false, // Phone not verified on signup
         profileType: details.profileType || "",
         gender: details.gender || "",
         documentType: details.documentType || "",
         documentNumber: details.documentNumber || "",
         createdAt: serverTimestamp(),
       };
-
-      if (!db) {
+      
+      if (!db) { // Check if Firestore is available
         toast({ title: "Error de Base de Datos", description: "La conexión con la base de datos no está disponible. No se pudieron guardar los datos del perfil.", variant: "destructive" });
-        // Decide if you want to throw an error here or proceed with a partially created user
-        // For now, we'll proceed but the user data won't be in Firestore.
+        // Log a warning but still set the user in the app state
         console.warn("Firestore (db) not available, user profile data not saved to Firestore.");
       } else {
         await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
       }
 
 
+      // Create the User object for the app state
       const appUser: User = {
         id: firebaseUser.uid,
         name: `${details.firstName} ${details.lastName}`,
         firstName: details.firstName,
         lastName: details.lastName,
         initials: `${details.firstName[0]}${details.lastName[0]}`,
-        avatarUrl: firebaseUser.photoURL || `https://placehold.co/50x50.png`,
-        email: firebaseUser.email || details.email,
+        avatarUrl: firebaseUser.photoURL || `https://placehold.co/50x50.png`, // Placeholder if no photoURL
+        email: firebaseUser.email || details.email, // Ensure email is non-null
         phone: newUserForFirestore.phone,
         country: newUserForFirestore.country,
         dob: newUserForFirestore.dob,
@@ -243,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: newUserForFirestore.gender,
         documentType: newUserForFirestore.documentType,
         documentNumber: newUserForFirestore.documentNumber,
-        createdAt: newUserForFirestore.createdAt,
+        createdAt: newUserForFirestore.createdAt, // This will be a server timestamp object
       };
       setUser(appUser);
       setIsLoggedIn(true);
@@ -301,6 +303,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               newAvatarUrl = URL.createObjectURL(data.avatarFile);
               objectUrlToRevoke = newAvatarUrl;
               console.log("Simulation: Using generated object URL for avatar preview:", newAvatarUrl);
+              // In a real app, you'd upload to Firebase Storage here and get a persistent URL
+              // Example:
+              // const storage = getStorage(firebaseApp);
+              // const avatarRef = ref(storage, `avatars/${user.id}/${data.avatarFile.name}`);
+              // await uploadBytes(avatarRef, data.avatarFile);
+              // newAvatarUrl = await getDownloadURL(avatarRef);
           } catch (error) {
                 console.error("Error creating object URL for preview:", error);
                  toast({
@@ -333,20 +341,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           isPhoneVerified: needsVerification ? false : (user.isPhoneVerified ?? false),
       };
 
-      // Simulate saving to backend (Firebase or dummy)
-      if (db) { // Check if Firestore is available
-        // This would be where you update Firestore for a real user
-        // For the dummyUser, we just update the local state
-        console.log("Simulating Firestore update for user:", user.id, updatedUser);
-      } else {
-        console.warn("Firestore (db) not available, profile update not saved to backend for user:", user.id);
-        if (!user.id.startsWith('usr')) { // Only show toast if it's not the dummy user
-            toast({ title: "Advertencia", description: "La base de datos no está disponible. Los cambios de perfil no se guardaron en el servidor.", variant: "default" });
+      // Simulate saving to backend (Firebase Firestore)
+      if (db && user.id !== 'usr123') { // Check if Firestore is available and not the dummy user
+        try {
+            const userDocRef = doc(db, "users", user.id);
+            const firestoreUpdateData: Partial<User> = { // Only include fields that might change
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                name: updatedUser.name,
+                initials: updatedUser.initials,
+                phone: updatedUser.phone,
+                country: updatedUser.country,
+                dob: updatedUser.dob,
+                avatarUrl: updatedUser.avatarUrl, // In real app, this would be Storage URL
+                isPhoneVerified: updatedUser.isPhoneVerified,
+            };
+            await updateDoc(userDocRef, firestoreUpdateData);
+            console.log("Firestore update for user:", user.id, firestoreUpdateData);
+        } catch (error) {
+            console.error("Error updating user in Firestore:", error);
+            toast({ title: "Error de Base de Datos", description: "No se pudieron guardar los cambios en el servidor.", variant: "destructive" });
         }
+      } else if (user.id !== 'usr123') {
+        console.warn("Firestore (db) not available, profile update not saved to backend for user:", user.id);
+        toast({ title: "Advertencia", description: "La base de datos no está disponible. Los cambios de perfil no se guardaron en el servidor.", variant: "default" });
       }
 
 
-      setUser(updatedUser);
+      setUser(updatedUser); // Update local state
 
       if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
          console.log("Consider revoking previous blob URL if no longer needed:", user.avatarUrl);
@@ -418,7 +440,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        setIsLoading(true);
        try {
            const credential = await confirmationResult.confirm(code);
-           const verifiedFirebaseUser = credential.user as FirebaseUser;
+           const verifiedFirebaseUser = credential.user as FirebaseUser; // Cast to FirebaseUser
            if (user) {
                const updatedUser = {
                  ...user,
@@ -426,13 +448,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  phone: verifiedFirebaseUser.phoneNumber && verifiedFirebaseUser.phoneNumber !== user.phone ? verifiedFirebaseUser.phoneNumber : user.phone
                };
                setUser(updatedUser);
-               if (db) { // Check if Firestore is available
-                   await setDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true }, { merge: true });
-               } else {
-                   console.warn("Firestore (db) not available, phone verification status not saved to backend for user:", user.id);
-                   if (!user.id.startsWith('usr')) { // Only show toast if it's not the dummy user
-                       toast({ title: "Advertencia", description: "La base de datos no está disponible. El estado de verificación del teléfono no se guardó en el servidor.", variant: "default" });
+               if (db && user.id !== 'usr123') { // Check if Firestore is available and not dummy user
+                   try {
+                      await updateDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true });
+                   } catch (dbError) {
+                       console.error("Error updating phone verification status in Firestore:", dbError);
+                       toast({ title: "Error de Base de Datos", description: "No se pudo actualizar el estado de verificación del teléfono.", variant: "destructive"});
                    }
+               } else if (user.id !== 'usr123') {
+                   console.warn("Firestore (db) not available, phone verification status not saved to backend for user:", user.id);
+                   toast({ title: "Advertencia", description: "La base de datos no está disponible. El estado de verificación del teléfono no se guardó en el servidor.", variant: "default" });
                }
            }
            setConfirmationResult(null);
@@ -591,10 +616,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleForgotPasswordSubmit,
   };
 
-  if (isLoading && typeof window !== 'undefined') {
+  if (isLoading && typeof window !== 'undefined') { // Added typeof window !== 'undefined' to prevent SSR issues with this simple loader
      return (
         <div className="flex justify-center items-center h-screen">
-           <p>Cargando autenticación...</p>
+           <p>Cargando autenticación...</p> {/* Or a more sophisticated loader component */}
         </div>
      );
   }
@@ -610,3 +635,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

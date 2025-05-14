@@ -3,7 +3,7 @@
 
 import type React from "react";
 import { useEffect, useState, useCallback } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'; 
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
 import AppLayout from '@/layout/AppLayout';
@@ -23,7 +23,7 @@ import {
   DialogContent,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, 
+  DialogTrigger,
   DialogClose,
   DialogFooter as ShadDialogFooter,
   DialogDescription
@@ -59,8 +59,10 @@ import {
   Construction,
   School2,
   Palette,
-  HomeIcon as LucideHomeIcon, 
-  Info
+  HomeIcon as LucideHomeIcon,
+  Info,
+  Briefcase,
+  Building
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -176,8 +178,8 @@ const ServiceFiltersContent = ({
              <Slider
                  id="rate-filter-slider"
                  min={0}
-                 max={500000} 
-                 step={10000}  
+                 max={500000}
+                 step={10000}
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
@@ -201,7 +203,7 @@ function LandingPageContent() {
 
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(500000); 
+  const [maxRate, setMaxRate] = useState(500000);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   const router = useRouter();
@@ -230,7 +232,7 @@ function LandingPageContent() {
 
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category');
-    let targetCategory = 'Todos'; 
+    let targetCategory = 'Todos';
 
     if (categoryFromUrl) {
       const decodedCategory = decodeURIComponent(categoryFromUrl);
@@ -243,7 +245,7 @@ function LandingPageContent() {
     if (selectedCategoryState !== targetCategory) {
       setSelectedCategoryState(targetCategory);
     }
-  }, [searchParams, selectedCategoryState]); 
+  }, [searchParams, selectedCategoryState]);
 
 
   const filteredListings = listings.filter(listing => {
@@ -327,7 +329,7 @@ function LandingPageContent() {
          <Carousel
           opts={{
             align: "start",
-             loop: featuredServices.length > 1, 
+             loop: featuredServices.length > 1,
           }}
           className="w-full"
         >
@@ -349,7 +351,7 @@ function LandingPageContent() {
               </CarouselItem>
             ))}
           </CarouselContent>
-           {featuredServices.length > 1 && ( 
+           {featuredServices.length > 1 && (
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -372,21 +374,18 @@ function LandingPageContent() {
         }}
         className="w-full px-4 md:px-6 lg:px-8 pb-4"
       >
-         <ScrollArea className="w-full whitespace-nowrap pb-4">
-           <TabsList className="inline-flex h-auto lg:h-10 gap-1 p-1 bg-muted rounded-md shadow-sm flex-wrap lg:flex-nowrap">
-             {categorias.map(category => (
-               <TabsTrigger
-                 key={category.name}
-                 value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                 className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0"
-               >
-                 {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-                 {category.name}
-               </TabsTrigger>
-             ))}
-           </TabsList>
-           <ScrollBar orientation="horizontal" />
-         </ScrollArea>
+        <TabsList className="flex flex-wrap h-auto p-1 bg-muted rounded-md shadow-sm justify-start">
+          {categorias.map(category => (
+            <TabsTrigger
+              key={category.name}
+              value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+              className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 m-1" // Added m-1 for spacing
+            >
+              {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+              {category.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
 
          <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
@@ -487,7 +486,7 @@ function LandingPageContent() {
                                    {listing.professionalName && (
                                        <div className="flex items-center gap-2 pt-2">
                                            <Avatar className="h-8 w-8">
-                                               <AvatarImage src={listing.professionalAvatar || `https://placehold.co/50x50.png`} alt={listing.professionalName} data-ai-hint="professional avatar" />
+                                               <AvatarImage src={listing.professionalAvatar || `https://placehold.co/50x50.png`} alt={listing.professionalName} data-ai-hint="professional avatar"/>
                                                <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
                                            </Avatar>
                                            <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
@@ -579,4 +578,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
