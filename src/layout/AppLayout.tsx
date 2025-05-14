@@ -1,4 +1,5 @@
 
+
 // src/layout/AppLayout.tsx
 
 'use client';
@@ -74,7 +75,7 @@ const navegacion = [
   {
     title: "Espacios Deportivos",
     href: "/find-talents",
-    icon: Building, // Changed from Waves
+    icon: Building,
   },
   {
     title: "Publicar",
@@ -554,9 +555,7 @@ export default function AppLayout({
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                  <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
-                 <h3 className="font-semibold text-lg text-sidebar-foreground overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                    Sportoffice
-                  </h3>
+                 {/* Text removed as per request */}
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
@@ -620,8 +619,9 @@ export default function AppLayout({
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center">
-                                 <Asterisk className="h-6 w-6 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
-                                 <ShadSheetTitle className="text-lg font-semibold">Sportoffice</ShadSheetTitle>
+                                 <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                                 {/* Text "sportoffice" removed from mobile sheet header */}
+                                 <ShadSheetTitle className="text-lg font-semibold ml-2">Menú</ShadSheetTitle>
                                </div>
                           </ShadSheetHeader>
                           <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Altura ajustada */}
@@ -670,8 +670,8 @@ export default function AppLayout({
 
                  {/* Centered Logo/Brand for mobile top header */}
                  <div className="flex items-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                     <Asterisk className="h-6 w-6 text-primary mr-1.5 flex-shrink-0" aria-label="sportoffice logo" />
-                      <h3 className="font-semibold text-md sm:text-lg">Sportoffice</h3>
+                     <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                      {/* Text "Sportoffice" removed from mobile top bar */}
                   </div>
 
                    {/* Placeholder for balance or future icons on the right */}
