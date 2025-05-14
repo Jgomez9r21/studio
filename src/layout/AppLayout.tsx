@@ -9,6 +9,14 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialog primitives
 import {
+  Sheet, 
+  SheetContent,
+  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
+  SheetTitle as ShadSheetTitle,   // Renamed to avoid conflict
+  SheetTrigger, // Ensure SheetTrigger is imported
+  SheetClose, // Make sure SheetClose is imported
+} from "@/components/ui/sheet";
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -29,8 +37,9 @@ import {
   DialogContent, 
   DialogDescription,
   DialogFooter,
-  DialogHeader,
-  DialogTitle as ShadDialogTitle, 
+  DialogHeader, 
+  DialogTitle as ShadDialogDialogTitle, 
+  DialogTrigger, 
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -168,11 +177,10 @@ export default function AppLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false); // State for mobile sheet
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false); 
    const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
 
 
-  // Use auth context
   const {
     user,
     isLoggedIn,
@@ -200,7 +208,6 @@ export default function AppLayout({
    } = useAuth();
 
 
-  // Form hooks remain here as they are specific to the dialogs within this layout
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -214,7 +221,7 @@ export default function AppLayout({
       country: "",
       phone: "",
       profileType: "",
-      dob: undefined,
+      dob: null, // Initialize dob as null
       gender: "",
       documentType: "",
       documentNumber: "",
@@ -274,12 +281,12 @@ export default function AppLayout({
                     <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder large" />
                     <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
                   </Avatar>
-                  <ShadDialogTitle className="text-xl">{user.name}</ShadDialogTitle>
+                  <ShadDialogDialogTitle className="text-xl">{user.name}</ShadDialogDialogTitle>
                   <DialogDescription className="text-sm">{user.email}</DialogDescription>
                 </div>
               </DialogHeader>
               <div className="py-2 space-y-1 text-sm">
-                <p><span className="font-medium text-muted-foreground">País:</span> {user.country || 'No especificado'}</p>
+                <p><span className="font-medium text-muted-foreground">País:</span> {countries.find(c => c.code === user.country)?.name || user.country || 'No especificado'}</p>
                 <p><span className="font-medium text-muted-foreground">Teléfono:</span> {user.phone || 'No especificado'} {user.phone && (user.isPhoneVerified ? <span className="text-green-600 text-xs ml-1">(Verificado)</span> : <span className="text-orange-600 text-xs ml-1">(No verificado)</span>)}</p>
                 <p><span className="font-medium text-muted-foreground">Fecha de Nacimiento:</span> {user.dob ? format(new Date(user.dob), "PPP", {locale: es}) : 'No especificada'}</p>
               </div>
@@ -301,7 +308,7 @@ export default function AppLayout({
                 {currentView === 'login' && (
                   <>
                     <DialogHeader className="mb-4 text-center">
-                      <ShadDialogTitle className="text-2xl">Ingresar</ShadDialogTitle>
+                      <ShadDialogDialogTitle className="text-2xl">Ingresar</ShadDialogDialogTitle>
                       <DialogDescription>
                         Ingresa tu correo y contraseña para continuar.
                       </DialogDescription>
@@ -353,7 +360,7 @@ export default function AppLayout({
                 {currentView === 'signup' && (
                   <>
                     <DialogHeader className="mb-4 text-center">
-                      <ShadDialogTitle className="text-2xl">Crear Cuenta</ShadDialogTitle>
+                      <ShadDialogDialogTitle className="text-2xl">Crear Cuenta</ShadDialogDialogTitle>
                        <DialogDescription>
                          Paso {signupStep} de 2: {signupStep === 1 ? 'Información básica.' : 'Detalles adicionales y de cuenta.'}
                        </DialogDescription>
@@ -494,7 +501,7 @@ export default function AppLayout({
                 {currentView === 'forgotPassword' && (
                   <>
                     <DialogHeader className="mb-4 text-center">
-                      <ShadDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogTitle>
+                      <ShadDialogDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogDialogTitle>
                       <DialogDescription>
                         Ingresa tu correo electrónico para enviarte un enlace de recuperación.
                       </DialogDescription>
@@ -538,8 +545,8 @@ export default function AppLayout({
   return (
       <>
           <div className="flex h-screen overflow-hidden">
-            {/* Desktop Sidebar */}
-            <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
+            {/* Desktop Sidebar - Visible on lg screens and up */}
+            <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                   <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold flex-shrink-0">
                     SO
@@ -568,41 +575,95 @@ export default function AppLayout({
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                {/* Desktop Auth/Profile Trigger */}
-                <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
-                  {isLoggedIn && user ? (
-                    <DialogPrimitive.Trigger asChild>
-                      <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
-                        <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                          <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                          <AvatarFallback>{user.initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                          <span className="font-semibold truncate">{user.name}</span>
-                        </div>
-                      </Button>
-                    </DialogPrimitive.Trigger>
-                  ) : (
-                    <DialogPrimitive.Trigger asChild>
-                      <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
-                        <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-                        <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                          Ingresar / Crear Cuenta
-                        </span>
-                        <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
-                      </Button>
-                    </DialogPrimitive.Trigger>
-                  )}
-                  {authDialogContent()}
-                </Dialog>
+                 <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
+                   {isLoggedIn && user ? (
+                     <DialogTrigger asChild>
+                       <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
+                         <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                           <AvatarFallback>{user.initials}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                           <span className="font-semibold truncate">{user.name}</span>
+                         </div>
+                       </Button>
+                     </DialogTrigger>
+                   ) : (
+                     <DialogTrigger asChild>
+                       <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
+                         <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                           Ingresar / Crear Cuenta
+                         </span>
+                         <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
+                       </Button>
+                     </DialogTrigger>
+                   )}
+                   {authDialogContent()}
+                 </Dialog>
               </SidebarFooter>
             </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
-              {/* Mobile Header */}
-               <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
-                  {/* Placeholder for potential future mobile menu trigger if re-added, or it can be an empty div to maintain layout if other elements expect a left-aligned item */}
-                  <div className="w-8 sm:w-10"></div> {/* Or an empty button placeholder if needed for spacing */}
+              {/* Mobile Header - Hidden on lg screens and up */}
+               <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+                  <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
+                      <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
+                          <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                          <span className="sr-only">Abrir menú</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
+                          <ShadSheetHeader className="p-4 border-b flex items-center justify-start h-14">
+                               <div className="flex items-center justify-center h-7 w-7 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-2 flex-shrink-0">
+                                SO
+                               </div>
+                              <ShadSheetTitle className="font-semibold text-lg">sportoffice</ShadSheetTitle>
+                          </ShadSheetHeader>
+                          <ScrollArea className="flex-grow">
+                              <SidebarContent className="p-2">
+                                   <SidebarMenu>
+                                      {navegacion.map((item) => (
+                                      <SidebarMenuItem key={item.title}>
+                                          <SidebarMenuButton
+                                              href={item.href}
+                                              isActive={pathname === item.href}
+                                              onClick={() => setIsMobileSheetOpen(false)}
+                                              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                                          >
+                                              <item.icon className="h-4 w-4" />
+                                              {item.title}
+                                          </SidebarMenuButton>
+                                      </SidebarMenuItem>
+                                      ))}
+                                   </SidebarMenu>
+                              </SidebarContent>
+                          </ScrollArea>
+                           <SidebarFooter className="p-2 border-t">
+                               {isLoggedIn && user ? (
+                                 <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) handleOpenChange(false); else openProfileDialog();}}>
+                                   <DialogTrigger asChild>
+                                     <Button variant="ghost" onClick={() => { openProfileDialog(); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
+                                          <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
+                                          <span className="font-medium truncate">{user.name}</span>
+                                     </Button>
+                                   </DialogTrigger>
+                                   {authDialogContent()}
+                                 </Dialog>
+                               ) : (
+                                 <Dialog open={showLoginDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) handleOpenChange(false); else openLoginDialog();}}>
+                                   <DialogTrigger asChild>
+                                     <Button variant="ghost" onClick={() => { openLoginDialog();}} className="w-full justify-start">
+                                         <LogIn className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
+                                     </Button>
+                                   </DialogTrigger>
+                                   {authDialogContent()}
+                                 </Dialog>
+                               )}
+                           </SidebarFooter>
+                      </SheetContent>
+                  </Sheet>
 
                  <div className="flex items-center flex-grow justify-center">
                      <div className="flex items-center justify-center h-6 w-6 bg-primary rounded-full text-primary-foreground text-xs font-bold mr-1.5 flex-shrink-0">
@@ -610,33 +671,8 @@ export default function AppLayout({
                      </div>
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
-                   <div className="flex-shrink-0 w-8 sm:w-10">
-                       <Dialog open={(showProfileDialog || showLoginDialog) && isMobile} onOpenChange={open => {
-                         if (!open) {
-                           handleOpenChange(false); // Close any auth dialog if mobile "profile" area is closed
-                         }
-                       }}>
-                           {isLoggedIn && user ? (
-                            <DialogPrimitive.Trigger asChild>
-                             <Button variant="ghost" onClick={openProfileDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full">
-                               <Avatar className="h-7 w-7 sm:h-8 sm:w-8 cursor-pointer">
-                                 <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
-                                 <AvatarFallback>{user.initials}</AvatarFallback>
-                               </Avatar>
-                               <span className="sr-only">Abrir perfil</span>
-                             </Button>
-                             </DialogPrimitive.Trigger>
-                           ) : (
-                            <DialogPrimitive.Trigger asChild>
-                             <Button variant="ghost" onClick={openLoginDialog} size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
-                               <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                               <span className="sr-only">Ingresar / Crear Cuenta</span>
-                             </Button>
-                             </DialogPrimitive.Trigger>
-                           )}
-                          {authDialogContent()}
-                         </Dialog>
-                   </div>
+                  {/* Placeholder for potential right-side icons on mobile header if needed */}
+                   <div className="flex-shrink-0 w-8 sm:w-10"></div>
                </header>
 
               {/* Main Content Area */}
