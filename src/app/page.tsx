@@ -23,7 +23,7 @@ import {
   DialogContent,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, // Ensure DialogTrigger is imported
+  DialogTrigger, 
   DialogClose,
   DialogFooter as ShadDialogFooter,
   DialogDescription
@@ -59,7 +59,7 @@ import {
   Construction,
   School2,
   Palette,
-  HomeIcon as LucideHomeIcon, // Renamed to avoid conflict with local Home
+  HomeIcon as LucideHomeIcon, 
   Info
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,13 +77,11 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 
 
-// Define Category types with explicit icon typing
 interface Category {
   name: string;
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Categorías de servicios - Moved outside component for stability
 const categorias: Category[] = [
   { name: 'Todos' },
   { name: 'Tecnología', icon: Code },
@@ -102,7 +100,6 @@ const categorias: Category[] = [
   { name: 'Fotografía', icon: ImageIcon },
 ];
 
-// Featured Services for Carousel - Moved outside component for stability
 const featuredServices = [
   { id: 'f1', title: 'Desarrollo Web Completo', description: 'Sitios web modernos y optimizados.', category: 'Tecnología', image: 'https://placehold.co/400x300.png', dataAiHint: "web development code" },
   { id: 'f3', title: 'Diseño de Logotipos Impactantes', description: 'Crea una identidad visual única.', category: 'Diseñadores', image: 'https://placehold.co/400x300.png', dataAiHint: "logo design graphic" },
@@ -111,7 +108,6 @@ const featuredServices = [
 ];
 
 
-// Component for Filter Controls (used in Sheet)
 const ServiceFiltersContent = ({
     selectedCategory, setSelectedCategory,
     locationFilter, setLocationFilter,
@@ -180,8 +176,8 @@ const ServiceFiltersContent = ({
              <Slider
                  id="rate-filter-slider"
                  min={0}
-                 max={500000} // Adjust max rate as needed (e.g. for COP)
-                 step={10000}  // Adjust step for COP
+                 max={500000} 
+                 step={10000}  
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
@@ -195,7 +191,6 @@ const ServiceFiltersContent = ({
 };
 
 
-// Main Content Component for the Landing Page
 function LandingPageContent() {
   const [listings, setListings] = useState<ServiceListing[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -204,10 +199,9 @@ function LandingPageContent() {
   const [selectedCategoryState, setSelectedCategoryState] = useState<string>('Todos');
   const [favoritedListings, setFavoritedListings] = useState<Set<string>>(new Set());
 
-  // New filter states
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(500000); // Default max rate for COP
+  const [maxRate, setMaxRate] = useState(500000); 
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   const router = useRouter();
@@ -234,7 +228,6 @@ function LandingPageContent() {
     fetchListings();
   }, []);
 
-  // Effect to sync selectedCategoryState with URL query parameter
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category');
     let targetCategory = 'Todos'; 
@@ -276,20 +269,17 @@ function LandingPageContent() {
       } else {
         newFavorites.add(listingId);
       }
-      // Here you would typically also update backend/localStorage
       return newFavorites;
     });
   };
 
   const handleApplyFiltersFromSheet = () => {
     setIsFilterSheetOpen(false);
-    // Filtering is already reactive to state changes, so just closing is enough
   };
 
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      {/* Hero Section */}
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 pt-6 md:pt-8 lg:pt-12">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
           Encuentra el proveedor de servicios perfecto
@@ -332,13 +322,12 @@ function LandingPageContent() {
         </div>
       </section>
 
-      {/* Featured Services Carousel */}
       <section className="mb-8 px-4 md:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold mb-4">Servicios Destacados</h2>
          <Carousel
           opts={{
             align: "start",
-             loop: featuredServices.length > 1, // Enable loop only if more than 1 item
+             loop: featuredServices.length > 1, 
           }}
           className="w-full"
         >
@@ -360,7 +349,7 @@ function LandingPageContent() {
               </CarouselItem>
             ))}
           </CarouselContent>
-           {featuredServices.length > 3 && ( // Show arrows if more items than typically visible
+           {featuredServices.length > 1 && ( 
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -370,7 +359,6 @@ function LandingPageContent() {
       </section>
 
 
-      {/* Category Tabs & Service Listings */}
        <Tabs
         value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
         onValueChange={(value) => {
@@ -591,3 +579,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
