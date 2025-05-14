@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk } from "lucide-react"; // Added XIcon and Asterisk
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase } from "lucide-react";
 
 import { Button } from '@/components/ui/button';
 import {
@@ -261,14 +261,14 @@ export default function AppLayout({
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
-    if (!open) {
+    if (!open) { // If sheet is closing, also close the main dialog context if it was driving this
       handleOpenChange(false);
     }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false);
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false);
+      handleOpenChange(false); // Close main dialog context
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false); // Close mobile sheet if open
       router.push('/settings');
   };
 
@@ -367,7 +367,7 @@ export default function AppLayout({
                     <DialogHeader className="mb-4 text-center">
                       <ShadDialogDialogTitle className="text-2xl">Crear Cuenta</ShadDialogDialogTitle>
                        <DialogDescription>
-                         Paso {signupStep} de 2: {signupStep === 1 ? 'Información básica.' : 'Detalles adicionales y de cuenta.'}
+                         Completa el formulario para crear tu cuenta.
                        </DialogDescription>
                     </DialogHeader>
                     <Form {...signupForm}>
@@ -399,7 +399,7 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                  <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                                   <FormItem> <FormLabel>Teléfono (Opcional)</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                   <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
@@ -553,7 +553,6 @@ export default function AppLayout({
             {/* Desktop Sidebar - Visible on lg screens and up */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                 {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
                  <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
@@ -616,12 +615,13 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
-                          <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-start h-14">
-                               {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
-                               <Asterisk className="h-7 w-7 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
-                               <div className="flex-grow"></div> {/* Spacer to push close button to the right */}
+                          <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
+                               <div className="flex items-center">
+                                 <Asterisk className="h-6 w-6 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
+                                 <ShadSheetTitle className="text-lg font-semibold">sportoffice</ShadSheetTitle>
+                               </div>
                                <SheetClose asChild>
-                                <Button variant="ghost" size="icon" className="ml-auto">
+                                <Button variant="ghost" size="icon">
                                     <XIcon className="h-5 w-5" />
                                     <span className="sr-only">Cerrar menú</span>
                                 </Button>
@@ -672,7 +672,6 @@ export default function AppLayout({
                   </Sheet>
 
                  <div className="flex items-center flex-grow justify-center">
-                      {/* Placeholder for custom "XX" logo. Replace with your actual SVG or Image component. */}
                      <Asterisk className="h-6 w-6 text-primary mr-1.5 flex-shrink-0" aria-label="sportoffice logo" />
                       <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
                   </div>
@@ -689,3 +688,4 @@ export default function AppLayout({
       </>
   );
 }
+
