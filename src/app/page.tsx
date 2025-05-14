@@ -69,6 +69,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from '@/context/AuthContext';
 
 
 interface Category {
@@ -204,6 +205,7 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { isMobile } = useAuth(); // Assuming useAuth provides isMobile, otherwise import useSidebar
 
 
   useEffect(() => {
@@ -370,33 +372,23 @@ function LandingPageContent() {
             }}
             className="w-full"
         >
-            <div className="relative bg-muted rounded-md shadow-sm p-1">
-                <Carousel
-                    opts={{ align: "start", dragFree: true }}
-                    className="w-full"
-                >
-                    <CarouselContent>
-                         <TabsList asChild className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none">
-                            <CarouselItem className="basis-auto p-0"> {/* Single item containing the entire list */}
-                                {categorias.map(category => (
-                                <TabsTrigger
-                                    key={category.name}
-                                    value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                                    className={cn(
-                                        "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
-                                        "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
-                                        "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
-                                    )}
-                                >
-                                    {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-                                    {category.name}
-                                </TabsTrigger>
-                                ))}
-                            </CarouselItem>
-                        </TabsList>
-                    </CarouselContent>
-                    {/* Navigation arrows are removed as per user request */}
-                </Carousel>
+           <div className="bg-muted rounded-md shadow-sm p-1 overflow-x-auto whitespace-nowrap"> {/* Container for horizontal scrolling */}
+                <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1"> {/* Ensure TabsList doesn't wrap and items have space */}
+                    {categorias.map(category => (
+                    <TabsTrigger
+                        key={category.name}
+                        value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                        className={cn(
+                            "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
+                            "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
+                            "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
+                        )}
+                    >
+                        {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                        {category.name}
+                    </TabsTrigger>
+                    ))}
+                </TabsList>
             </div>
             <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
                 {filteredListings.length > 0 ? (
@@ -577,6 +569,7 @@ function LandingPageContent() {
             </TabsContent>
         </Tabs>
       </div>
+      <Toaster />
     </div>
   );
 }
@@ -586,7 +579,6 @@ export default function Page() {
   return (
     <AppLayout>
       <LandingPageContent />
-       <Toaster />
     </AppLayout>
   );
 }

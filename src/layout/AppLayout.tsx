@@ -32,18 +32,19 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves, WavesIcon, LayoutGrid, Dumbbell, CalendarClock } from "lucide-react"; // Added Waves
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves, WavesIcon, LayoutGrid, Dumbbell, CalendarClock } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
+  DialogTrigger, 
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle as ShadDialogDialogTitle, // Use Shadcn DialogTitle here
-  DialogTrigger, 
+  DialogClose as ShadDialogDialogClose, // Explicit import for DialogClose
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,7 +68,7 @@ import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
 
 
-// Navigation items (centralized)
+// Navigation items
 const navegacion = [
   {
     title: "Inicio",
@@ -76,18 +77,18 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents", 
-    icon: Building, 
+    href: "/find-talents",
+    icon: Building,
   },
   {
     title: "Publicar",
     href: "/post-job",
-    icon: UploadCloud, 
+    icon: UploadCloud,
   },
   {
     title: "Mis Reservas",
     href: "/book-service",
-    icon: CalendarDays,
+    icon: Briefcase, // Changed from CalendarDays to Briefcase to match image
   },
   {
     title: "Mis Favoritos",
@@ -151,7 +152,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
-  country: z.string().min(1, "Debes seleccionar un país.").default("CO"), 
+  country: z.string().min(1, "Debes seleccionar un país.").default("CO"),
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
@@ -188,7 +189,7 @@ export default function AppLayout({
   const {
     user,
     isLoggedIn,
-    isLoading,
+    isLoading: authIsLoading, 
     showLoginDialog,
     showProfileDialog,
     currentView,
@@ -222,7 +223,7 @@ export default function AppLayout({
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO", 
+      country: "CO", // Default to Colombia
       phone: "",
       profileType: "",
       dob: null,
@@ -270,8 +271,8 @@ export default function AppLayout({
   };
 
   const goToSettings = () => {
-      handleOpenChange(false);
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false);
+      handleOpenChange(false); 
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false); 
       router.push('/settings');
   };
 
@@ -300,7 +301,9 @@ export default function AppLayout({
               </div>
               <DialogFooter className="mt-6 pt-4 border-t flex-col sm:flex-row sm:justify-between gap-2">
                 <Button variant="outline" onClick={goToSettings} className="w-full sm:w-auto">Configuración</Button>
-                <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">Cerrar Sesión</Button>
+                 <ShadDialogDialogClose asChild>
+                    <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">Cerrar Sesión</Button>
+                 </ShadDialogDialogClose>
               </DialogFooter>
             </div>
           </ScrollArea>
@@ -357,8 +360,8 @@ export default function AppLayout({
                           <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                             ¿No tienes cuenta? Crear una
                           </Button>
-                          <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || isLoading}>
-                            {loginForm.formState.isSubmitting || isLoading ? "Ingresando..." : "Ingresar"}
+                          <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || authIsLoading}>
+                            {loginForm.formState.isSubmitting || authIsLoading ? "Ingresando..." : "Ingresar"}
                           </Button>
                         </DialogFooter>
                       </form>
@@ -402,7 +405,7 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                  <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                                   <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                   <FormItem> <FormLabel>Teléfono (Opcional)</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
@@ -496,8 +499,8 @@ export default function AppLayout({
                                            Siguiente
                                        </Button>
                                    ) : (
-                                       <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting || isLoading}>
-                                           {signupForm.formState.isSubmitting || isLoading ? "Creando..." : "Crear Cuenta"}
+                                       <Button type="submit" className="w-full sm:w-auto" disabled={signupForm.formState.isSubmitting || authIsLoading}>
+                                           {signupForm.formState.isSubmitting || authIsLoading ? "Creando..." : "Crear Cuenta"}
                                        </Button>
                                    )}
                                </div>
@@ -533,8 +536,8 @@ export default function AppLayout({
                            <Button type="button" variant="link" onClick={() => { setCurrentView('login'); forgotPasswordForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                              Volver a Ingresar
                            </Button>
-                           <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={forgotPasswordForm.formState.isSubmitting || isLoading}>
-                             {forgotPasswordForm.formState.isSubmitting || isLoading ? "Enviando..." : "Enviar Enlace"}
+                           <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={forgotPasswordForm.formState.isSubmitting || authIsLoading}>
+                             {forgotPasswordForm.formState.isSubmitting || authIsLoading ? "Enviando..." : "Enviar Enlace"}
                            </Button>
                          </DialogFooter>
                        </form>
@@ -553,6 +556,7 @@ export default function AppLayout({
   return (
       <>
           <div className="flex h-screen overflow-hidden">
+            {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                  <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
@@ -569,7 +573,7 @@ export default function AppLayout({
                          tooltip={{ children: item.title, side: 'right', align: 'center' }}
                       >
                         <item.icon className="h-4 w-4" />
-                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0">
+                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                             {item.title}
                         </span>
                       </SidebarMenuButton>
@@ -608,7 +612,9 @@ export default function AppLayout({
             </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
-               <header className="sticky top-0 z-10 flex h-12 sm:h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+               {/* Mobile Header */}
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+                  {/* Hamburger Menu Button */}
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
@@ -629,7 +635,7 @@ export default function AppLayout({
                                   </Button>
                                 </SheetClose>
                           </ShadSheetHeader>
-                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> 
+                          <ScrollArea className="flex-grow h-[calc(100%-112px)]">
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
                                       {navegacion.map((item) => (
@@ -648,7 +654,7 @@ export default function AppLayout({
                                    </SidebarMenu>
                               </SidebarContent>
                           </ScrollArea>
-                           <SidebarFooter className="p-2 border-t h-14"> 
+                           <SidebarFooter className="p-2 border-t h-14">
                                {isLoggedIn && user ? (
                                  <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
                                    <DialogTrigger asChild>
@@ -673,12 +679,11 @@ export default function AppLayout({
                       </SheetContent>
                   </Sheet>
 
+                  {/* Centered Brand - Mobile */}
                  <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                      <span className="font-semibold text-primary">Sportoffice</span>
+                      <span className="font-semibold text-primary text-lg leading-none">Sportoffice</span>
                   </div>
-
-                   <div className="flex-shrink-0 w-8 sm:w-10"></div>
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
