@@ -57,12 +57,12 @@ if (app) {
         db = getFirestore(app);
         console.log("Firestore service initialized.");
     } catch (error: any) {
-        console.error("Error initializing Firestore service:", error.message, error.stack);
-        // Specifically check for the "Service firestore is not available" error
         if (error.code === 'unavailable' || (error.message && error.message.toLowerCase().includes("service firestore is not available"))) {
             console.warn(
-                `Firestore might not be enabled for project '${firebaseConfig.projectId}'. Please go to the Firebase console and ensure Firestore (Cloud Firestore or Realtime Database) is enabled and correctly configured for this project.`
+                `Firestore might not be enabled for project '${firebaseConfig.projectId}'. Please go to the Firebase console and ensure Firestore (Cloud Firestore or Realtime Database) is enabled and correctly configured for this project. Error details: ${error.message}`
             );
+        } else {
+            console.error("Error initializing Firestore service:", error.message, error.stack);
         }
         db = undefined; // Ensure db is undefined on error
     }
