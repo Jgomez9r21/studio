@@ -52,7 +52,6 @@ export interface SportsFacility { // Added export
   location: string;
   rate: number;
   rating: number;
-  reviews: number;
   category: 'Instalación Deportiva';
   description: string;
   image: string;
@@ -69,7 +68,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Cancha Sintética "La Bombonera"',
     type: 'Fútbol salón techado',
     location: 'Chapinero Alto, Bogotá',
-    rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
+    rate: 80000, rating: 4.7, category: 'Instalación Deportiva',
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "futsal court indoor",
     amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salón'],
@@ -79,7 +78,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Estadio El Campín (Cancha Auxiliar)',
     type: 'Cancha de fútbol 11, grama natural',
     location: 'Teusaquillo, Bogotá',
-    rate: 150000, rating: 4.5, reviews: 60, category: 'Instalación Deportiva',
+    rate: 150000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Cancha auxiliar de grama natural para fútbol 11, bien mantenida.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "football field grass",
     amenities: ['Grama Natural', 'Fútbol 11', 'Camerinos', 'Parqueadero'],
@@ -89,7 +88,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Gimnasio "Músculos de Acero"',
     type: 'Gimnasio completo y funcional cubierto',
     location: 'Usaquén, Bogotá',
-    rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
+    rate: 15000, rating: 4.9, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
@@ -99,7 +98,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Piscina Olímpica "El Tritón"',
     type: 'Piscina olímpica al aire libre',
     location: 'Salitre, Bogotá',
-    rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
+    rate: 25000, rating: 4.6, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "swimming pool water",
     amenities: ['Olímpica', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
@@ -109,7 +108,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Club de Tenis "El Grand Slam"',
     type: 'Canchas de tenis de arcilla al aire libre',
     location: 'Suba, Bogotá',
-    rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
+    rate: 50000, rating: 4.8, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
@@ -119,7 +118,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Dojo "Bushido"',
     type: 'Tatami para artes marciales (Karate, Judo) interior',
     location: 'Kennedy, Bogotá',
-    rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
+    rate: 30000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "dojo martial arts",
     amenities: ['Tatami', 'Espejos', 'Equipo de protección', 'Vestuarios'],
@@ -129,7 +128,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Estudio "Zen Yoga"',
     type: 'Salón de Yoga y Pilates interior',
     location: 'La Candelaria, Bogotá',
-    rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
+    rate: 20000, rating: 4.9, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "yoga studio zen",
     amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
@@ -139,7 +138,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     name: 'Polideportivo El Salitre',
     type: 'Canchas múltiples (baloncesto, vóleibol) techado',
     location: 'Salitre, Bogotá',
-    rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
+    rate: 60000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Amplio espacio con canchas demarcadas para baloncesto y voleibol, graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "sports complex indoor",
     amenities: ['Techado', 'Graderías', 'Baloncesto', 'Vóleibol', 'Baños'],
@@ -244,7 +243,7 @@ const FiltersContent = ({
          </div>
 
          <div className="space-y-2">
-             <Label htmlFor="rate-slider">Tarifa Máxima (${currentFilterMaxRate.toLocaleString('es-CO')}/hr)</Label>
+             <Label htmlFor="rate-slider">Tarifa Máxima (/hr)</Label>
              <Slider
                  id="rate-slider"
                  min={0}

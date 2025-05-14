@@ -166,7 +166,7 @@ const ServiceFiltersContent = ({
          </div>
 
          <div className="space-y-2">
-             <Label htmlFor="rate-filter-slider">Tarifa Máxima (${maxRate.toLocaleString('es-CO')})</Label>
+             <Label htmlFor="rate-filter-slider">Tarifa Máxima</Label>
              <Slider
                  id="rate-filter-slider"
                  min={0}
@@ -321,7 +321,7 @@ function LandingPageContent() {
          <Carousel
           opts={{
             align: "start",
-             loop: featuredServices.length > 1, // Enable loop if more than 1 item
+             loop: featuredServices.length > 1, 
           }}
           className="w-full"
         >
@@ -343,7 +343,7 @@ function LandingPageContent() {
               </CarouselItem>
             ))}
           </CarouselContent>
-           {featuredServices.length > 1 && ( // Show arrows if more than 1 item
+           {featuredServices.length > 1 && ( 
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -371,7 +371,7 @@ function LandingPageContent() {
                 opts={{ align: "start", dragFree: true }}
                 className="w-full"
             >
-                <CarouselContent className="-ml-1 py-2">
+                 <CarouselContent className="-ml-1 py-2">
                     <CarouselItem className="pl-1 basis-auto">
                         <TabsList className="inline-flex flex-nowrap h-auto p-1 bg-muted rounded-md shadow-sm">
                             {categorias.map(category => (
@@ -390,7 +390,6 @@ function LandingPageContent() {
                 <CarouselPrevious className="absolute left-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
                 <CarouselNext className="absolute right-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
             </Carousel>
-             {/* Content for the selected tab will be rendered below by the outer Tabs component */}
             <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
                 {filteredListings.length > 0 ? (
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -582,4 +581,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
