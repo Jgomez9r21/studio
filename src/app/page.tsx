@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -67,7 +67,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'; 
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 
@@ -77,7 +77,7 @@ interface Category {
 }
 
 const categorias: Category[] = [
-  { name: 'Todos' },
+  { name: 'Todos', icon: ArrowLeft }, // Changed icon to ArrowLeft
   { name: 'Tecnología', icon: Code },
   { name: 'Entrenador Personal', icon: User },
   { name: 'Contratista', icon: Construction },
@@ -175,6 +175,9 @@ const ServiceFiltersContent = ({
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
+              <div className="text-right text-sm text-muted-foreground">
+                ${maxRate.toLocaleString('es-CO')}
+             </div>
          </div>
           <div className="flex-grow"></div>
           <ShadSheetClose asChild>
@@ -321,7 +324,7 @@ function LandingPageContent() {
          <Carousel
           opts={{
             align: "start",
-             loop: featuredServices.length > 1, 
+             loop: featuredServices.length > 1,
           }}
           className="w-full"
         >
@@ -343,7 +346,7 @@ function LandingPageContent() {
               </CarouselItem>
             ))}
           </CarouselContent>
-           {featuredServices.length > 1 && ( 
+           {featuredServices.length > 1 && (
              <>
               <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
@@ -367,29 +370,35 @@ function LandingPageContent() {
             }}
             className="w-full"
         >
-            <Carousel
-                opts={{ align: "start", dragFree: true }}
-                className="w-full"
-            >
-                 <CarouselContent className="-ml-1 py-2">
-                    <CarouselItem className="pl-1 basis-auto">
-                        <TabsList className="inline-flex flex-nowrap h-auto p-1 bg-muted rounded-md shadow-sm">
-                            {categorias.map(category => (
-                            <TabsTrigger
-                                key={category.name}
-                                value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                                className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 m-1"
-                            >
-                                {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-                                {category.name}
-                            </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </CarouselItem>
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
-                <CarouselNext className="absolute right-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
-            </Carousel>
+            <div className="relative bg-muted rounded-md shadow-sm p-1">
+                <Carousel
+                    opts={{ align: "start", dragFree: true }}
+                    className="w-full"
+                >
+                    <CarouselContent className="py-1">
+                        <CarouselItem className="basis-auto">
+                            <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none">
+                                {categorias.map(category => (
+                                <TabsTrigger
+                                    key={category.name}
+                                    value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                                    className={cn(
+                                        "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
+                                        "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
+                                        "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
+                                    )}
+                                >
+                                    {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                                    {category.name}
+                                </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </CarouselItem>
+                    </CarouselContent>
+                    <CarouselPrevious variant="ghost" size="icon" className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-muted-foreground hover:text-foreground bg-background/70 hover:bg-background" />
+                    <CarouselNext variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex text-muted-foreground hover:text-foreground bg-background/70 hover:bg-background" />
+                </Carousel>
+            </div>
             <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
                 {filteredListings.length > 0 ? (
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -581,3 +590,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
