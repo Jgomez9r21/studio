@@ -1,5 +1,6 @@
 
 // src/layout/AppLayout.tsx
+
 'use client';
 
 import type React from 'react';
@@ -64,7 +65,7 @@ import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
 
 
-// Navigation Items (centralized)
+// Elementos de navegación (centralizados)
 const navegacion = [
   {
     title: "Inicio",
@@ -213,7 +214,7 @@ export default function AppLayout({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
-
+//Control de formularios de signup
   const signupForm = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -340,7 +341,7 @@ export default function AppLayout({
                             <FormItem>
                               <FormLabel>Contraseña</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder="Tu contraseña" {...field} />
+                                <Input type="password" placeholder=" Ingresar la contraseña" {...field} />
                               </FormControl>
                               {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
                               <FormMessage />
@@ -618,16 +619,13 @@ export default function AppLayout({
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center">
                                  <Asterisk className="h-6 w-6 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
-                                 <ShadSheetTitle className="text-lg font-semibold">sportoffice</ShadSheetTitle>
+                                 <ShadSheetTitle className="text-lg font-semibold">Sportoffice</ShadSheetTitle>
                                </div>
                                <SheetClose asChild>
-                                <Button variant="ghost" size="icon">
-                                    <XIcon className="h-5 w-5" />
-                                    <span className="sr-only">Cerrar menú</span>
-                                </Button>
+                                
                             </SheetClose>
                           </ShadSheetHeader>
-                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Adjusted height */}
+                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Altura ajustada */}
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
                                       {navegacion.map((item) => (
@@ -646,7 +644,7 @@ export default function AppLayout({
                                    </SidebarMenu>
                               </SidebarContent>
                           </ScrollArea>
-                           <SidebarFooter className="p-2 border-t h-14"> {/* Fixed height for footer */}
+                           <SidebarFooter className="p-2 border-t h-14"> {/* Altura fija para pie de página */}
                                {isLoggedIn && user ? (
                                  <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
                                    <DialogPrimitive.Trigger asChild>
@@ -673,9 +671,9 @@ export default function AppLayout({
 
                  <div className="flex items-center flex-grow justify-center">
                      <Asterisk className="h-6 w-6 text-primary mr-1.5 flex-shrink-0" aria-label="sportoffice logo" />
-                      <h3 className="font-semibold text-md sm:text-lg">sportoffice</h3>
+                      <h3 className="font-semibold text-md sm:text-lg">Sportoffice</h3>
                   </div>
-                   <div className="flex-shrink-0 w-8 sm:w-10"></div> {/* Placeholder for balance */}
+                   <div className="flex-shrink-0 w-8 sm:w-10"></div> {/* Marcador de posición para el saldo */}
                </header>
 
               {/* Main Content Area */}

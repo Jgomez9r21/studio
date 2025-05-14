@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Star, Filter, X, Heart, Building, Users, Sun, LayoutGrid, Home as HomeIcon, Target, Footprints, Waves, Shield, ListChecks, Dumbbell, CalendarClock } from 'lucide-react';
+import { Search, MapPin, Star, Filter, X, Heart, Building, Users, LayoutGrid, Dumbbell, CalendarClock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,6 +19,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
+import { Waves } from 'lucide-react'; // Explicitly import Waves
 
 // Define Category type
 interface Category {
@@ -26,7 +27,7 @@ interface Category {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-// Updated categories for sports facilities based on user request
+// Updated categories for sports facilities
 const categoriasDisponibles: Category[] = [
     { name: 'Todos', icon: Building },
     { name: 'Canchas de fútbol salón', icon: Building },
@@ -45,7 +46,7 @@ const categoriasDisponibles: Category[] = [
 
 
 // Define SportsFacility interface
-export interface SportsFacility { // Added export
+export interface SportsFacility {
   id: string;
   name: string;
   type: string;
@@ -61,13 +62,13 @@ export interface SportsFacility { // Added export
   reservationTime?: string;
 }
 
-// Dummy sports facility data reflecting new categories
-export const dummySportsFacilities: SportsFacility[] = [ // Added export
+// Dummy sports facility data reflecting new categories and Bogotá locations
+export const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
     type: 'Fútbol salón techado',
-    location: 'Chapinero Alto, Bogotá',
+    location: 'Chapinero Alto, Bogotá, Colombia',
     rate: 80000, rating: 4.7, category: 'Instalación Deportiva',
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "futsal court indoor",
@@ -77,7 +78,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf9',
     name: 'Estadio El Campín (Cancha Auxiliar)',
     type: 'Cancha de fútbol 11, grama natural',
-    location: 'Teusaquillo, Bogotá',
+    location: 'Teusaquillo, Bogotá, Colombia',
     rate: 150000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Cancha auxiliar de grama natural para fútbol 11, bien mantenida.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "football field grass",
@@ -87,7 +88,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf2',
     name: 'Gimnasio "Músculos de Acero"',
     type: 'Gimnasio completo y funcional cubierto',
-    location: 'Usaquén, Bogotá',
+    location: 'Usaquén, Bogotá, Colombia',
     rate: 15000, rating: 4.9, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "gym fitness equipment",
@@ -97,7 +98,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf3',
     name: 'Piscina Olímpica "El Tritón"',
     type: 'Piscina olímpica al aire libre',
-    location: 'Salitre, Bogotá',
+    location: 'Salitre, Bogotá, Colombia',
     rate: 25000, rating: 4.6, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "swimming pool water",
@@ -107,7 +108,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf4',
     name: 'Club de Tenis "El Grand Slam"',
     type: 'Canchas de tenis de arcilla al aire libre',
-    location: 'Suba, Bogotá',
+    location: 'Suba, Bogotá, Colombia',
     rate: 50000, rating: 4.8, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "tennis court clay",
@@ -117,7 +118,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf5',
     name: 'Dojo "Bushido"',
     type: 'Tatami para artes marciales (Karate, Judo) interior',
-    location: 'Kennedy, Bogotá',
+    location: 'Kennedy, Bogotá, Colombia',
     rate: 30000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "dojo martial arts",
@@ -127,7 +128,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf6',
     name: 'Estudio "Zen Yoga"',
     type: 'Salón de Yoga y Pilates interior',
-    location: 'La Candelaria, Bogotá',
+    location: 'La Candelaria, Bogotá, Colombia',
     rate: 20000, rating: 4.9, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "yoga studio zen",
@@ -137,7 +138,7 @@ export const dummySportsFacilities: SportsFacility[] = [ // Added export
     id: 'sf8',
     name: 'Polideportivo El Salitre',
     type: 'Canchas múltiples (baloncesto, vóleibol) techado',
-    location: 'Salitre, Bogotá',
+    location: 'Salitre, Bogotá, Colombia',
     rate: 60000, rating: 4.5, category: 'Instalación Deportiva',
     description: 'Amplio espacio con canchas demarcadas para baloncesto y voleibol, graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "sports complex indoor",
@@ -152,7 +153,6 @@ const typeMatchesFilter = (facilityType: string, filterCategory: string): boolea
 
     if (filterLower === 'todos') return true;
 
-    // Keywords for matching facility types to filter categories
     const categoryKeywords: Record<string, string[]> = {
         'canchas de fútbol salón': ['fútbol salón', 'futbol sala', 'futsal', 'microfutbol', 'fútbol de salón'],
         'canchas de fútbol': ['fútbol', 'futbol', 'soccer', 'cancha de 11', 'cancha de 7', 'cancha de 9', 'football', 'grama natural', 'grama sintética'],
@@ -217,7 +217,7 @@ const FiltersContent = ({
                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                  <Input
                      id="location-input"
-                     placeholder="Ciudad, Localidad o Barrio"
+                     placeholder="Ej: Chapinero, Bogotá"
                      value={currentFilterLocation}
                      onChange={(e) => setCurrentFilterLocation(e.target.value)}
                      className="pl-9"
@@ -452,3 +452,4 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
+

@@ -1,3 +1,4 @@
+
 /**
  * Representa un listado de servicio con detalles como descripción, tarifas y disponibilidad.
  */
@@ -71,114 +72,113 @@ export async function getServiceListings(category?: string, location?: string): 
       id: '2',
       title: 'Desarrollo Web Frontend',
       description: 'Creación de interfaces de usuario interactivas y responsivas para tu sitio web. Utilizamos las últimas tecnologías para asegurar una experiencia de usuario óptima en todos los dispositivos.',
-      rate: 75,
+      rate: 75000, // Adjusted rate to COP
       availability: ['Martes 14:00-16:00', 'Jueves 10:00-12:00'],
       category: 'Tecnología',
       location: 'Remoto',
-      imageUrl: 'https://picsum.photos/800/600?random=2', // Added placeholder image URL
+      imageUrl: 'https://placehold.co/800x600.png', 
       imageUrls: [
-        'https://picsum.photos/800/600?random=21',
-        'https://picsum.photos/800/600?random=22',
+        'https://placehold.co/800x600.png',
+        'https://placehold.co/800x600.png',
       ],
       policyText: "Todos los proyectos de desarrollo web requieren un depósito inicial del 50%. El saldo restante se abona al finalizar y entregar el proyecto.",
       professionalName: "Carlos Rodriguez",
-      professionalAvatar: "https://picsum.photos/50/50?random=prof-2",
+      professionalAvatar: "https://placehold.co/50x50.png",
       rating: 4.7,
     },
      {
       id: '3',
       title: 'Entrenador Personal de Boxeo',
       description: 'Clases de boxeo para todos los niveles, mejora tu técnica y condición física. Entrenamientos dinámicos y personalizados para quemar calorías y ganar fuerza.',
-      rate: 60,
+      rate: 60000, // Adjusted rate to COP
       availability: ['Lunes 17:00-18:00', 'Viernes 8:00-9:00', 'Sábado 11:00-12:00'],
       category: 'Entrenador Personal',
-      location: 'Club de Boxeo Central',
-      imageUrl: 'https://picsum.photos/800/600?random=3', // Added placeholder image URL
+      location: 'Club de Boxeo Central, Bogotá, Colombia',
+      imageUrl: 'https://placehold.co/800x600.png',
       imageUrls: [
-         'https://picsum.photos/800/600?random=31',
+         'https://placehold.co/800x600.png',
       ],
       policyText: "Es obligatorio el uso de guantes y vendas propias por higiene y seguridad. Consulta nuestras opciones de alquiler si es necesario.",
       professionalName: "Miguel López",
-      professionalAvatar: "https://picsum.photos/50/50?random=prof-3",
+      professionalAvatar: "https://placehold.co/50x50.png",
       rating: 4.8,
     },
     {
       id: '4',
       title: 'Servicios de Contratista General',
       description: 'Remodelaciones, reparaciones y construcciones menores para tu hogar o negocio. Contamos con un equipo de profesionales para garantizar trabajos de calidad.',
-      rate: 80, // Assuming a project-based or higher hourly rate
+      rate: 80000, // Adjusted rate to COP
       availability: ['Lunes a Viernes 8:00-17:00'],
       category: 'Contratista',
-      location: 'Área Metropolitana',
-      imageUrl: 'https://picsum.photos/800/600?random=4', // Added placeholder image URL
+      location: 'Bogotá y Alrededores, Colombia',
+      imageUrl: 'https://placehold.co/800x600.png',
       policyText: "Todos los presupuestos son gratuitos y sin compromiso. Los materiales no están incluidos en la tarifa horaria a menos que se especifique.",
        professionalName: "Javier Construcciones",
-       professionalAvatar: "https://picsum.photos/50/50?random=prof-4",
+       professionalAvatar: "https://placehold.co/50x50.png",
        rating: 4.5,
     },
     {
       id: '5',
       title: 'Mantenimiento y Reparación del Hogar',
       description: 'Servicios de plomería, electricidad, pintura y reparaciones generales. Soluciones rápidas y eficientes para mantener tu hogar en perfectas condiciones.',
-      rate: 55,
+      rate: 55000, // Adjusted rate to COP
       availability: ['Miércoles 9:00-12:00', 'Sábado 10:00-14:00'],
       category: 'Mantenimiento Hogar',
-      location: 'Ciudad Ejemplo', // Made more specific as a placeholder for a city
-      imageUrl: 'https://picsum.photos/800/600?random=5', // Added placeholder image URL
+      location: 'Bogotá, Colombia',
+      imageUrl: 'https://placehold.co/800x600.png',
       policyText: "Garantía de 30 días en todas las reparaciones realizadas. Las visitas de emergencia fuera de horario pueden tener un costo adicional.",
        professionalName: "Repara Hogar Rápido",
-       professionalAvatar: "https://picsum.photos/50/50?random=prof-5",
+       professionalAvatar: "https://placehold.co/50x50.png",
        rating: 4.6,
     },
     {
       id: '6',
       title: 'Clases Particulares de Matemáticas',
       description: 'Apoyo escolar y preparación para exámenes de matemáticas, nivel secundario y universitario. Metodología adaptada al ritmo de aprendizaje de cada estudiante.',
-      rate: 40,
+      rate: 40000, // Adjusted rate to COP
       availability: ['Martes 16:00-18:00', 'Jueves 17:00-19:00'],
       category: 'Profesores',
-      location: 'Remoto', // Changed to focus on remote
-      imageUrl: 'https://picsum.photos/800/600?random=6', // Added placeholder image URL
+      location: 'Remoto',
+      imageUrl: 'https://placehold.co/800x600.png',
       policyText: "Se requiere el pago por adelantado de paquetes de clases. Las cancelaciones deben realizarse con al menos 12 horas de anticipación.",
        professionalName: "Elena Martínez",
-       professionalAvatar: "https://picsum.photos/50/50?random=prof-6",
+       professionalAvatar: "https://placehold.co/50x50.png",
        rating: 4.9,
     },
      {
       id: '7',
       title: 'Diseño Gráfico y Branding',
       description: 'Creación de logotipos, identidad visual, materiales de marketing y más. Ayudamos a tu marca a destacar con diseños creativos y profesionales.',
-      rate: 65,
+      rate: 65000, // Adjusted rate to COP
       availability: ['Lunes 10:00-13:00', 'Miércoles 14:00-17:00'],
       category: 'Diseñadores',
       location: 'Remoto',
-      imageUrl: 'https://picsum.photos/800/600?random=7', // Added placeholder image URL
+      imageUrl: 'https://placehold.co/800x600.png',
       imageUrls: [
-        'https://picsum.photos/800/600?random=71',
-        'https://picsum.photos/800/600?random=72',
-        'https://picsum.photos/800/600?random=73',
-        'https://picsum.photos/800/600?random=74',
+        'https://placehold.co/800x600.png',
+        'https://placehold.co/800x600.png',
+        'https://placehold.co/800x600.png',
+        'https://placehold.co/800x600.png',
       ],
       policyText: "Cada proyecto incluye hasta 2 rondas de revisión. Revisiones adicionales pueden incurrir en costos extra.",
        professionalName: "Sofía Creativa",
-       professionalAvatar: "https://picsum.photos/50/50?random=prof-7",
+       professionalAvatar: "https://placehold.co/50x50.png",
        rating: 5.0,
     },
      {
       id: '8',
       title: 'Marketing Digital Estratégico',
       description: 'Gestión de redes sociales, SEO, SEM y campañas de email marketing. Impulsa tu presencia online y alcanza tus objetivos de negocio.',
-      rate: 70,
+      rate: 70000, // Adjusted rate to COP
       availability: ['Consultar disponibilidad'],
       category: 'Marketing Digital',
       location: 'Remoto',
-      imageUrl: 'https://picsum.photos/800/600?random=8', // Added placeholder image URL
+      imageUrl: 'https://placehold.co/800x600.png',
       policyText: "Los resultados de las campañas de marketing pueden variar. Se requiere un compromiso mínimo de 3 meses para servicios de SEO.",
        professionalName: "Impulso Digital Co",
-       professionalAvatar: "https://picsum.photos/50/50?random=prof-8",
+       professionalAvatar: "https://placehold.co/50x50.png",
        rating: 4.3,
     },
-    // Add more listings for other categories as needed
   ];
 }
 
