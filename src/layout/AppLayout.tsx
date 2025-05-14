@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase } from "lucide-react";
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, Users, TrendingUp, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves } from "lucide-react"; // Added Waves
 
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +41,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle as ShadDialogDialogTitle,
-  // DialogTrigger, // This is already imported from Radix primitives if needed directly. Sheet uses it internally.
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,7 +60,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
+import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext'; // Ensure ForgotPasswordValues is exported if used here
 import Image from 'next/image';
 
 
@@ -75,7 +74,7 @@ const navegacion = [
   {
     title: "Espacios Deportivos",
     href: "/find-talents",
-    icon: Building,
+    icon: Building, // Changed from Waves
   },
   {
     title: "Publicar",
@@ -149,7 +148,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
-  country: z.string().min(1, "Debes seleccionar un país."),
+  country: z.string().min(1, "Debes seleccionar un país.").default("CO"), // Default to Colombia
   phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")),
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
@@ -214,13 +213,13 @@ export default function AppLayout({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
-//Control de formularios de signup
+
   const signupForm = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "",
+      country: "CO", // Default country Colombia
       phone: "",
       profileType: "",
       dob: null,
@@ -262,14 +261,14 @@ export default function AppLayout({
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
-    if (!open) { // If sheet is closing, also close the main dialog context if it was driving this
+    if (!open) { 
       handleOpenChange(false);
     }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); // Close main dialog context
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false); // Close mobile sheet if open
+      handleOpenChange(false); 
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false); 
       router.push('/settings');
   };
 
@@ -390,7 +389,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="country" render={({ field }) => (
                                    <FormItem>
                                     <FormLabel>País</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} defaultValue="CO">
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
                                        </FormControl>
@@ -406,7 +405,7 @@ export default function AppLayout({
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
                                   <FormItem>
                                       <FormLabel>Tipo de perfil</FormLabel>
-                                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                       <Select onValueChange={field.onChange} value={field.value}>
                                            <FormControl>
                                                <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
                                            </FormControl>
@@ -443,7 +442,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="gender" render={({ field }) => (
                                    <FormItem>
                                     <FormLabel>Género (Opcional)</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
                                        </FormControl>
@@ -457,7 +456,7 @@ export default function AppLayout({
                                  <FormField control={signupForm.control} name="documentType" render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>Tipo de documento (Opcional)</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                        <FormControl>
                                             <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
                                        </FormControl>
@@ -553,8 +552,11 @@ export default function AppLayout({
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar - Visible on lg screens and up */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
-              <SidebarHeader className="p-4 border-b flex items-center justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
+              <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                  <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
+                 <h3 className="font-semibold text-lg text-sidebar-foreground overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                    Sportoffice
+                  </h3>
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
@@ -621,9 +623,6 @@ export default function AppLayout({
                                  <Asterisk className="h-6 w-6 text-primary mr-2 flex-shrink-0" aria-label="sportoffice logo" />
                                  <ShadSheetTitle className="text-lg font-semibold">Sportoffice</ShadSheetTitle>
                                </div>
-                               <SheetClose asChild>
-                                
-                            </SheetClose>
                           </ShadSheetHeader>
                           <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Altura ajustada */}
                               <SidebarContent className="p-2">
@@ -669,11 +668,14 @@ export default function AppLayout({
                       </SheetContent>
                   </Sheet>
 
-                 <div className="flex items-center flex-grow justify-center">
+                 {/* Centered Logo/Brand for mobile top header */}
+                 <div className="flex items-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <Asterisk className="h-6 w-6 text-primary mr-1.5 flex-shrink-0" aria-label="sportoffice logo" />
                       <h3 className="font-semibold text-md sm:text-lg">Sportoffice</h3>
                   </div>
-                   <div className="flex-shrink-0 w-8 sm:w-10"></div> {/* Marcador de posición para el saldo */}
+
+                   {/* Placeholder for balance or future icons on the right */}
+                   <div className="flex-shrink-0 w-8 sm:w-10"></div>
                </header>
 
               {/* Main Content Area */}
@@ -686,4 +688,3 @@ export default function AppLayout({
       </>
   );
 }
-
