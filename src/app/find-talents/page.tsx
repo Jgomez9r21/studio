@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, MapPin, Star, Filter, X, Heart, Building, Users, Sun, LayoutGrid, Home as HomeIcon, Target, Footprints, Waves, Shield, ListChecks, Dumbbell } from 'lucide-react';
+import { Search, MapPin, Star, Filter, X, Heart, Building, Users, Sun, LayoutGrid, Home as HomeIcon, Target, Footprints, Waves, Shield, ListChecks, Dumbbell, CalendarClock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -57,6 +57,8 @@ interface SportsFacility {
   image: string;
   dataAiHint: string;
   amenities?: string[];
+  reservationDate?: string; 
+  reservationTime?: string; 
 }
 
 // Dummy sports facility data reflecting new categories
@@ -70,6 +72,8 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "futsal court indoor",
     amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salón'],
+    reservationDate: '2024-07-28',
+    reservationTime: '16:00',
   },
   {
     id: 'sf9',
@@ -90,6 +94,8 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
+    reservationDate: '2024-07-30',
+    reservationTime: '09:00',
   },
   {
     id: 'sf3',
@@ -110,6 +116,8 @@ const dummySportsFacilities: SportsFacility[] = [
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
     image: 'https://placehold.co/400x300.png', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
+    reservationDate: '2024-08-01',
+    reservationTime: '11:00',
   },
   {
     id: 'sf5',
@@ -253,7 +261,6 @@ const FiltersContent = ({
          </div>
 
           <div className="mt-auto pt-6 border-t">
-            {/* This button is always present for applying filters from the sheet */}
             <SheetClose asChild>
                 <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
             </SheetClose>
@@ -375,6 +382,20 @@ const FindTalentsContent = () => {
                             objectFit="cover"
                             data-ai-hint={facility.dataAiHint}
                         />
+                        {facility.reservationDate && facility.reservationTime && (
+                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/70 text-white">
+                                <div className="flex items-center justify-between text-xs">
+                                    <div className="flex items-center gap-1">
+                                        <CalendarClock className="h-3.5 w-3.5" />
+                                        <span>
+                                            {new Date(facility.reservationDate).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}
+                                            {' - '}
+                                            {facility.reservationTime}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
@@ -413,7 +434,6 @@ const FindTalentsContent = () => {
                         <div className="flex items-center gap-1 text-sm">
                             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                             <span className="font-semibold text-foreground">{facility.rating.toFixed(1)}</span>
-                            {/* <span className="text-xs text-muted-foreground">({facility.reviews} reseñas)</span> Removed review count */}
                         </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-2 border-t mt-auto bg-muted/30">
