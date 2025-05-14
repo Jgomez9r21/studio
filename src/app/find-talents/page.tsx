@@ -68,7 +68,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Chapinero Alto, Bogotá',
     rate: 80000, rating: 4.7, reviews: 25, category: 'Instalación Deportiva',
     description: 'Cancha sintética cubierta para fútbol de salón, con iluminación LED y graderías.',
-    image: 'https://picsum.photos/400/300?random=sf1', dataAiHint: "futsal court indoor",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "futsal court indoor",
     amenities: ['Cubierta', 'Iluminación LED', 'Graderías', 'Baños', 'Fútbol Salón'],
   },
   {
@@ -78,7 +78,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Teusaquillo, Bogotá',
     rate: 150000, rating: 4.5, reviews: 60, category: 'Instalación Deportiva',
     description: 'Cancha auxiliar de grama natural para fútbol 11, bien mantenida.',
-    image: 'https://picsum.photos/400/300?random=sf9', dataAiHint: "football field grass",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "football field grass",
     amenities: ['Grama Natural', 'Fútbol 11', 'Camerinos', 'Parqueadero'],
   },
   {
@@ -88,7 +88,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Usaquén, Bogotá',
     rate: 15000, rating: 4.9, reviews: 72, category: 'Instalación Deportiva',
     description: 'Gimnasio totalmente equipado con máquinas y zona funcional.',
-    image: 'https://picsum.photos/400/300?random=sf2', dataAiHint: "gym fitness equipment",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "gym fitness equipment",
     amenities: ['Máquinas Cardio', 'Pesas Libres', 'Clases Grupales', 'Vestuarios'],
   },
   {
@@ -98,7 +98,7 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Salitre, Bogotá',
     rate: 25000, rating: 4.6, reviews: 40, category: 'Instalación Deportiva',
     description: 'Piscina de 50 metros, ideal para natación y entrenamiento. Carriles disponibles.',
-    image: 'https://picsum.photos/400/300?random=sf3', dataAiHint: "swimming pool water",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "swimming pool water",
     amenities: ['Olímpica', 'Carriles de Nado', 'Clases de Natación', 'Lockers'],
   },
   {
@@ -108,17 +108,17 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'Suba, Bogotá',
     rate: 50000, rating: 4.8, reviews: 33, category: 'Instalación Deportiva',
     description: 'Complejo con 4 canchas de tenis de arcilla. Iluminación nocturna.',
-    image: 'https://picsum.photos/400/300?random=sf4', dataAiHint: "tennis court clay",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "tennis court clay",
     amenities: ['Arcilla', 'Iluminación Nocturna', 'Alquiler de Raquetas', 'Cafetería'],
   },
   {
     id: 'sf5',
-    name: 'Dojo "Bushido"', 
+    name: 'Dojo "Bushido"',
     type: 'Tatami para artes marciales (Karate, Judo) interior',
     location: 'Kennedy, Bogotá',
     rate: 30000, rating: 4.5, reviews: 15, category: 'Instalación Deportiva',
     description: 'Espacio tradicional para la práctica de artes marciales, con equipo completo.',
-    image: 'https://picsum.photos/400/300?random=sf5', dataAiHint: "dojo martial arts",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "dojo martial arts",
     amenities: ['Tatami', 'Espejos', 'Equipo de protección', 'Vestuarios'],
   },
    {
@@ -128,17 +128,17 @@ const dummySportsFacilities: SportsFacility[] = [
     location: 'La Candelaria, Bogotá',
     rate: 20000, rating: 4.9, reviews: 50, category: 'Instalación Deportiva',
     description: 'Ambiente tranquilo y acogedor para clases de yoga, pilates y meditación.',
-    image: 'https://picsum.photos/400/300?random=sf6', dataAiHint: "yoga studio zen",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "yoga studio zen",
     amenities: ['Mats de Yoga', 'Bloques', 'Música Ambiental', 'Té de cortesía'],
   },
   {
     id: 'sf8',
-    name: 'Polideportivo El Salitre', 
+    name: 'Polideportivo El Salitre',
     type: 'Canchas múltiples (baloncesto, vóleibol) techado',
     location: 'Salitre, Bogotá',
     rate: 60000, rating: 4.5, reviews: 80, category: 'Instalación Deportiva',
     description: 'Amplio espacio con canchas demarcadas para baloncesto y voleibol, graderías.',
-    image: 'https://picsum.photos/400/300?random=sf8', dataAiHint: "sports complex indoor",
+    image: 'https://placehold.co/400x300.png', dataAiHint: "sports complex indoor",
     amenities: ['Techado', 'Graderías', 'Baloncesto', 'Vóleibol', 'Baños'],
   }
 ];
@@ -245,7 +245,7 @@ const FiltersContent = ({
              <Slider
                  id="rate-slider"
                  min={0}
-                 max={200000} 
+                 max={200000}
                  step={5000}
                  value={[currentFilterMaxRate]}
                  onValueChange={(value) => setCurrentFilterMaxRate(value[0])}
@@ -293,7 +293,7 @@ const FindTalentsContent = () => {
       rating: currentFilterMinRating,
       rate: currentFilterMaxRate,
     });
-    setIsSheetOpen(false); 
+    setIsSheetOpen(false);
   }, [currentFilterCategory, currentFilterLocation, currentFilterMinRating, currentFilterMaxRate]);
 
 
@@ -369,7 +369,7 @@ const FindTalentsContent = () => {
                 <Card key={facility.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
                     <div className="relative aspect-[4/3] w-full overflow-hidden">
                         <Image
-                            src={facility.image || `https://picsum.photos/400/300?random=${facility.id}`}
+                            src={facility.image || `https://placehold.co/400x300.png`}
                             alt={facility.name}
                             layout="fill"
                             objectFit="cover"
@@ -413,7 +413,7 @@ const FindTalentsContent = () => {
                         <div className="flex items-center gap-1 text-sm">
                             <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                             <span className="font-semibold text-foreground">{facility.rating.toFixed(1)}</span>
-                            <span className="text-xs text-muted-foreground">({facility.reviews} reseñas)</span>
+                            {/* <span className="text-xs text-muted-foreground">({facility.reviews} reseñas)</span> Removed review count */}
                         </div>
                     </CardContent>
                     <CardFooter className="p-4 pt-2 border-t mt-auto bg-muted/30">

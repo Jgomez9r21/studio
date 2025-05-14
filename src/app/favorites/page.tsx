@@ -45,7 +45,7 @@ const mockFavoritedItemsData: FavoriteItem[] = [
     category: 'Tecnología',
     skills: ['React', 'Node.js'],
     description: 'Desarrollador con experiencia en aplicaciones web modernas.',
-    image: 'https://picsum.photos/400/300?random=t1',
+    image: 'https://placehold.co/400x300.png',
     dataAiHint: "web developer man code"
   },
 ];
@@ -110,7 +110,7 @@ const FavoritesContent = () => {
               <Link href={item.itemType === 'service' ? `/service/${item.id}` : `/talent/${item.id}`} passHref>
                 <div className="relative aspect-[4/3] w-full overflow-hidden cursor-pointer">
                   <Image
-                    src={(item.itemType === 'service' ? item.imageUrl : item.image) || `https://picsum.photos/400/300?random=fav-${item.id}`}
+                    src={(item.itemType === 'service' ? item.imageUrl : item.image) || `https://placehold.co/400x300.png`}
                     alt={item.itemType === 'service' ? item.title : item.name}
                     layout="fill"
                     objectFit="cover"
@@ -153,7 +153,7 @@ const FavoritesContent = () => {
                    <div className="flex items-center gap-1 text-sm">
                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
                      <span className="font-semibold text-foreground">{item.rating.toFixed(1)}</span>
-                     {item.itemType === 'talent' && <span className="text-xs text-muted-foreground">({(item as Talent).reviews} reseñas)</span>}
+                     {/* {item.itemType === 'talent' && <span className="text-xs text-muted-foreground">({(item as Talent).reviews} reseñas)</span>} Removed review count */}
                    </div>
                 )}
               </CardContent>
