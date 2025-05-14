@@ -14,9 +14,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import Image from 'next/image';
-import Link from 'next/link'; // Added Link import
+import Link from 'next/link';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
 
@@ -45,7 +45,7 @@ const categoriasDisponibles: Category[] = [
 
 
 // Define SportsFacility interface
-interface SportsFacility {
+export interface SportsFacility { // Added export
   id: string;
   name: string;
   type: string;
@@ -63,7 +63,7 @@ interface SportsFacility {
 }
 
 // Dummy sports facility data reflecting new categories
-const dummySportsFacilities: SportsFacility[] = [
+export const dummySportsFacilities: SportsFacility[] = [ // Added export
   {
     id: 'sf1',
     name: 'Cancha Sintética "La Bombonera"',
