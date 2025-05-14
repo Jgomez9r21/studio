@@ -2,7 +2,8 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback }
+from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ServiceListing} from '@/services/service-listings';
 import { getServiceListings } from '@/services/service-listings';
@@ -17,17 +18,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader as ShadDialogHeader,
-  DialogTitle as ShadDialogTitle,
-  DialogTrigger,
-  DialogClose,
-  DialogFooter as ShadDialogFooter,
-  DialogDescription
-} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -77,6 +67,8 @@ import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'; // Ensure DialogTrigger and other Dialog parts are imported
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 
 interface Category {
@@ -219,7 +211,7 @@ function LandingPageContent() {
           ...listing,
           category: categorias.some(cat => cat.name === listing.category) ? listing.category : 'Otros',
            imageUrl: listing.imageUrl || `https://placehold.co/400x300.png`,
-           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://placehold.co/800x600.png`]),
+           imageUrls: listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.imageUrl ? [listing.imageUrl] : [`https://placehold.co/800x600.png?random=${listing.id}`]),
         }));
         setListings(updatedData);
       } catch (error) {
@@ -361,34 +353,55 @@ function LandingPageContent() {
       </section>
 
 
-       <Tabs
+      <div className="relative w-full px-4 md:px-6 lg:px-8 pb-4">
+        <Carousel
+            opts={{ align: "start", dragFree: true }}
+            className="w-full"
+        >
+            <CarouselContent className="-ml-1 py-2"> {/* Added py-2 for vertical padding around tabslist */}
+                <CarouselItem className="pl-1 basis-auto"> {/* Single item to hold the entire TabsList */}
+                    <Tabs
+                        value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
+                        onValueChange={(value) => {
+                        const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
+                        setSelectedCategoryState(categoryName);
+                        if (categoryName === 'Todos') {
+                            router.push(pathname, { scroll: false });
+                        } else {
+                            router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
+                        }
+                        }}
+                        className="w-full"
+                    >
+                        <TabsList className="inline-flex flex-nowrap h-auto p-1 bg-muted rounded-md shadow-sm">
+                            {categorias.map(category => (
+                            <TabsTrigger
+                                key={category.name}
+                                value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                                className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 m-1"
+                            >
+                                {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                                {category.name}
+                            </TabsTrigger>
+                            ))}
+                        </TabsList>
+                        <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
+                            {/* Content remains the same, displayed below the carousel of tabs */}
+                        </TabsContent>
+                    </Tabs>
+                </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
+            <CarouselNext className="absolute right-[-10px] top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-background/80 hover:bg-background text-foreground" />
+        </Carousel>
+      </div>
+      
+      {/* This TabsContent should be outside the Carousel and controlled by the outer Tabs component state */}
+      <Tabs
         value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
-        onValueChange={(value) => {
-          const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
-          setSelectedCategoryState(categoryName);
-          if (categoryName === 'Todos') {
-            router.push(pathname, { scroll: false });
-          } else {
-            router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
-          }
-        }}
-        className="w-full px-4 md:px-6 lg:px-8 pb-4"
+        className="w-full px-4 md:px-6 lg:px-8" // Ensure it has consistent padding
       >
-        <TabsList className="flex flex-wrap h-auto p-1 bg-muted rounded-md shadow-sm justify-start">
-          {categorias.map(category => (
-            <TabsTrigger
-              key={category.name}
-              value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-              className="data-[state=active]:bg-background data-[state=active]:text-foreground px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 m-1" // Added m-1 for spacing
-            >
-              {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-              {category.name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-
-         <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
+         <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-0"> {/* mt-0 if tabs are now handled by carousel */}
             {filteredListings.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {filteredListings.map(listing => (
@@ -451,12 +464,12 @@ function LandingPageContent() {
                          <DialogContent className="sm:max-w-md p-0 overflow-hidden">
                             <ScrollArea className="max-h-[80vh]">
                               <div className="p-6">
-                                 <ShadDialogHeader className="pb-4 border-b mb-4">
-                                   <ShadDialogTitle>Reservar {listing.title}</ShadDialogTitle>
+                                 <DialogHeader className="pb-4 border-b mb-4">
+                                   <DialogTitle>Reservar {listing.title}</DialogTitle>
                                    <DialogDescription>
                                      Realiza una solicitud de reserva para programar este servicio.
                                    </DialogDescription>
-                                 </ShadDialogHeader>
+                                 </DialogHeader>
                                  <div className="space-y-4">
                                    {listing.imageUrls && listing.imageUrls.length > 0 && (
                                      <Carousel className="w-full rounded-md overflow-hidden shadow-md">
@@ -543,13 +556,13 @@ function LandingPageContent() {
                                        </Select>
                                     </div>
                                  </div>
-                                 <ShadDialogFooter className="pt-6 mt-4 border-t">
+                                 <DialogFooter className="pt-6 mt-4 border-t">
                                    <DialogClose asChild>
                                       <Button type="submit" className="w-full">
                                         Realizar solicitud de reserva
                                       </Button>
                                    </DialogClose>
-                                 </ShadDialogFooter>
+                                 </DialogFooter>
                                </div>
                             </ScrollArea>
                          </DialogContent>
@@ -578,3 +591,4 @@ export default function Page() {
     </AppLayout>
   );
 }
+
