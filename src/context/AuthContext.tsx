@@ -4,25 +4,24 @@
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { z } from "zod"; // Import z explicitly
+import { z } from "zod";
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 import {
   getAuth,
   signInWithPhoneNumber,
   RecaptchaVerifier,
   type ConfirmationResult,
-  // type Auth // Not directly used from here, firebaseAuth is instance
-  sendPasswordResetEmail, 
-  createUserWithEmailAndPassword, // For actual Firebase Auth user creation
-  updateProfile as updateFirebaseProfile, // To update Firebase Auth user profile
-  type User as FirebaseUser // Alias FirebaseUser to avoid conflict
+  sendPasswordResetEmail,
+  createUserWithEmailAndPassword,
+  updateProfile as updateFirebaseProfile,
+  type User as FirebaseUser
 } from 'firebase/auth';
-import { auth as firebaseAuth, db, app as firebaseApp } from '@/lib/firebase'; // Correctly import initialized auth, db, and app from firebase.ts
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; // Firestore imports
+import { auth as firebaseAuth, db, app as firebaseApp } from '@/lib/firebase';
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 
 
 interface User {
-  id: string; // This will be Firebase UID
+  id: string;
   name: string;
   firstName: string;
   lastName: string;
@@ -33,17 +32,17 @@ interface User {
   country?: string;
   dob?: Date | string | null;
   isPhoneVerified?: boolean;
-  profileType?: string; // Added from signup
-  gender?: string; // Added from signup
-  documentType?: string; // Added from signup
-  documentNumber?: string; // Added from signup
-  createdAt?: any; // Firestore timestamp
+  profileType?: string;
+  gender?: string;
+  documentType?: string;
+  documentNumber?: string;
+  createdAt?: any;
 }
 
 const DUMMY_EMAIL = "user@ejemplo.com";
 const DUMMY_PASSWORD = "user12345";
 const dummyUser: User = {
-  id: 'usr123', // Will be replaced by actual Firebase UID
+  id: 'usr123',
   name: "Usuario Ejemplo",
   firstName: "Usuario",
   lastName: "Ejemplo",
@@ -72,7 +71,7 @@ const signupStep1Schema = z.object({
 });
 
 const signupStep2Schema = z.object({
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), // Allow null
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(),
   gender: z.string().optional(),
   documentType: z.string().optional(),
   documentNumber: z.string().optional(),
@@ -104,7 +103,7 @@ interface AuthContextType {
   isLoading: boolean;
   showLoginDialog: boolean;
   showProfileDialog: boolean;
-  currentView: 'login' | 'signup' | 'forgotPassword'; 
+  currentView: 'login' | 'signup' | 'forgotPassword';
   signupStep: number;
   loginError: string | null;
   phoneVerificationError: string | null;
@@ -117,7 +116,7 @@ interface AuthContextType {
   handleOpenChange: (open: boolean) => void;
   openLoginDialog: () => void;
   openProfileDialog: () => void;
-  setCurrentView: (view: 'login' | 'signup' | 'forgotPassword') => void; 
+  setCurrentView: (view: 'login' | 'signup' | 'forgotPassword') => void;
   setSignupStep: (step: number) => void;
   handleLoginSubmit: (data: LoginValues, resetForm: UseFormReset<LoginValues>) => void;
   handleSignupSubmit: (data: SignupValues, resetForm: UseFormReset<SignupValues>) => void;
@@ -128,7 +127,7 @@ interface AuthContextType {
   verifyCode: (code: string) => Promise<void>;
   setIsVerificationSent: (sent: boolean) => void;
   resetPhoneVerification: () => void;
-  handleForgotPasswordSubmit: (data: ForgotPasswordValues, resetForm: UseFormReset<ForgotPasswordValues>) => Promise<void>; 
+  handleForgotPasswordSubmit: (data: ForgotPasswordValues, resetForm: UseFormReset<ForgotPasswordValues>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -136,7 +135,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Initialize isLoading to false
+  const [isLoading, setIsLoading] = useState(false); // Initialize to false
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'forgotPassword'>('login');
@@ -151,17 +150,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkAuth = async () => {
-      setIsLoading(true); // Set to true when starting the async work
-      await new Promise(resolve => setTimeout(resolve, 500)); 
-      // Actual auth logic (e.g., onAuthStateChanged listener) would go here.
-      // For demo, we'll leave it as a simulated delay.
-      // If user is determined:
-      // setUser(actualUser);
-      // setIsLoggedIn(true);
-      // Else (no user):
-      // setUser(null);
-      // setIsLoggedIn(false);
-      setIsLoading(false); // Set to false when done
+      setIsLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      // Actual Firebase auth listener (onAuthStateChanged) would go here.
+      // This would set the user, isLoggedIn, and then setIsLoading(false).
+      // For now, we just finish loading.
+      setIsLoading(false);
     };
     checkAuth();
   }, []);
@@ -194,10 +188,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
    const signup = useCallback(async (details: SignupValues) => {
     setIsLoading(true);
-    setLoginError(null); 
+    setLoginError(null);
 
     try {
-      // Ensure firebaseAuth is available
       if (!firebaseAuth) {
         throw new Error("Firebase Auth service is not available.");
       }
@@ -206,40 +199,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await updateFirebaseProfile(firebaseUser, {
         displayName: `${details.firstName} ${details.lastName}`,
-        // photoURL: can be set here if an initial avatar URL is available
       });
-      
+
       const newUserForFirestore: Omit<User, 'id' | 'initials' | 'name' | 'avatarUrl'> & { uid: string, createdAt: any } = {
-        uid: firebaseUser.uid, 
+        uid: firebaseUser.uid,
         firstName: details.firstName,
         lastName: details.lastName,
-        email: details.email, 
-        phone: details.phone || "", 
+        email: details.email,
+        phone: details.phone || "",
         country: details.country || "",
         dob: details.dob ? details.dob.toISOString() : null,
-        isPhoneVerified: false, 
+        isPhoneVerified: false,
         profileType: details.profileType || "",
         gender: details.gender || "",
         documentType: details.documentType || "",
         documentNumber: details.documentNumber || "",
-        createdAt: serverTimestamp(), 
+        createdAt: serverTimestamp(),
       };
 
       if (!db) {
-        toast({ title: "Error de Base de Datos", description: "La conexión con la base de datos no está disponible. Inténtalo más tarde.", variant: "destructive" });
-        throw new Error("Firestore database instance is not available.");
+        toast({ title: "Error de Base de Datos", description: "La conexión con la base de datos no está disponible. No se pudieron guardar los datos del perfil.", variant: "destructive" });
+        // Decide if you want to throw an error here or proceed with a partially created user
+        // For now, we'll proceed but the user data won't be in Firestore.
+        console.warn("Firestore (db) not available, user profile data not saved to Firestore.");
+      } else {
+        await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
       }
-      await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
 
-      // Construct the User object for the app state
+
       const appUser: User = {
         id: firebaseUser.uid,
         name: `${details.firstName} ${details.lastName}`,
         firstName: details.firstName,
         lastName: details.lastName,
         initials: `${details.firstName[0]}${details.lastName[0]}`,
-        avatarUrl: firebaseUser.photoURL || `https://placehold.co/50x50.png`, // Use placeholder
-        email: firebaseUser.email || details.email, // Ensure email is set
+        avatarUrl: firebaseUser.photoURL || `https://placehold.co/50x50.png`,
+        email: firebaseUser.email || details.email,
         phone: newUserForFirestore.phone,
         country: newUserForFirestore.country,
         dob: newUserForFirestore.dob,
@@ -248,7 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: newUserForFirestore.gender,
         documentType: newUserForFirestore.documentType,
         documentNumber: newUserForFirestore.documentNumber,
-        createdAt: newUserForFirestore.createdAt, // Keep as Firestore timestamp or convert as needed
+        createdAt: newUserForFirestore.createdAt,
       };
       setUser(appUser);
       setIsLoggedIn(true);
@@ -266,10 +261,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "La contraseña es demasiado débil.";
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = "El correo electrónico no es válido.";
-      } else if (error.message === "Firestore database instance is not available.") {
-        errorMessage = "Error de base de datos al guardar perfil. Por favor, contacta al soporte.";
       }
-      setLoginError(errorMessage); 
+      setLoginError(errorMessage);
       toast({ title: "Error al Crear Cuenta", description: errorMessage, variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -298,15 +291,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
        }
       setIsLoading(true);
-      
+
       let newAvatarUrl = user.avatarUrl;
-      let objectUrlToRevoke: string | null = null; 
+      let objectUrlToRevoke: string | null = null;
 
       if (data.avatarFile) {
           console.log("Simulating avatar upload for:", data.avatarFile.name);
           try {
               newAvatarUrl = URL.createObjectURL(data.avatarFile);
-              objectUrlToRevoke = newAvatarUrl; 
+              objectUrlToRevoke = newAvatarUrl;
               console.log("Simulation: Using generated object URL for avatar preview:", newAvatarUrl);
           } catch (error) {
                 console.error("Error creating object URL for preview:", error);
@@ -315,7 +308,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     description: "No se pudo generar la vista previa de la imagen.",
                     variant: "destructive",
                  });
-                 newAvatarUrl = user.avatarUrl; 
+                 newAvatarUrl = user.avatarUrl;
           }
       }
 
@@ -339,6 +332,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           avatarUrl: newAvatarUrl,
           isPhoneVerified: needsVerification ? false : (user.isPhoneVerified ?? false),
       };
+
+      // Simulate saving to backend (Firebase or dummy)
+      if (db) { // Check if Firestore is available
+        // This would be where you update Firestore for a real user
+        // For the dummyUser, we just update the local state
+        console.log("Simulating Firestore update for user:", user.id, updatedUser);
+      } else {
+        console.warn("Firestore (db) not available, profile update not saved to backend for user:", user.id);
+        if (!user.id.startsWith('usr')) { // Only show toast if it's not the dummy user
+            toast({ title: "Advertencia", description: "La base de datos no está disponible. Los cambios de perfil no se guardaron en el servidor.", variant: "default" });
+        }
+      }
+
+
       setUser(updatedUser);
 
       if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
@@ -364,7 +371,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    const sendVerificationCode = useCallback(async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => {
        setPhoneVerificationError(null);
        setIsLoading(true);
-       if (!firebaseAuth) { 
+       if (!firebaseAuth) {
            setPhoneVerificationError("Error de Firebase: Servicio de autenticación no disponible.");
            toast({ title: "Error de Firebase", description: "El servicio de autenticación no está disponible.", variant: "destructive" });
            setIsLoading(false);
@@ -411,7 +418,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        setIsLoading(true);
        try {
            const credential = await confirmationResult.confirm(code);
-           const verifiedFirebaseUser = credential.user as FirebaseUser; // Cast to FirebaseUser
+           const verifiedFirebaseUser = credential.user as FirebaseUser;
            if (user) {
                const updatedUser = {
                  ...user,
@@ -419,10 +426,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  phone: verifiedFirebaseUser.phoneNumber && verifiedFirebaseUser.phoneNumber !== user.phone ? verifiedFirebaseUser.phoneNumber : user.phone
                };
                setUser(updatedUser);
-               if (db) {
+               if (db) { // Check if Firestore is available
                    await setDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true }, { merge: true });
                } else {
-                   console.warn("Firestore (db) not available, phone verification status not saved to backend.");
+                   console.warn("Firestore (db) not available, phone verification status not saved to backend for user:", user.id);
+                   if (!user.id.startsWith('usr')) { // Only show toast if it's not the dummy user
+                       toast({ title: "Advertencia", description: "La base de datos no está disponible. El estado de verificación del teléfono no se guardó en el servidor.", variant: "default" });
+                   }
                }
            }
            setConfirmationResult(null);
@@ -458,18 +468,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoginError(null);
         resetPhoneVerification();
      }
-    }, [isLoggedIn, user, resetPhoneVerification]); 
+    }, [isLoggedIn, user, resetPhoneVerification]);
 
 
     const openProfileDialog = useCallback(() => {
         if (isLoggedIn && user) {
             setShowProfileDialog(true);
             setShowLoginDialog(false);
-            resetPhoneVerification(); 
+            resetPhoneVerification();
         } else {
-            openLoginDialog(); 
+            openLoginDialog();
         }
-    }, [isLoggedIn, user, openLoginDialog, resetPhoneVerification]); 
+    }, [isLoggedIn, user, openLoginDialog, resetPhoneVerification]);
 
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
@@ -491,7 +501,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            // resetForm(); // Consider resetting form after successful API call in signup if needed
        }).catch((err) => {
            console.error("Signup error propagated to submit handler:", err);
-           // Toasting is handled within the signup function
        });
    }, [signup]);
 
@@ -508,7 +517,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Correo Enviado",
         description: "Si existe una cuenta con ese correo, recibirás un enlace para restablecer tu contraseña.",
       });
-      setCurrentView('login'); 
+      setCurrentView('login');
       resetForm();
     } catch (error: any) {
       console.error("Error sending password reset email:", error);
@@ -579,12 +588,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     verifyCode,
     setIsVerificationSent,
     resetPhoneVerification,
-    handleForgotPasswordSubmit, 
+    handleForgotPasswordSubmit,
   };
 
-  // This initial loading state ensures children are not rendered prematurely
-  // before the simulated auth check (or real onAuthStateChanged) completes.
-  if (isLoading && typeof window !== 'undefined') { 
+  if (isLoading && typeof window !== 'undefined') {
      return (
         <div className="flex justify-center items-center h-screen">
            <p>Cargando autenticación...</p>
