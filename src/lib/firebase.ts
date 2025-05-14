@@ -7,16 +7,15 @@ import { getFirestore, type Firestore } from "firebase/firestore"; // Import Fir
 let app: FirebaseApp | undefined = undefined; 
 let auth: Auth | undefined = undefined;
 let db: Firestore | undefined = undefined;
-
+//conexione
 const firebaseConfig: FirebaseOptions = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDkjXsZkQtQ9GSbeyMENNm-HLY-gz4Eum8",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBWhaZEeGXQwFKrMCRj9RhdyJHdz5H8kdI",
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sportsofficeapp.firebaseapp.com",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsofficeapp", 
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sportsofficeapp.appspot.com",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1020460978896",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsoffice-conect",
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sportsoffice-conect.appspot.com",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "772294973010",
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1020460978896:web:b05960f102f3a1e26c45b1",
 };
-
 if (!firebaseConfig.projectId) {
     console.error(
         "Firebase projectId is missing. Please check your environment variables (NEXT_PUBLIC_FIREBASE_PROJECT_ID) or firebaseConfig in src/lib/firebase.ts."

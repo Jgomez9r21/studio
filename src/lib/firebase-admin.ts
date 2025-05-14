@@ -2,7 +2,7 @@
 
 import * as admin from 'firebase-admin';
 import type { ServiceAccount } from 'firebase-admin';
-import { bd} from '..'
+
 
 // Extend the ServiceAccount type to make privateKeyId and privateKey optional
 type OptionalServiceAccount = ServiceAccount & {
@@ -72,3 +72,4 @@ export { adminApp }; // Export the initialized app (which might be null, but sho
 // You might also want to export specific services like auth or firestore:
 // export const adminAuth = adminApp ? adminApp.auth() : null;
 // export const adminDb = adminApp ? adminApp.firestore() : null;
+

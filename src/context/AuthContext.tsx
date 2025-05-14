@@ -4,7 +4,7 @@
 import type React from 'react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { z } from "zod"; // Ensure z is imported
+import { z } from "zod"; // Import z explicitly
 import type { FieldErrors, UseFormReset, UseFormTrigger } from 'react-hook-form';
 import {
   getAuth,
@@ -15,8 +15,9 @@ import {
   sendPasswordResetEmail, 
   createUserWithEmailAndPassword, // For actual Firebase Auth user creation
   updateProfile as updateFirebaseProfile, // To update Firebase Auth user profile
+  type User as FirebaseUser // Alias FirebaseUser to avoid conflict
 } from 'firebase/auth';
-import { auth as firebaseAuth, db } from '@/lib/firebase'; // Correctly import initialized auth and db from firebase.ts
+import { auth as firebaseAuth, db, app as firebaseApp } from '@/lib/firebase'; // Correctly import initialized auth, db, and app from firebase.ts
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; // Firestore imports
 
 
@@ -135,7 +136,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Initialize isLoading to false
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'forgotPassword'>('login');
@@ -150,10 +151,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkAuth = async () => {
-      setIsLoading(true);
-      // In a real app, this would be replaced by Firebase's onAuthStateChanged listener
+      setIsLoading(true); // Set to true when starting the async work
       await new Promise(resolve => setTimeout(resolve, 500)); 
-      setIsLoading(false);
+      // Actual auth logic (e.g., onAuthStateChanged listener) would go here.
+      // For demo, we'll leave it as a simulated delay.
+      // If user is determined:
+      // setUser(actualUser);
+      // setIsLoggedIn(true);
+      // Else (no user):
+      // setUser(null);
+      // setIsLoggedIn(false);
+      setIsLoading(false); // Set to false when done
     };
     checkAuth();
   }, []);
@@ -189,11 +197,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoginError(null); 
 
     try {
+      // Ensure firebaseAuth is available
+      if (!firebaseAuth) {
+        throw new Error("Firebase Auth service is not available.");
+      }
       const userCredential = await createUserWithEmailAndPassword(firebaseAuth, details.email, details.password);
       const firebaseUser = userCredential.user;
 
       await updateFirebaseProfile(firebaseUser, {
         displayName: `${details.firstName} ${details.lastName}`,
+        // photoURL: can be set here if an initial avatar URL is available
       });
       
       const newUserForFirestore: Omit<User, 'id' | 'initials' | 'name' | 'avatarUrl'> & { uid: string, createdAt: any } = {
@@ -218,14 +231,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       await setDoc(doc(db, "users", firebaseUser.uid), newUserForFirestore);
 
+      // Construct the User object for the app state
       const appUser: User = {
         id: firebaseUser.uid,
         name: `${details.firstName} ${details.lastName}`,
         firstName: details.firstName,
         lastName: details.lastName,
         initials: `${details.firstName[0]}${details.lastName[0]}`,
-        avatarUrl: firebaseUser.photoURL || `https://picsum.photos/50/50?random=${Math.random()}`,
-        email: firebaseUser.email || details.email, 
+        avatarUrl: firebaseUser.photoURL || `https://placehold.co/50x50.png`, // Use placeholder
+        email: firebaseUser.email || details.email, // Ensure email is set
         phone: newUserForFirestore.phone,
         country: newUserForFirestore.country,
         dob: newUserForFirestore.dob,
@@ -234,7 +248,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gender: newUserForFirestore.gender,
         documentType: newUserForFirestore.documentType,
         documentNumber: newUserForFirestore.documentNumber,
-        createdAt: newUserForFirestore.createdAt, 
+        createdAt: newUserForFirestore.createdAt, // Keep as Firestore timestamp or convert as needed
       };
       setUser(appUser);
       setIsLoggedIn(true);
@@ -284,23 +298,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
        }
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+      
       let newAvatarUrl = user.avatarUrl;
-      // let objectUrlToRevoke: string | null = null; // Not strictly needed if not revoking immediately
+      let objectUrlToRevoke: string | null = null; 
 
       if (data.avatarFile) {
           console.log("Simulating avatar upload for:", data.avatarFile.name);
           try {
-              // For preview purposes only in this dummy setup
               newAvatarUrl = URL.createObjectURL(data.avatarFile);
-              // objectUrlToRevoke = newAvatarUrl; 
+              objectUrlToRevoke = newAvatarUrl; 
               console.log("Simulation: Using generated object URL for avatar preview:", newAvatarUrl);
-              // In a real Firebase app, you'd upload to Firebase Storage and get a persistent URL.
-              // Example:
-              // const storageRef = ref(storage, `avatars/${user.id}/${data.avatarFile.name}`);
-              // await uploadBytes(storageRef, data.avatarFile);
-              // newAvatarUrl = await getDownloadURL(storageRef);
           } catch (error) {
                 console.error("Error creating object URL for preview:", error);
                  toast({
@@ -334,11 +341,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       setUser(updatedUser);
 
-      // If newAvatarUrl is a blob URL and different from the old one, and the old one was also a blob,
-      // you might consider revoking the old one if it's no longer used.
-      // if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
-      //    URL.revokeObjectURL(user.avatarUrl);
-      // }
+      if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
+         console.log("Consider revoking previous blob URL if no longer needed:", user.avatarUrl);
+      }
 
       if (!needsVerification) {
         toast({
@@ -359,7 +364,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
    const sendVerificationCode = useCallback(async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier) => {
        setPhoneVerificationError(null);
        setIsLoading(true);
-       if (!firebaseAuth) { // Check if firebaseAuth itself is initialized
+       if (!firebaseAuth) { 
            setPhoneVerificationError("Error de Firebase: Servicio de autenticación no disponible.");
            toast({ title: "Error de Firebase", description: "El servicio de autenticación no está disponible.", variant: "destructive" });
            setIsLoading(false);
@@ -406,7 +411,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
        setIsLoading(true);
        try {
            const credential = await confirmationResult.confirm(code);
-           const verifiedFirebaseUser = credential.user; 
+           const verifiedFirebaseUser = credential.user as FirebaseUser; // Cast to FirebaseUser
            if (user) {
                const updatedUser = {
                  ...user,
@@ -414,7 +419,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  phone: verifiedFirebaseUser.phoneNumber && verifiedFirebaseUser.phoneNumber !== user.phone ? verifiedFirebaseUser.phoneNumber : user.phone
                };
                setUser(updatedUser);
-               // Here you would also update the user's profile in Firestore
                if (db) {
                    await setDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true }, { merge: true });
                } else {
@@ -580,10 +584,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // This initial loading state ensures children are not rendered prematurely
   // before the simulated auth check (or real onAuthStateChanged) completes.
-  if (isLoading && typeof window !== 'undefined') { // Added typeof window !== 'undefined' to prevent SSR issues with this simple loader
+  if (isLoading && typeof window !== 'undefined') { 
      return (
         <div className="flex justify-center items-center h-screen">
-           <p>Cargando autenticación...</p> {/* Or a more sophisticated loader component */}
+           <p>Cargando autenticación...</p>
         </div>
      );
   }
@@ -599,4 +603,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
