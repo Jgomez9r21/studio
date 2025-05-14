@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import Image from 'next/image';
+import Link from 'next/link'; // Added Link import
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { cn } from "@/lib/utils";
 
@@ -57,8 +58,8 @@ interface SportsFacility {
   image: string;
   dataAiHint: string;
   amenities?: string[];
-  reservationDate?: string; 
-  reservationTime?: string; 
+  reservationDate?: string;
+  reservationTime?: string;
 }
 
 // Dummy sports facility data reflecting new categories
@@ -422,7 +423,9 @@ const FindTalentsContent = () => {
                                 Tarifa: <span className="font-bold text-lg text-primary">${facility.rate.toLocaleString('es-CO')}</span>
                                 {HOURLY_RATE_CATEGORIES.includes('Instalación Deportiva') ? <span className="text-xs text-muted-foreground">/hr</span> : ''}
                             </p>
-                            <Button size="sm" className="h-8 text-xs sm:text-sm">Ver Detalles</Button>
+                            <Button size="sm" className="h-8 text-xs sm:text-sm" asChild>
+                                <Link href={`/facility/${facility.id}`}>Ver Detalles</Link>
+                            </Button>
                         </div>
                     </CardFooter>
               </Card>
@@ -450,4 +453,3 @@ const FindTalents = () => {
 };
 
 export default FindTalents;
-
