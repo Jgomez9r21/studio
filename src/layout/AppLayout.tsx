@@ -1,6 +1,5 @@
-// src/layout/AppLayout.tsx
 
-'use client';
+"use client";
 
 import type React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -9,10 +8,10 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialog primitives
+import * as DialogPrimitive from "@radix-ui/react-dialog"; 
 import {
-  SheetClose, // Explicitly import SheetClose
-} from "@/components/ui/sheet"; // Keep other Sheet imports as they are if used
+  SheetClose, 
+} from "@/components/ui/sheet"; 
 import {
   Sidebar,
   SidebarContent,
@@ -23,17 +22,17 @@ import {
   SidebarMenuButton,
   SidebarInset,
   useSidebar,
-  // SidebarProvider is already in RootLayout
+  
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight, Asterisk } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTrigger,
+  DialogTrigger as ShadDialogTrigger,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -63,9 +62,9 @@ import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
 import { RecaptchaVerifier, getAuth } from 'firebase/auth';
 import { app as firebaseApp } from '@/lib/firebase';
-import { Sheet as ShadSheet, SheetContent as ShadSheetContent, SheetHeader as ShadSheetHeader, SheetTitle as ShadSheetTitle, SheetTrigger as ShadSheetTrigger } from "@/components/ui/sheet"; // Renamed to avoid conflict
+import { Sheet as ShadSheet, SheetContent as ShadSheetContent, SheetHeader as ShadSheetHeader, SheetTitle as ShadSheetTitle, SheetTrigger as ShadSheetTrigger } from "@/components/ui/sheet";
 
-// Navigation items
+
 const navegacion = [
   {
     title: "Inicio",
@@ -105,7 +104,7 @@ const navegacion = [
 ];
 
 
-// Dummy country list for signup form
+
 const countries = [
   { code: "AR", name: "Argentina" },
   { code: "BO", name: "Bolivia" },
@@ -139,15 +138,14 @@ const profileTypes = [
     { value: "propietario_espacio", label: "Propietario (Ofrezco espacios deportivos)"},
 ]
 
-// Phone validation regex (E.164 format starting with +)
+
 const phoneRegex = new RegExp(/^\+[1-9]\d{1,14}$/);
 const phoneValidation = z.string()
   .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
   .optional()
-  .or(z.literal("")); // Allow empty string
+  .or(z.literal("")); 
 
 
-// Zod Schemas for Login and Signup
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
   password: z.string().min(1, "La contraseña es requerida."),
@@ -240,7 +238,7 @@ export default function AppLayout({
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO",
+      country: "CO", 
       phone: "",
       profileType: "",
       dob: null,
@@ -273,9 +271,9 @@ export default function AppLayout({
     };
 
      const handlePrevStep = () => {
-       handleOpenChange(false); // Close any open dialogs
+       handleOpenChange(false); 
        setSignupStep(1);
-       // Reset only step 2 fields or relevant error messages if needed
+       
        signupForm.clearErrors(['dob', 'gender', 'documentType', 'documentNumber', 'email', 'password', 'confirmPassword']);
    };
 
@@ -341,7 +339,7 @@ export default function AppLayout({
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      handleOpenChange(false); // This also resets auth dialog states
+      handleOpenChange(false); 
     }
   };
 
@@ -420,7 +418,7 @@ export default function AppLayout({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Contraseña</FormLabel>
-                              <FormControl>
+                               <FormControl>
                                 <div className="relative">
                                     <Input type={showPassword ? "text" : "password"} placeholder="Ingresar la contraseña" {...field} />
                                     <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
@@ -711,7 +709,7 @@ export default function AppLayout({
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
                  <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
                    {isLoggedIn && user ? (
-                     <DialogTrigger asChild>
+                     <ShadDialogTrigger asChild>
                        <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
                            <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
@@ -721,9 +719,9 @@ export default function AppLayout({
                            <span className="font-semibold truncate">{user.name}</span>
                          </div>
                        </Button>
-                     </DialogTrigger>
+                     </ShadDialogTrigger>
                    ) : (
-                     <DialogTrigger asChild>
+                     <ShadDialogTrigger asChild>
                        <Button variant="ghost" onClick={openLoginDialog} className="w-full justify-start transition-opacity duration-200 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:border group-data-[collapsible=icon]:rounded-full group-data-[collapsible=icon]:justify-center hover:bg-sidebar-accent/10">
                          <LogIn className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -731,7 +729,7 @@ export default function AppLayout({
                          </span>
                          <span className="sr-only group-data-[collapsible!=icon]:hidden">Ingresar</span>
                        </Button>
-                     </DialogTrigger>
+                     </ShadDialogTrigger>
                    )}
                    {authDialogContent()}
                  </Dialog>
@@ -745,7 +743,22 @@ export default function AppLayout({
                   <ShadSheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <ShadSheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                          <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                           <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-5 w-5 sm:h-6 sm:w-6"
+                          >
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                          </svg>
                           <span className="sr-only">Abrir menú</span>
                         </Button>
                       </ShadSheetTrigger>
@@ -784,36 +797,35 @@ export default function AppLayout({
                            <SidebarFooter className="p-2 border-t h-14">
                                {isLoggedIn && user ? (
                                  <Dialog open={showProfileDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openProfileDialog(); }}}>
-                                   <DialogTrigger asChild>
+                                   <ShadDialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openProfileDialog(); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
                                           <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                           <span className="font-medium truncate">{user.name}</span>
                                      </Button>
-                                   </DialogTrigger>
+                                   </ShadDialogTrigger>
                                    {authDialogContent()}
                                  </Dialog>
                                ) : (
                                  <Dialog open={showLoginDialog && isMobileSheetOpen} onOpenChange={(open) => { if (!open) { handleOpenChange(false); setIsMobileSheetOpen(false); } else { openLoginDialog(); }}}>
-                                   <DialogTrigger asChild>
+                                   <ShadDialogTrigger asChild>
                                      <Button variant="ghost" onClick={() => { openLoginDialog();}} className="w-full justify-start">
                                          <LogIn className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
                                      </Button>
-                                   </DialogTrigger>
+                                   </ShadDialogTrigger>
                                    {authDialogContent()}
                                  </Dialog>
                                )}
                            </SidebarFooter>
                       </ShadSheetContent>
-                  </ShadSheet>>
+                  </ShadSheet>
 
-                  {/* Centered Brand - Mobile: Removed as requested */}
-                   {/* 
+                  
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <Dumbbell className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                       <span className="font-semibold text-primary text-lg leading-none">Sportoffice</span>
                   </div>
-                  */}
-                  <div className="w-8 h-8" /> {/* Placeholder to balance justify-between */}
+                  
+                  <div className="w-8 h-8" /> 
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
@@ -825,3 +837,4 @@ export default function AppLayout({
       </>
   );
 }
+
