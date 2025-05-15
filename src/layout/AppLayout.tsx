@@ -1,12 +1,11 @@
-
-
 // src/layout/AppLayout.tsx
 
 'use client';
 
 import type React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter }
+from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,8 +13,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialo
 import {
   Sheet,
   SheetContent,
-  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
-  SheetTitle as ShadSheetTitle,   // Renamed to avoid conflict
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
@@ -29,16 +28,17 @@ import {
   SidebarMenuButton,
   SidebarInset,
   useSidebar,
+  SidebarProvider, // Ensure SidebarProvider is imported
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves, WavesIcon, LayoutGrid, Dumbbell, CalendarClock } from "lucide-react";
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves, WavesIcon, LayoutGrid, Dumbbell, CalendarClock, ChevronDown, Eye, EyeOff } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTrigger, 
+  DialogTrigger,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -66,7 +66,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
-
+import { RecaptchaVerifier, getAuth } from 'firebase/auth';
+import { app as firebaseApp } from '@/lib/firebase';
 
 // Navigation items
 const navegacion = [
@@ -142,6 +143,14 @@ const profileTypes = [
     { value: "propietario_espacio", label: "Propietario (Ofrezco espacios deportivos)"},
 ]
 
+// Phone validation regex (E.164 format starting with +)
+const phoneRegex = new RegExp(/^\+[1-9]\d{1,14}$/);
+const phoneValidation = z.string()
+  .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
+  .optional()
+  .or(z.literal("")); // Allow empty string
+
+
 // Zod Schemas for Login and Signup
 const loginSchema = z.object({
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
@@ -153,7 +162,7 @@ const signupStep1Schema = z.object({
   firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres."),
   lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres."),
   country: z.string().min(1, "Debes seleccionar un país.").default("CO"),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Número inválido. Incluye código de país (ej: +57...).").optional().or(z.literal("")),
+  phone: phoneValidation,
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
@@ -164,6 +173,10 @@ const signupStep2Schema = z.object({
   documentNumber: z.string().optional(),
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
   password: z.string().min(6, "Contraseña debe tener al menos 6 caracteres."),
+  confirmPassword: z.string().min(6, "Confirmar contraseña debe tener al menos 6 caracteres."),
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Las contraseñas no coinciden.",
+    path: ["confirmPassword"],
 });
 
 const signupSchema = signupStep1Schema.merge(signupStep2Schema);
@@ -189,7 +202,7 @@ export default function AppLayout({
   const {
     user,
     isLoggedIn,
-    isLoading: authIsLoading, 
+    isLoading: authIsLoading,
     showLoginDialog,
     showProfileDialog,
     currentView,
@@ -209,8 +222,16 @@ export default function AppLayout({
     phoneVerificationError,
     isVerifyingCode,
     resetPhoneVerification,
+    sendVerificationCode,
+    verifyCode,
     handleForgotPasswordSubmit: contextHandleForgotPasswordSubmit,
    } = useAuth();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  const [verificationCode, setVerificationCode] = useState("");
 
 
   const loginForm = useForm<LoginValues>({
@@ -223,7 +244,7 @@ export default function AppLayout({
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO", // Default to Colombia
+      country: "CO",
       phone: "",
       profileType: "",
       dob: null,
@@ -232,6 +253,7 @@ export default function AppLayout({
       documentNumber: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
     mode: "onChange",
   });
@@ -262,17 +284,71 @@ export default function AppLayout({
     contextHandleForgotPasswordSubmit(data, forgotPasswordForm.reset);
   };
 
+  const handlePhoneSendVerification = useCallback(async () => {
+    const phoneNumber = signupForm.getValues("phone");
+    if (!phoneNumber || !phoneValidation.safeParse(phoneNumber).success) {
+      signupForm.setError("phone", { type: "manual", message: "Número de teléfono inválido para verificación." });
+      return;
+    }
+    if (!recaptchaVerifierRef.current) {
+      toast({ title: "Error de reCAPTCHA", description: "reCAPTCHA no está listo. Intenta de nuevo.", variant: "destructive" });
+      return;
+    }
+    await sendVerificationCode(phoneNumber, recaptchaVerifierRef.current);
+  }, [signupForm, sendVerificationCode, toast]);
+
+  const handlePhoneVerifyCode = useCallback(async () => {
+    if (!verificationCode || verificationCode.length !== 6) {
+      toast({ title: "Error", description: "Ingresa un código de 6 dígitos.", variant: "destructive" });
+      return;
+    }
+    await verifyCode(verificationCode);
+    setVerificationCode("");
+  }, [verificationCode, verifyCode, toast]);
+
+
+  useEffect(() => {
+    let verifier: RecaptchaVerifier | null = null;
+    const authInstance = getAuth(firebaseApp);
+
+    if (recaptchaContainerRef.current && !recaptchaVerifierRef.current && !authIsLoading && authInstance) {
+      try {
+        verifier = new RecaptchaVerifier(authInstance, recaptchaContainerRef.current, {
+          'size': 'invisible',
+          'callback': (response: any) => { console.log("reCAPTCHA solved:", response); },
+          'expired-callback': () => {
+            console.log("reCAPTCHA expired");
+            toast({ title: "reCAPTCHA Expirado", description: "Por favor, intenta verificar de nuevo.", variant: "destructive" });
+            resetPhoneVerification();
+            recaptchaVerifierRef.current?.render().catch(err => console.error("reCAPTCHA re-render error:", err));
+          }
+        });
+        verifier.render().then(widgetId => {
+          console.log("reCAPTCHA rendered, widgetId:", widgetId);
+          recaptchaVerifierRef.current = verifier;
+        }).catch(err => {
+          console.error("reCAPTCHA render error:", err);
+          toast({ title: "Error de reCAPTCHA", description: "No se pudo inicializar la verificación reCAPTCHA.", variant: "destructive" });
+        });
+      } catch (error) {
+        console.error("Error creating RecaptchaVerifier:", error);
+        toast({ title: "Error de reCAPTCHA", description: "Error al crear el verificador reCAPTCHA.", variant: "destructive" });
+      }
+    }
+    return () => { verifier?.clear(); recaptchaVerifierRef.current = null; };
+  }, [authIsLoading, toast, resetPhoneVerification]);
+
 
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      handleOpenChange(false);
+      handleOpenChange(false); // This also resets auth dialog states
     }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); 
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false); 
+      handleOpenChange(false);
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false);
       router.push('/settings');
   };
 
@@ -346,7 +422,13 @@ export default function AppLayout({
                             <FormItem>
                               <FormLabel>Contraseña</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder=" Ingresar la contraseña" {...field} />
+                                <div className="relative">
+                                    <Input type={showPassword ? "text" : "password"} placeholder="Ingresar la contraseña" {...field} />
+                                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        <span className="sr-only">{showPassword ? "Ocultar" : "Mostrar"} contraseña</span>
+                                    </Button>
+                                </div>
                               </FormControl>
                               {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
                               <FormMessage />
@@ -373,9 +455,10 @@ export default function AppLayout({
                     <DialogHeader className="mb-4 text-center">
                       <ShadDialogDialogTitle className="text-2xl">Crear Cuenta</ShadDialogDialogTitle>
                        <DialogDescription>
-                         Completa el formulario para crear tu cuenta.
+                         Completa el formulario para crear tu cuenta. Paso {signupStep} de 2.
                        </DialogDescription>
                     </DialogHeader>
+                    <div ref={recaptchaContainerRef} id="recaptcha-container-signup"></div> {/* reCAPTCHA for signup phone verification */}
                     <Form {...signupForm}>
                        <form
                           onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
@@ -405,7 +488,7 @@ export default function AppLayout({
                                    </FormItem>
                                  )}/>
                                  <FormField control={signupForm.control} name="phone" render={({ field }) => (
-                                   <FormItem> <FormLabel>Teléfono (Opcional)</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
+                                   <FormItem> <FormLabel>Teléfono</FormLabel> <FormControl><Input type="tel" placeholder="+573001234567" {...field} /></FormControl> <FormMessage /> </FormItem>
                                  )}/>
                                </div>
                                <FormField control={signupForm.control} name="profileType" render={({ field }) => (
@@ -478,11 +561,55 @@ export default function AppLayout({
                                <FormField control={signupForm.control} name="email" render={({ field }) => (
                                  <FormItem> <FormLabel>Correo</FormLabel> <FormControl><Input type="email" placeholder="tu@correo.com" {...field} /></FormControl> <FormMessage /> </FormItem>
                                )}/>
-                               <FormField control={signupForm.control} name="password" render={({ field }) => (
-                                 <FormItem> <FormLabel>Contraseña</FormLabel> <FormControl><Input type="password" placeholder="Crea una contraseña (mín. 6 caract.)" {...field} /></FormControl> <FormMessage /> </FormItem>
-                               )}/>
+                                <FormField control={signupForm.control} name="password" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Contraseña</FormLabel>
+                                        <FormControl>
+                                            <div className="relative">
+                                                <Input type={showPassword ? "text" : "password"} placeholder="Crea una contraseña (mín. 6 caract.)" {...field} />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
+                                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                <FormField control={signupForm.control} name="confirmPassword" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Confirmar Contraseña</FormLabel>
+                                        <FormControl>
+                                             <div className="relative">
+                                                <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirma tu contraseña" {...field} />
+                                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}/>
+                                 {/* Phone verification section if needed for signup */}
+                                 {isVerificationSent && (
+                                   <div className="mt-2 space-y-2 p-3 border rounded-md bg-muted/50">
+                                     <Label htmlFor="signup-verification-code">Ingresa el código SMS</Label>
+                                     <div className="flex items-center gap-2">
+                                       <Input id="signup-verification-code" type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} placeholder="123456" maxLength={6} className="flex-1"/>
+                                       <Button type="button" onClick={handlePhoneVerifyCode} disabled={isVerifyingCode || verificationCode.length !== 6 || authIsLoading}>
+                                         {isVerifyingCode ? "Verificando..." : "Confirmar"}
+                                       </Button>
+                                     </div>
+                                     {phoneVerificationError && <p className="text-sm font-medium text-destructive mt-1">{phoneVerificationError}</p>}
+                                   </div>
+                                 )}
+                                 {signupForm.getValues("phone") && !user?.isPhoneVerified && !isVerificationSent && (
+                                   <Button type="button" variant="outline" className="w-full mt-2" onClick={handlePhoneSendVerification} disabled={authIsLoading || isVerifyingCode}>
+                                     Enviar código SMS para verificar teléfono
+                                   </Button>
+                                 )}
                              </div>
                            )}
+                            {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
 
                             <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
                                <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
@@ -559,8 +686,10 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                 <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">Sportoffice</h3>
+                 <Asterisk className="h-7 w-7 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
+                    Sportoffice
+                 </h3>
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
@@ -569,7 +698,7 @@ export default function AppLayout({
                       <SidebarMenuButton
                         href={item.href}
                         isActive={pathname === item.href}
-                        className="text-sm" 
+                        className="text-sm"
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                       >
                         <item.icon className="h-4 w-4" />
@@ -628,7 +757,6 @@ export default function AppLayout({
                                  <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                                  <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
-                              
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">
                                     <XIcon className="h-5 w-5" />
@@ -680,11 +808,15 @@ export default function AppLayout({
                       </SheetContent>
                   </Sheet>
 
-                  {/* Centered Brand - Mobile */}
-                 <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                  {/* Centered Brand - Mobile: Removed per user request to have title only on "web" (desktop sidebar) */}
+                  {/*
+                  <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                      <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                       <span className="font-semibold text-primary text-lg leading-none">Sportoffice</span>
                   </div>
+                  */}
+                  {/* Placeholder to balance justify-between, especially if mobile brand is removed */}
+                  <div className="w-8 h-8" />
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
