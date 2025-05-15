@@ -364,7 +364,7 @@ function LandingPageContent() {
               }}
               className="w-full"
           >
-              <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden relative">
+             <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden relative">
                 <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
                   <CarouselContent>
                     <CarouselItem className="basis-auto"> {/* Single item for the whole TabsList */}
