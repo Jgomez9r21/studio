@@ -2,7 +2,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState, useCallback }
+import { useEffect, useState, useCallback, useRef }
 from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { ServiceListing} from '@/services/service-listings';
@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft, Asterisk } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft, Asterisk, ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -67,7 +67,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 
@@ -350,233 +350,223 @@ function LandingPageContent() {
         </Carousel>
       </section>
 
-
       <div className="relative w-full px-4 md:px-6 lg:px-8 pb-4">
-        <Tabs
-            value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
-            onValueChange={(value) => {
-            const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
-            setSelectedCategoryState(categoryName);
-            if (categoryName === 'Todos') {
-                router.push(pathname, { scroll: false });
-            } else {
-                router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
-            }
-            }}
-            className="w-full"
-        >
-           <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden">
-            <Carousel
-                opts={{
-                align: "start",
-                dragFree: true, 
-                }}
-                className="w-full"
-            >
-                <CarouselContent className="flex">
-                    <TabsList asChild className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
-                        <CarouselItem className="pl-1 basis-auto flex-shrink-0"> 
-                           {categorias.map((category) => (
-                                <CarouselItem key={category.name} className="pl-1 basis-auto flex-shrink-0">
-                                    <TabsTrigger
-                                        value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                                        className={cn(
-                                        "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
-                                        "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
-                                        "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
-                                        )}
-                                    >
-                                        {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-                                        {category.name}
-                                    </TabsTrigger>
-                                </CarouselItem>
-                            ))}
-                        </CarouselItem>
-                    </TabsList>
-                </CarouselContent>
-                {/* <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" /> */}
-                <CarouselNext variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
-            </Carousel>
-        </div>
-            <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
-                {filteredListings.length > 0 ? (
-                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredListings.map(listing => (
-                    <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
-                        <div className="relative aspect-video w-full overflow-hidden">
-                        <Image
-                            src={listing.imageUrl || `https://placehold.co/400x300.png`}
-                            alt={listing.title}
-                            layout="fill"
-                            objectFit="cover"
-                            data-ai-hint={`${listing.category} service`}
-                        />
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/50 hover:text-destructive"
-                            onClick={() => toggleFavorite(listing.id)}
-                            aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+          <Tabs
+              value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'}
+              onValueChange={(value) => {
+              const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
+              setSelectedCategoryState(categoryName);
+              if (categoryName === 'Todos') {
+                  router.push(pathname, { scroll: false });
+              } else {
+                  router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
+              }
+              }}
+              className="w-full"
+          >
+              <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden relative">
+                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
+                  <CarouselContent>
+                    <CarouselItem className="basis-auto"> {/* Single item for the whole TabsList */}
+                      <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
+                        {categorias.map((category) => (
+                            <TabsTrigger
+                                key={category.name}
+                                value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                                className={cn(
+                                "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
+                                "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
+                                "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
+                                )}
                             >
-                            <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
-                         </Button>
-                        </div>
-                        <CardHeader className="p-4 pb-2">
-                        <div className="flex justify-between items-start gap-2">
-                            <div className="flex-grow">
-                            <CardTitle className="text-lg font-semibold leading-tight">
-                                {listing.title}
-                            </CardTitle>
-                            <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
-                            </div>
+                                {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                                {category.name}
+                            </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </CarouselItem>
+                  </CarouselContent>
+                  <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
+                  <CarouselNext variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
+                </Carousel>
+              </div>
+              <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
+                  {filteredListings.length > 0 ? (
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {filteredListings.map(listing => (
+                      <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
+                          <div className="relative aspect-video w-full overflow-hidden">
+                          <Image
+                              src={listing.imageUrl || `https://placehold.co/400x300.png`}
+                              alt={listing.title}
+                              layout="fill"
+                              objectFit="cover"
+                              data-ai-hint={`${listing.category} service`}
+                          />
+                          <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/50 hover:text-destructive"
+                              onClick={() => toggleFavorite(listing.id)}
+                              aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                              >
+                              <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
+                          </Button>
+                          </div>
+                          <CardHeader className="p-4 pb-2">
+                          <div className="flex justify-between items-start gap-2">
+                              <div className="flex-grow">
+                              <CardTitle className="text-lg font-semibold leading-tight">
+                                  {listing.title}
+                              </CardTitle>
+                              <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
+                              </div>
 
-                        </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
-                        <p className="text-sm">
-                            <span className="text-muted-foreground">Tarifa: </span>
-                            <span className="font-medium text-foreground">${listing.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
-                        </p>
-                        {listing.professionalName && (
-                            <p className="text-sm">
-                            <span className="text-muted-foreground">Profesional: </span>
-                            <span className="text-foreground">{listing.professionalName}</span>
-                            </p>
-                        )}
-                        {listing.rating !== undefined && (
-                            <div className="flex items-center text-sm">
-                                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
-                                <span className="font-semibold text-foreground">{listing.rating.toFixed(1)}</span>
-                            </div>
-                        )}
-                        <p className="text-sm text-foreground line-clamp-1 flex items-center">
-                            <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
-                            {listing.location}
-                        </p>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-3 border-t">
-                        <Dialog>
-                            <DialogTrigger asChild>
+                          </div>
+                          </CardHeader>
+                          <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
+                          <p className="text-sm">
+                              <span className="text-muted-foreground">Tarifa: </span>
+                              <span className="font-medium text-foreground">${listing.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
+                          </p>
+                          {listing.professionalName && (
+                              <p className="text-sm">
+                              <span className="text-muted-foreground">Profesional: </span>
+                              <span className="text-foreground">{listing.professionalName}</span>
+                              </p>
+                          )}
+                          {listing.rating !== undefined && (
+                              <div className="flex items-center text-sm">
+                                  <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
+                                  <span className="font-semibold text-foreground">{listing.rating.toFixed(1)}</span>
+                              </div>
+                          )}
+                          <p className="text-sm text-foreground line-clamp-1 flex items-center">
+                              <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
+                              {listing.location}
+                          </p>
+                          </CardContent>
+                          <CardFooter className="p-4 pt-3 border-t">
+                          <ShadDialogTrigger asChild>
                             <Button variant="outline" className="w-full">Reservar Servicio</Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-                                <ScrollArea className="max-h-[80vh]">
-                                <div className="p-6">
-                                    <DialogHeader className="pb-4 border-b mb-4">
-                                    <DialogTitle>Reservar {listing.title}</DialogTitle>
-                                    <DialogDescription>
-                                        Realiza una solicitud de reserva para programar este servicio.
-                                    </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                    {listing.imageUrls && listing.imageUrls.length > 0 && (
-                                        <Carousel className="w-full rounded-md overflow-hidden shadow-md">
-                                        <CarouselContent>
-                                            {listing.imageUrls.map((url, index) => (
-                                            <CarouselItem key={index}>
-                                                <AspectRatio ratio={16 / 9} className="bg-muted">
-                                                <Image
-                                                    src={url}
-                                                    alt={`${listing.title} - Imagen ${index + 1}`}
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                    data-ai-hint="service booking image"
-                                                />
-                                                </AspectRatio>
-                                            </CarouselItem>
-                                            ))}
-                                        </CarouselContent>
-                                        {listing.imageUrls.length > 1 && (
-                                            <>
-                                            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
-                                            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
-                                            </>
-                                        )}
-                                        </Carousel>
-                                    )}
-                                    {listing.professionalName && (
-                                        <div className="flex items-center gap-2 pt-2">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={listing.professionalAvatar || `https://placehold.co/50x50.png`} alt={listing.professionalName} data-ai-hint="professional avatar"/>
-                                                <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
-                                            </Avatar>
-                                            <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
-                                        </div>
-                                    )}
-                                        <div className="pt-2">
-                                        <p className="text-sm text-muted-foreground">{listing.description}</p>
-                                        </div>
-                                    <div className="grid grid-cols-[auto_1fr] items-center gap-4 pt-2">
-                                        <Label htmlFor={`date-${listing.id}`} className="text-left text-sm whitespace-nowrap">Seleccionar Fecha</Label>
-                                        <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal col-span-1",
-                                                !date && "text-muted-foreground"
-                                            )}
-                                            >
-                                            <CalendarIcon className="mr-2 h-4 w-4"/>
-                                            {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={setDate}
-                                            disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
-                                            initialFocus
-                                                captionLayout="dropdown-buttons"
-                                                fromYear={currentYear}
-                                                toYear={currentYear + 5}
-                                                locale={es}
-                                            />
-                                        </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                        <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                                        <Label htmlFor={`time-${listing.id}`} className="text-left text-sm whitespace-nowrap">
-                                            Hora (Cupo)
-                                        </Label>
-                                        <Select onValueChange={setSelectedTime} value={selectedTime}>
-                                            <SelectTrigger className="w-full col-span-1">
-                                            <SelectValue placeholder="Seleccionar Cupo" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                            {listing.availability.map((timeSlot) => (
-                                                <SelectItem key={timeSlot} value={timeSlot}>
-                                                {timeSlot}
-                                                </SelectItem>
-                                            ))}
-                                            </SelectContent>
-                                        </Select>
-                                        </div>
-                                    </div>
-                                    <DialogFooter className="pt-6 mt-4 border-t">
-                                    <DialogClose asChild>
-                                        <Button type="submit" className="w-full">
-                                            Realizar solicitud de reserva
-                                        </Button>
-                                    </DialogClose>
-                                    </DialogFooter>
-                                </div>
-                                </ScrollArea>
-                            </DialogContent>
-                        </Dialog>
-                        </CardFooter>
-                    </Card>
-                    ))}
-                </div>
-                ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground p-8 border rounded-lg bg-card">
-                    No hay servicios disponibles que coincidan con tus filtros.
-                </div>
-                )}
-            </TabsContent>
-        </Tabs>
-      </div>
+                          </ShadDialogTrigger>
+                          </CardFooter>
+                          <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
+                                  <ScrollArea className="max-h-[80vh]">
+                                  <div className="p-6">
+                                      <ShadDialogHeader className="pb-4 border-b mb-4">
+                                      <ShadDialogTitle>Reservar {listing.title}</ShadDialogTitle>
+                                      <ShadDialogDescription>
+                                          Realiza una solicitud de reserva para programar este servicio.
+                                      </ShadDialogDescription>
+                                      </ShadDialogHeader>
+                                      <div className="space-y-4">
+                                      {listing.imageUrls && listing.imageUrls.length > 0 && (
+                                          <Carousel className="w-full rounded-md overflow-hidden shadow-md">
+                                          <CarouselContent>
+                                              {listing.imageUrls.map((url, index) => (
+                                              <CarouselItem key={index}>
+                                                  <AspectRatio ratio={16 / 9} className="bg-muted">
+                                                  <Image
+                                                      src={url}
+                                                      alt={`${listing.title} - Imagen ${index + 1}`}
+                                                      layout="fill"
+                                                      objectFit="cover"
+                                                      data-ai-hint="service booking image"
+                                                  />
+                                                  </AspectRatio>
+                                              </CarouselItem>
+                                              ))}
+                                          </CarouselContent>
+                                          {listing.imageUrls.length > 1 && (
+                                              <>
+                                              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-background/70 hover:bg-background text-foreground" />
+                                              </>
+                                          )}
+                                          </Carousel>
+                                      )}
+                                      {listing.professionalName && (
+                                          <div className="flex items-center gap-2 pt-2">
+                                              <Avatar className="h-8 w-8">
+                                                  <AvatarImage src={listing.professionalAvatar || `https://placehold.co/50x50.png`} alt={listing.professionalName} data-ai-hint="professional avatar"/>
+                                                  <AvatarFallback>{listing.professionalName.substring(0,1)}</AvatarFallback>
+                                              </Avatar>
+                                              <p className="text-sm font-medium text-foreground">Especialista: {listing.professionalName}</p>
+                                          </div>
+                                      )}
+                                          <div className="pt-2">
+                                          <p className="text-sm text-muted-foreground">{listing.description}</p>
+                                          </div>
+                                      <div className="grid grid-cols-[auto_1fr] items-center gap-4 pt-2">
+                                          <Label htmlFor={`date-${listing.id}`} className="text-left text-sm whitespace-nowrap">Seleccionar Fecha</Label>
+                                          <Popover>
+                                          <PopoverTrigger asChild>
+                                              <Button
+                                              variant={"outline"}
+                                              className={cn(
+                                                  "w-full justify-start text-left font-normal col-span-1",
+                                                  !date && "text-muted-foreground"
+                                              )}
+                                              >
+                                              <CalendarIcon className="mr-2 h-4 w-4"/>
+                                              {date ? format(date, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+                                              </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                              <Calendar
+                                              mode="single"
+                                              selected={date}
+                                              onSelect={setDate}
+                                              disabled={(day) => day < new Date(new Date().setHours(0, 0, 0, 0))}
+                                              initialFocus
+                                                  captionLayout="dropdown-buttons"
+                                                  fromYear={currentYear}
+                                                  toYear={currentYear + 5}
+                                                  locale={es}
+                                              />
+                                          </PopoverContent>
+                                          </Popover>
+                                      </div>
+                                          <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                                          <Label htmlFor={`time-${listing.id}`} className="text-left text-sm whitespace-nowrap">
+                                              Hora (Cupo)
+                                          </Label>
+                                          <Select onValueChange={setSelectedTime} value={selectedTime}>
+                                              <SelectTrigger className="w-full col-span-1">
+                                              <SelectValue placeholder="Seleccionar Cupo" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                              {listing.availability.map((timeSlot) => (
+                                                  <SelectItem key={timeSlot} value={timeSlot}>
+                                                  {timeSlot}
+                                                  </SelectItem>
+                                              ))}
+                                              </SelectContent>
+                                          </Select>
+                                          </div>
+                                      </div>
+                                      <ShadDialogFooter className="pt-6 mt-4 border-t">
+                                      <DialogClose asChild>
+                                          <Button type="submit" className="w-full">
+                                              Realizar solicitud de reserva
+                                          </Button>
+                                      </DialogClose>
+                                      </ShadDialogFooter>
+                                  </div>
+                                  </ScrollArea>
+                              </ShadDialogContent>
+                      </Card>
+                      ))}
+                  </div>
+                  ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground p-8 border rounded-lg bg-card">
+                      No hay servicios disponibles que coincidan con tus filtros.
+                  </div>
+                  )}
+              </TabsContent>
+          </Tabs>
+        </div>
       <Toaster />
     </div>
   );
