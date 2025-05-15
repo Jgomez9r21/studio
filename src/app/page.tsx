@@ -394,64 +394,66 @@ function LandingPageContent() {
                   {filteredListings.length > 0 ? (
                   <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                       {filteredListings.map(listing => (
-                      <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
-                          <div className="relative aspect-video w-full overflow-hidden">
-                          <Image
-                              src={listing.imageUrl || `https://placehold.co/400x300.png`}
-                              alt={listing.title}
-                              layout="fill"
-                              objectFit="cover"
-                              data-ai-hint={`${listing.category} service`}
-                          />
-                          <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/50 hover:text-destructive"
-                              onClick={() => toggleFavorite(listing.id)}
-                              aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
-                              >
-                              <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
-                          </Button>
-                          </div>
-                          <CardHeader className="p-4 pb-2">
-                          <div className="flex justify-between items-start gap-2">
-                              <div className="flex-grow">
-                              <CardTitle className="text-lg font-semibold leading-tight">
-                                  {listing.title}
-                              </CardTitle>
-                              <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
-                              </div>
+                       <Dialog key={`dialog-wrapper-${listing.id}`}>
+                        <Card key={listing.id} className="flex flex-col overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-card">
+                            <div className="relative aspect-video w-full overflow-hidden">
+                            <Image
+                                src={listing.imageUrl || `https://placehold.co/400x300.png`}
+                                alt={listing.title}
+                                layout="fill"
+                                objectFit="cover"
+                                data-ai-hint={`${listing.category} service`}
+                            />
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2 text-white bg-black/30 hover:bg-black/50 hover:text-destructive"
+                                onClick={() => toggleFavorite(listing.id)}
+                                aria-label={favoritedListings.has(listing.id) ? "Quitar de favoritos" : "Añadir a favoritos"}
+                                >
+                                <Heart className={cn("h-5 w-5", favoritedListings.has(listing.id) && "fill-destructive text-destructive")} />
+                            </Button>
+                            </div>
+                            <CardHeader className="p-4 pb-2">
+                            <div className="flex justify-between items-start gap-2">
+                                <div className="flex-grow">
+                                <CardTitle className="text-lg font-semibold leading-tight">
+                                    {listing.title}
+                                </CardTitle>
+                                <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
+                                </div>
 
-                          </div>
-                          </CardHeader>
-                          <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
-                          <p className="text-sm">
-                              <span className="text-muted-foreground">Tarifa: </span>
-                              <span className="font-medium text-foreground">${listing.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
-                          </p>
-                          {listing.professionalName && (
-                              <p className="text-sm">
-                              <span className="text-muted-foreground">Profesional: </span>
-                              <span className="text-foreground">{listing.professionalName}</span>
-                              </p>
-                          )}
-                          {listing.rating !== undefined && (
-                              <div className="flex items-center text-sm">
-                                  <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
-                                  <span className="font-semibold text-foreground">{listing.rating.toFixed(1)}</span>
-                              </div>
-                          )}
-                          <p className="text-sm text-foreground line-clamp-1 flex items-center">
-                              <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
-                              {listing.location}
-                          </p>
-                          </CardContent>
-                          <CardFooter className="p-4 pt-3 border-t">
-                          <ShadDialogTrigger asChild>
-                            <Button variant="outline" className="w-full">Reservar Servicio</Button>
-                          </ShadDialogTrigger>
-                          </CardFooter>
-                          <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
+                            </div>
+                            </CardHeader>
+                            <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
+                            <p className="text-sm">
+                                <span className="text-muted-foreground">Tarifa: </span>
+                                <span className="font-medium text-foreground">${listing.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(listing.category) ? ' por hora' : ''}</span>
+                            </p>
+                            {listing.professionalName && (
+                                <p className="text-sm">
+                                <span className="text-muted-foreground">Profesional: </span>
+                                <span className="text-foreground">{listing.professionalName}</span>
+                                </p>
+                            )}
+                            {listing.rating !== undefined && (
+                                <div className="flex items-center text-sm">
+                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
+                                    <span className="font-semibold text-foreground">{listing.rating.toFixed(1)}</span>
+                                </div>
+                            )}
+                            <p className="text-sm text-foreground line-clamp-1 flex items-center">
+                                <MapPin className="w-3 h-3 mr-1 text-muted-foreground flex-shrink-0" />
+                                {listing.location}
+                            </p>
+                            </CardContent>
+                            <CardFooter className="p-4 pt-3 border-t">
+                            <ShadDialogTrigger asChild>
+                              <Button variant="outline" className="w-full">Reservar Servicio</Button>
+                            </ShadDialogTrigger>
+                            </CardFooter>
+                        </Card>
+                        <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
                                   <ScrollArea className="max-h-[80vh]">
                                   <div className="p-6">
                                       <ShadDialogHeader className="pb-4 border-b mb-4">
@@ -529,7 +531,7 @@ function LandingPageContent() {
                                           </Popover>
                                       </div>
                                           <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                                          <Label htmlFor={`time-${listing.id}`} className="text-left text-sm whitespace-nowrap">
+                                          <Label htmlFor={`time-slot-${listing.id}`} className="text-left text-sm whitespace-nowrap">
                                               Hora (Cupo)
                                           </Label>
                                           <Select onValueChange={setSelectedTime} value={selectedTime}>
@@ -556,7 +558,7 @@ function LandingPageContent() {
                                   </div>
                                   </ScrollArea>
                               </ShadDialogContent>
-                      </Card>
+                        </Dialog>
                       ))}
                   </div>
                   ) : (
