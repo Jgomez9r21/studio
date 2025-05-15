@@ -11,13 +11,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import * as DialogPrimitive from "@radix-ui/react-dialog"; // Import Radix Dialog primitives
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader as ShadSheetHeader,
-  SheetTitle as ShadSheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from "@/components/ui/sheet";
+  SheetClose, // Explicitly import SheetClose
+} from "@/components/ui/sheet"; // Keep other Sheet imports as they are if used
 import {
   Sidebar,
   SidebarContent,
@@ -28,11 +23,11 @@ import {
   SidebarMenuButton,
   SidebarInset,
   useSidebar,
-  SidebarProvider, // Ensure SidebarProvider is imported
+  // SidebarProvider is already in RootLayout
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Info, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Asterisk, Briefcase, Waves, WavesIcon, LayoutGrid, Dumbbell, CalendarClock, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Home, Settings, CreditCard, Menu, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
@@ -43,10 +38,10 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle as ShadDialogDialogTitle, // Use Shadcn DialogTitle here
-  DialogClose as ShadDialogDialogClose, // Explicit import for DialogClose
+  DialogTitle as ShadDialogDialogTitle,
+  DialogClose as ShadDialogDialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -68,6 +63,7 @@ import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
 import Image from 'next/image';
 import { RecaptchaVerifier, getAuth } from 'firebase/auth';
 import { app as firebaseApp } from '@/lib/firebase';
+import { Sheet as ShadSheet, SheetContent as ShadSheetContent, SheetHeader as ShadSheetHeader, SheetTitle as ShadSheetTitle, SheetTrigger as ShadSheetTrigger } from "@/components/ui/sheet"; // Renamed to avoid conflict
 
 // Navigation items
 const navegacion = [
@@ -196,7 +192,7 @@ export default function AppLayout({
   const router = useRouter();
   const { toast } = useToast();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-  const { isMobile, toggleSidebar: toggleDesktopSidebar, state: desktopSidebarState } = useSidebar();
+  const { isMobile } = useSidebar();
 
 
   const {
@@ -277,7 +273,10 @@ export default function AppLayout({
     };
 
      const handlePrevStep = () => {
-       contextHandlePrevStep();
+       handleOpenChange(false); // Close any open dialogs
+       setSignupStep(1);
+       // Reset only step 2 fields or relevant error messages if needed
+       signupForm.clearErrors(['dob', 'gender', 'documentType', 'documentNumber', 'email', 'password', 'confirmPassword']);
    };
 
    const handleForgotPasswordSubmit = (data: ForgotPasswordValues) => {
@@ -311,7 +310,7 @@ export default function AppLayout({
     let verifier: RecaptchaVerifier | null = null;
     const authInstance = getAuth(firebaseApp);
 
-    if (recaptchaContainerRef.current && !recaptchaVerifierRef.current && !authIsLoading && authInstance) {
+    if (recaptchaContainerRef.current && !recaptchaVerifierRef.current && !authIsLoading && authInstance && (currentView === 'signup' && signupStep === 2)) {
       try {
         verifier = new RecaptchaVerifier(authInstance, recaptchaContainerRef.current, {
           'size': 'invisible',
@@ -336,7 +335,7 @@ export default function AppLayout({
       }
     }
     return () => { verifier?.clear(); recaptchaVerifierRef.current = null; };
-  }, [authIsLoading, toast, resetPhoneVerification]);
+  }, [authIsLoading, toast, resetPhoneVerification, currentView, signupStep]);
 
 
   const handleMobileSheetOpenChange = (open: boolean) => {
@@ -439,7 +438,7 @@ export default function AppLayout({
                             ¿Olvidaste tu contraseña?
                           </Button>
                         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
-                          <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                          <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                             ¿No tienes cuenta? Crear una
                           </Button>
                           <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || authIsLoading}>
@@ -458,7 +457,7 @@ export default function AppLayout({
                          Completa el formulario para crear tu cuenta. Paso {signupStep} de 2.
                        </DialogDescription>
                     </DialogHeader>
-                    <div ref={recaptchaContainerRef} id="recaptcha-container-signup"></div> {/* reCAPTCHA for signup phone verification */}
+                    <div ref={recaptchaContainerRef} id="recaptcha-container-signup"></div>
                     <Form {...signupForm}>
                        <form
                           onSubmit={signupStep === 2 ? signupForm.handleSubmit(handleSignupSubmit) : (e) => e.preventDefault()}
@@ -589,7 +588,11 @@ export default function AppLayout({
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
-                                 {/* Phone verification section if needed for signup */}
+                                 {signupForm.getValues("phone") && !isVerificationSent && !user?.isPhoneVerified && (
+                                   <Button type="button" variant="outline" className="w-full mt-2" onClick={handlePhoneSendVerification} disabled={authIsLoading || isVerifyingCode}>
+                                     Enviar código SMS para verificar teléfono
+                                   </Button>
+                                 )}
                                  {isVerificationSent && (
                                    <div className="mt-2 space-y-2 p-3 border rounded-md bg-muted/50">
                                      <Label htmlFor="signup-verification-code">Ingresa el código SMS</Label>
@@ -601,11 +604,6 @@ export default function AppLayout({
                                      </div>
                                      {phoneVerificationError && <p className="text-sm font-medium text-destructive mt-1">{phoneVerificationError}</p>}
                                    </div>
-                                 )}
-                                 {signupForm.getValues("phone") && !user?.isPhoneVerified && !isVerificationSent && (
-                                   <Button type="button" variant="outline" className="w-full mt-2" onClick={handlePhoneSendVerification} disabled={authIsLoading || isVerifyingCode}>
-                                     Enviar código SMS para verificar teléfono
-                                   </Button>
                                  )}
                              </div>
                            )}
@@ -686,7 +684,7 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                 <Asterisk className="h-7 w-7 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                 <Dumbbell className="h-7 w-7 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
                     Sportoffice
                  </h3>
@@ -744,17 +742,17 @@ export default function AppLayout({
                {/* Mobile Header */}
                <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
                   {/* Hamburger Menu Button */}
-                  <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
-                      <SheetTrigger asChild>
+                  <ShadSheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
+                      <ShadSheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
                           <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                           <span className="sr-only">Abrir menú</span>
                         </Button>
-                      </SheetTrigger>
-                      <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
+                      </ShadSheetTrigger>
+                      <ShadSheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center gap-2">
-                                 <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                                 <Dumbbell className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                                  <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
                                <SheetClose asChild>
@@ -805,18 +803,17 @@ export default function AppLayout({
                                  </Dialog>
                                )}
                            </SidebarFooter>
-                      </SheetContent>
-                  </Sheet>
+                      </ShadSheetContent>
+                  </ShadSheet>>
 
-                  {/* Centered Brand - Mobile: Removed per user request to have title only on "web" (desktop sidebar) */}
-                  {/*
+                  {/* Centered Brand - Mobile: Removed as requested */}
+                   {/* 
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                     <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                     <Dumbbell className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                       <span className="font-semibold text-primary text-lg leading-none">Sportoffice</span>
                   </div>
                   */}
-                  {/* Placeholder to balance justify-between, especially if mobile brand is removed */}
-                  <div className="w-8 h-8" />
+                  <div className="w-8 h-8" /> {/* Placeholder to balance justify-between */}
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
