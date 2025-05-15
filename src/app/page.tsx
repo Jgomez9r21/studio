@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft, Asterisk } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,7 +68,7 @@ import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 
 
@@ -91,7 +91,6 @@ const categorias: Category[] = [
   { name: 'Música & Audio', icon: Music },
   { name: 'Finanzas', icon: DollarSign },
   { name: 'Crecimiento Personal', icon: Lightbulb },
-  //{ name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
 ];
 
@@ -176,10 +175,7 @@ const ServiceFiltersContent = ({
                  value={[maxRate]}
                  onValueChange={(value) => setMaxRate(value[0])}
              />
-              <div className="text-right text-sm text-muted-foreground">
-                ${maxRate.toLocaleString('es-CO')}
-             </div>
-         </div>
+          </div>
           <div className="flex-grow"></div>
           <ShadSheetClose asChild>
               <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
@@ -205,7 +201,6 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-// const { isMobile } = useAuth(); // Assuming useAuth provides isMobile, otherwise import useSidebar
 
 
   useEffect(() => {
@@ -279,12 +274,15 @@ function LandingPageContent() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <section className="mb-6 flex flex-col items-center justify-center text-center px-4 pt-6 md:pt-8 lg:pt-12">
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Encuentra el proveedor de servicios perfecto
-        </h1>
-        <p className="mt-2 text-md md:text-lg text-muted-foreground">
-          Reserva servicios locales con facilidad.
+      <section className="mb-6 flex flex-col items-center justify-center text-center px-4 py-12 md:py-16 lg:py-20">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <Asterisk className="h-10 w-10 md:h-12 md:w-12 text-primary" />
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-primary">
+            Sportoffice
+          </h1>
+        </div>
+        <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
+          Tu plataforma para conectar con profesionales y reservar espacios deportivos y servicios de manera fácil y rápida.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 w-full max-w-lg">
           <div className="relative w-full flex-grow">
@@ -372,24 +370,39 @@ function LandingPageContent() {
             }}
             className="w-full"
         >
-           <div className="bg-muted rounded-md shadow-sm p-1 overflow-x-auto whitespace-nowrap"> {/* Container for horizontal scrolling */}
-                <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1"> {/* Ensure TabsList doesn't wrap and items have space */}
-                    {categorias.map(category => (
-                    <TabsTrigger
-                        key={category.name}
-                        value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
-                        className={cn(
-                            "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
-                            "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
-                            "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
-                        )}
-                    >
-                        {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
-                        {category.name}
-                    </TabsTrigger>
-                    ))}
-                </TabsList>
-            </div>
+           <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden">
+            <Carousel
+                opts={{
+                align: "start",
+                dragFree: true, // Allows for free swiping without snapping to items if desired
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="flex">
+                    <TabsList asChild className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
+                        <CarouselItem className="pl-1 basis-auto flex-shrink-0"> {/* Ensure first item has start padding */}
+                           {categorias.map((category) => (
+                                <CarouselItem key={category.name} className="pl-1 basis-auto flex-shrink-0">
+                                    <TabsTrigger
+                                        value={category.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                                        className={cn(
+                                        "px-3 py-1.5 text-xs sm:text-sm flex items-center flex-shrink-0 rounded-md hover:bg-primary/10",
+                                        "data-[state=inactive]:text-primary data-[state=inactive]:bg-transparent",
+                                        "data-[state=active]:bg-card data-[state=active]:text-card-foreground data-[state=active]:border data-[state=active]:border-border data-[state=active]:shadow-sm data-[state=active]:font-medium"
+                                        )}
+                                    >
+                                        {category.icon && <category.icon className="w-4 h-4 mr-1.5 sm:mr-2 flex-shrink-0" />}
+                                        {category.name}
+                                    </TabsTrigger>
+                                </CarouselItem>
+                            ))}
+                        </CarouselItem>
+                    </TabsList>
+                </CarouselContent>
+                <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
+                <CarouselNext variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
+            </Carousel>
+        </div>
             <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
                 {filteredListings.length > 0 ? (
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -421,7 +434,7 @@ function LandingPageContent() {
                             </CardTitle>
                             <CardDescription className="text-xs text-muted-foreground pt-1">{listing.category}</CardDescription>
                             </div>
-                           
+
                         </div>
                         </CardHeader>
                         <CardContent className="flex-grow flex flex-col p-4 pt-0 space-y-2">
