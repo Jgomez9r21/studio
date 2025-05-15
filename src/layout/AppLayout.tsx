@@ -88,7 +88,7 @@ const navegacion = [
   {
     title: "Mis Reservas",
     href: "/book-service",
-    icon: Briefcase, // Changed from CalendarDays to Briefcase to match image
+    icon: CalendarDays,
   },
   {
     title: "Mis Favoritos",
@@ -559,7 +559,7 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                 <Asterisk className="h-7 w-7 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 flex-shrink-0" aria-label="sportoffice logo" />
+                 <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">Sportoffice</h3>
               </SidebarHeader>
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
@@ -569,8 +569,8 @@ export default function AppLayout({
                       <SidebarMenuButton
                         href={item.href}
                         isActive={pathname === item.href}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
-                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
+                        className="text-sm" 
+                        tooltip={{ children: item.title, side: 'right', align: 'center' }}
                       >
                         <item.icon className="h-4 w-4" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -628,6 +628,7 @@ export default function AppLayout({
                                  <Asterisk className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
                                  <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
+                              
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">
                                     <XIcon className="h-5 w-5" />
@@ -644,7 +645,7 @@ export default function AppLayout({
                                               href={item.href}
                                               isActive={pathname === item.href}
                                               onClick={() => setIsMobileSheetOpen(false)}
-                                              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium"
+                                              className="text-sm"
                                           >
                                               <item.icon className="h-4 w-4" />
                                               {item.title}

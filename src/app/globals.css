@@ -125,7 +125,7 @@ body {
 
   /* Rojo : Días ocupados ("occupied") */
   .rdp-day_occupied {
-    background-color: #f87171 !important; /* Tailwind red-400 */
+    background-color: #fc5e5e !important; /* Tailwind red-400 */
     color: white !important;
     border-radius: var(--radius);
   }

@@ -91,7 +91,7 @@ const categorias: Category[] = [
   { name: 'Música & Audio', icon: Music },
   { name: 'Finanzas', icon: DollarSign },
   { name: 'Crecimiento Personal', icon: Lightbulb },
-  { name: 'Datos', icon: Database },
+  //{ name: 'Datos', icon: Database },
   { name: 'Fotografía', icon: ImageIcon },
 ];
 
@@ -205,7 +205,7 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { isMobile } = useAuth(); // Assuming useAuth provides isMobile, otherwise import useSidebar
+// const { isMobile } = useAuth(); // Assuming useAuth provides isMobile, otherwise import useSidebar
 
 
   useEffect(() => {
