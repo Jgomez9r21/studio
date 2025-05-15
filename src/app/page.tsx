@@ -275,12 +275,7 @@ function LandingPageContent() {
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 py-12 md:py-16 lg:py-20">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Asterisk className="h-10 w-10 md:h-12 md:w-12 text-primary" />
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-primary">
-            Sportoffice
-          </h1>
-        </div>
+        
         <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
           Tu plataforma para conectar con profesionales y reservar espacios deportivos y servicios de manera fácil y rápida.
         </p>
@@ -374,13 +369,13 @@ function LandingPageContent() {
             <Carousel
                 opts={{
                 align: "start",
-                dragFree: true, // Allows for free swiping without snapping to items if desired
+                dragFree: true, 
                 }}
                 className="w-full"
             >
                 <CarouselContent className="flex">
                     <TabsList asChild className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
-                        <CarouselItem className="pl-1 basis-auto flex-shrink-0"> {/* Ensure first item has start padding */}
+                        <CarouselItem className="pl-1 basis-auto flex-shrink-0"> 
                            {categorias.map((category) => (
                                 <CarouselItem key={category.name} className="pl-1 basis-auto flex-shrink-0">
                                     <TabsTrigger
@@ -399,7 +394,7 @@ function LandingPageContent() {
                         </CarouselItem>
                     </TabsList>
                 </CarouselContent>
-                <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
+                {/* <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" /> */}
                 <CarouselNext variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
             </Carousel>
         </div>
