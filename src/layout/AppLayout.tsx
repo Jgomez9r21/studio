@@ -8,10 +8,16 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import * as DialogPrimitive from "@radix-ui/react-dialog"; 
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
-  SheetClose, 
-} from "@/components/ui/sheet"; 
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger
+} from "@/components/ui/sheet";
+import logoImage from '@/image/logoo.png'; // Import the logo image
 import {
   Sidebar,
   SidebarContent,
@@ -22,23 +28,23 @@ import {
   SidebarMenuButton,
   SidebarInset,
   useSidebar,
-  
+
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight, Asterisk } from "lucide-react";
+import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight, Menu } from "lucide-react"; // Added Menu
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTrigger as ShadDialogTrigger,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle as ShadDialogDialogTitle,
-  DialogClose as ShadDialogDialogClose,
+  DialogTrigger as ShadDialogTrigger, // Renamed to avoid conflict
+  DialogContent as ShadDialogContent, // Renamed
+  DialogDescription as ShadDialogDescription, // Renamed
+  DialogFooter as ShadDialogFooter, // Renamed
+  DialogHeader as ShadDialogHeader, // Renamed
+  DialogTitle as ShadDialogTitle, // Renamed
+  DialogClose as ShadDialogDialogClose, // Renamed
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
@@ -59,10 +65,9 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
-import Image from 'next/image';
+import Image from 'next/image'; // Import Next.js Image component
 import { RecaptchaVerifier, getAuth } from 'firebase/auth';
 import { app as firebaseApp } from '@/lib/firebase';
-import { Sheet as ShadSheet, SheetContent as ShadSheetContent, SheetHeader as ShadSheetHeader, SheetTitle as ShadSheetTitle, SheetTrigger as ShadSheetTrigger } from "@/components/ui/sheet";
 
 
 const navegacion = [
@@ -104,7 +109,6 @@ const navegacion = [
 ];
 
 
-
 const countries = [
   { code: "AR", name: "Argentina" },
   { code: "BO", name: "Bolivia" },
@@ -143,7 +147,7 @@ const phoneRegex = new RegExp(/^\+[1-9]\d{1,14}$/);
 const phoneValidation = z.string()
   .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
   .optional()
-  .or(z.literal("")); 
+  .or(z.literal(""));
 
 
 const loginSchema = z.object({
@@ -238,7 +242,7 @@ export default function AppLayout({
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO", 
+      country: "CO",
       phone: "",
       profileType: "",
       dob: null,
@@ -271,9 +275,7 @@ export default function AppLayout({
     };
 
      const handlePrevStep = () => {
-       handleOpenChange(false); 
-       setSignupStep(1);
-       
+       contextHandlePrevStep();
        signupForm.clearErrors(['dob', 'gender', 'documentType', 'documentNumber', 'email', 'password', 'confirmPassword']);
    };
 
@@ -339,7 +341,7 @@ export default function AppLayout({
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      handleOpenChange(false); 
+      handleOpenChange(false);
     }
   };
 
@@ -354,49 +356,49 @@ export default function AppLayout({
   const authDialogContent = () => {
     if (showProfileDialog && isLoggedIn && user) {
       return (
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden">
+        <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(80vh-5rem)]">
             <div className="p-6">
-              <DialogHeader className="text-center mb-4">
+              <ShadDialogHeader className="text-center mb-4">
                 <div className="flex flex-col items-center mb-3">
                   <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
                     <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar large" />
                     <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
                   </Avatar>
-                  <ShadDialogDialogTitle className="text-xl">{user.name}</ShadDialogDialogTitle>
-                  <DialogDescription className="text-sm">{user.email}</DialogDescription>
+                  <ShadDialogTitle className="text-xl">{user.name}</ShadDialogTitle>
+                  <ShadDialogDescription className="text-sm">{user.email}</ShadDialogDescription>
                 </div>
-              </DialogHeader>
+              </ShadDialogHeader>
               <div className="py-2 space-y-1 text-sm">
                 <p><span className="font-medium text-muted-foreground">País:</span> {countries.find(c => c.code === user.country)?.name || user.country || 'No especificado'}</p>
                 <p><span className="font-medium text-muted-foreground">Teléfono:</span> {user.phone || 'No especificado'} {user.phone && (user.isPhoneVerified ? <span className="text-green-600 text-xs ml-1">(Verificado)</span> : <span className="text-orange-600 text-xs ml-1">(No verificado)</span>)}</p>
                 <p><span className="font-medium text-muted-foreground">Fecha de Nacimiento:</span> {user.dob ? format(new Date(user.dob), "PPP", {locale: es}) : 'No especificada'}</p>
               </div>
-              <DialogFooter className="mt-6 pt-4 border-t flex-col sm:flex-row sm:justify-between gap-2">
+              <ShadDialogFooter className="mt-6 pt-4 border-t flex-col sm:flex-row sm:justify-between gap-2">
                 <Button variant="outline" onClick={goToSettings} className="w-full sm:w-auto">Configuración</Button>
                  <ShadDialogDialogClose asChild>
                     <Button variant="destructive" onClick={handleLogout} className="w-full sm:w-auto">Cerrar Sesión</Button>
                  </ShadDialogDialogClose>
-              </DialogFooter>
+              </ShadDialogFooter>
             </div>
           </ScrollArea>
-        </DialogContent>
+        </ShadDialogContent>
       );
     }
 
     if (showLoginDialog) {
       return (
-        <DialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
+        <ShadDialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
            <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
              <div className="p-6">
                 {currentView === 'login' && (
                   <>
-                    <DialogHeader className="mb-4 text-center">
-                      <ShadDialogDialogTitle className="text-2xl">Ingresar</ShadDialogDialogTitle>
-                      <DialogDescription>
+                    <ShadDialogHeader className="mb-4 text-center">
+                      <ShadDialogTitle className="text-2xl">Ingresar</ShadDialogTitle>
+                      <ShadDialogDescription>
                         Ingresa tu correo y contraseña para continuar.
-                      </DialogDescription>
-                    </DialogHeader>
+                      </ShadDialogDescription>
+                    </ShadDialogHeader>
                     <Form {...loginForm}>
                       <form onSubmit={loginForm.handleSubmit(handleLoginSubmit)} className="space-y-4">
                         <FormField
@@ -435,26 +437,26 @@ export default function AppLayout({
                          <Button type="button" variant="link" onClick={() => { setCurrentView('forgotPassword'); loginForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm text-primary">
                             ¿Olvidaste tu contraseña?
                           </Button>
-                        <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
+                        <ShadDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
                           <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                             ¿No tienes cuenta? Crear una
                           </Button>
                           <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || authIsLoading}>
                             {loginForm.formState.isSubmitting || authIsLoading ? "Ingresando..." : "Ingresar"}
                           </Button>
-                        </DialogFooter>
+                        </ShadDialogFooter>
                       </form>
                     </Form>
                   </>
                 )}
                 {currentView === 'signup' && (
                   <>
-                    <DialogHeader className="mb-4 text-center">
-                      <ShadDialogDialogTitle className="text-2xl">Crear Cuenta</ShadDialogDialogTitle>
-                       <DialogDescription>
+                    <ShadDialogHeader className="mb-4 text-center">
+                      <ShadDialogTitle className="text-2xl">Crear Cuenta</ShadDialogTitle>
+                       <ShadDialogDescription>
                          Completa el formulario para crear tu cuenta. Paso {signupStep} de 2.
-                       </DialogDescription>
-                    </DialogHeader>
+                       </ShadDialogDescription>
+                    </ShadDialogHeader>
                     <div ref={recaptchaContainerRef} id="recaptcha-container-signup"></div>
                     <Form {...signupForm}>
                        <form
@@ -572,6 +574,7 @@ export default function AppLayout({
                                         <FormMessage />
                                     </FormItem>
                                 )}/>
+
                                 <FormField control={signupForm.control} name="confirmPassword" render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Confirmar Contraseña</FormLabel>
@@ -607,7 +610,7 @@ export default function AppLayout({
                            )}
                             {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
 
-                            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
+                            <ShadDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
                                <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                                   ¿Ya tienes cuenta? Ingresar
                                </Button>
@@ -627,19 +630,19 @@ export default function AppLayout({
                                        </Button>
                                    )}
                                </div>
-                            </DialogFooter>
+                            </ShadDialogFooter>
                       </form>
                       </Form>
                   </>
                 )}
                 {currentView === 'forgotPassword' && (
                   <>
-                    <DialogHeader className="mb-4 text-center">
-                      <ShadDialogDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogDialogTitle>
-                      <DialogDescription>
+                    <ShadDialogHeader className="mb-4 text-center">
+                      <ShadDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogTitle>
+                      <ShadDialogDescription>
                         Ingresa tu correo electrónico para enviarte un enlace de recuperación.
-                      </DialogDescription>
-                    </DialogHeader>
+                      </ShadDialogDescription>
+                    </ShadDialogHeader>
                      <Form {...forgotPasswordForm}>
                        <form onSubmit={forgotPasswordForm.handleSubmit(handleForgotPasswordSubmit)} className="space-y-4">
                          <FormField
@@ -655,21 +658,21 @@ export default function AppLayout({
                              </FormItem>
                            )}
                          />
-                         <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
+                         <ShadDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
                            <Button type="button" variant="link" onClick={() => { setCurrentView('login'); forgotPasswordForm.reset(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
                              Volver a Ingresar
                            </Button>
                            <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={forgotPasswordForm.formState.isSubmitting || authIsLoading}>
                              {forgotPasswordForm.formState.isSubmitting || authIsLoading ? "Enviando..." : "Enviar Enlace"}
                            </Button>
-                         </DialogFooter>
+                         </ShadDialogFooter>
                        </form>
                      </Form>
                   </>
                 )}
                </div>
          </ScrollArea>
-       </DialogContent>
+       </ShadDialogContent>
       );
     }
     return null;
@@ -682,7 +685,12 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                 <Dumbbell className="h-7 w-7 text-primary flex-shrink-0" aria-label="sportoffice logo" />
+                  <Image
+                      src={logoImage}
+                      alt="Sportoffice Logo"
+                      className="h-7 w-auto group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-auto transition-all"
+                      priority
+                  />
                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
                     Sportoffice
                  </h3>
@@ -694,7 +702,9 @@ export default function AppLayout({
                       <SidebarMenuButton
                         href={item.href}
                         isActive={pathname === item.href}
-                        className="text-sm"
+                        className={cn(
+                            "text-sm"
+                         )}
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                       >
                         <item.icon className="h-4 w-4" />
@@ -739,9 +749,8 @@ export default function AppLayout({
             <div className="flex flex-col flex-1 overflow-hidden">
                {/* Mobile Header */}
                <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
-                  {/* Hamburger Menu Button */}
-                  <ShadSheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
-                      <ShadSheetTrigger asChild>
+                  <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
+                      <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
                            <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -761,12 +770,17 @@ export default function AppLayout({
                           </svg>
                           <span className="sr-only">Abrir menú</span>
                         </Button>
-                      </ShadSheetTrigger>
-                      <ShadSheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
-                          <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
+                      </SheetTrigger>
+                      <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
+                          <SheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center gap-2">
-                                 <Dumbbell className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                                 <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
+                                  <Image
+                                    src={logoImage}
+                                    alt="Sportoffice Logo"
+                                    className="h-7 w-auto"
+                                    priority
+                                  />
+                                 <SheetTitle className="text-lg font-semibold text-primary">Sportoffice</SheetTitle>
                                </div>
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">
@@ -774,7 +788,7 @@ export default function AppLayout({
                                     <span className="sr-only">Cerrar menú</span>
                                   </Button>
                                 </SheetClose>
-                          </ShadSheetHeader>
+                          </SheetHeader>
                           <ScrollArea className="flex-grow h-[calc(100%-112px)]">
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
@@ -816,16 +830,20 @@ export default function AppLayout({
                                  </Dialog>
                                )}
                            </SidebarFooter>
-                      </ShadSheetContent>
-                  </ShadSheet>
+                      </SheetContent>
+                  </Sheet>
 
-                  
+
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                     <Dumbbell className="h-6 w-6 text-primary flex-shrink-0" aria-label="sportoffice logo" />
-                      <span className="font-semibold text-primary text-lg leading-none">Sportoffice</span>
+                     <Image
+                        src={logoImage}
+                        alt="Sportoffice Logo"
+                        className="h-8 w-auto" // Adjust size as needed
+                        priority
+                      />
                   </div>
-                  
-                  <div className="w-8 h-8" /> 
+
+                  <div className="w-8 h-8" />
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
@@ -837,4 +855,3 @@ export default function AppLayout({
       </>
   );
 }
-
