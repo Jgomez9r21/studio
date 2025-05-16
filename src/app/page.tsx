@@ -21,16 +21,16 @@ import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
-  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
-  SheetTitle as ShadSheetTitle,   // Renamed
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
+  SheetClose as ShadSheetClose,
   SheetTrigger,
-  SheetClose as ShadSheetClose,   // Renamed
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from 'date-fns/locale';
-import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft, Asterisk, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, Search, MapPin, Heart, Filter, Star, ArrowLeft, ChevronLeft, ChevronRight, LogIn } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,7 +52,12 @@ import {
   HomeIcon as LucideHomeIcon,
   Info,
   Briefcase,
-  Building
+  Building,
+  UploadCloud,
+  Dumbbell,
+  CalendarDays,
+  CreditCard,
+  Settings,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -63,11 +68,20 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Toaster } from "@/components/ui/toaster"; // Make sure Toaster is imported
+import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import { Dialog, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger, DialogClose as ShadDialogDialogClose } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent as ShadDialogContent,
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogTrigger as ShadDialogTrigger,
+  DialogClose as ShadDialogDialogClose
+} from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 
@@ -80,7 +94,7 @@ interface Category {
 const categorias: Category[] = [
   { name: 'Todos', icon: ArrowLeft },
   { name: 'Tecnología', icon: Code },
-  { name: 'Entrenador Personal', icon: User },
+  { name: 'Entrenador Personal', icon: Dumbbell }, // Changed from User to Dumbbell
   { name: 'Contratista', icon: Construction },
   { name: 'Mantenimiento Hogar', icon: LucideHomeIcon },
   { name: 'Profesores', icon: School2 },
@@ -167,14 +181,20 @@ const ServiceFiltersContent = ({
 
          <div className="space-y-2">
              <Label htmlFor="rate-filter-slider">Tarifa Máxima</Label>
-             <Slider
-                 id="rate-filter-slider"
-                 min={0}
-                 max={500000}
-                 step={10000}
-                 value={[maxRate]}
-                 onValueChange={(value) => setMaxRate(value[0])}
-             />
+             <div className="flex items-center gap-2">
+                <Slider
+                    id="rate-filter-slider"
+                    min={0}
+                    max={250000}
+                    step={5000}
+                    value={[maxRate]}
+                    onValueChange={(value) => setMaxRate(value[0])}
+                    className="flex-grow"
+                />
+                <span className="text-sm font-medium w-24 text-right">
+                    {maxRate.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}
+                </span>
+             </div>
           </div>
           <div className="flex-grow"></div>
           <ShadSheetClose asChild>
@@ -195,7 +215,7 @@ function LandingPageContent() {
 
   const [locationFilter, setLocationFilter] = useState('');
   const [minRating, setMinRating] = useState(0);
-  const [maxRate, setMaxRate] = useState(500000);
+  const [maxRate, setMaxRate] = useState(250000);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   const router = useRouter();
@@ -275,9 +295,8 @@ function LandingPageContent() {
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 py-12 md:py-16 lg:py-20">
-        
         <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
-          Tu plataforma para conectar con profesionales.
+         Tu plataforma para conectar con profesionales.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 w-full max-w-lg">
           <div className="relative w-full flex-grow">
@@ -296,7 +315,7 @@ function LandingPageContent() {
                 <Filter className="mr-2 h-4 w-4" /> Filtros
               </Button>
             </SheetTrigger>
-            <SheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
+            <ShadSheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
               <ShadSheetHeader className="p-4 border-b">
                 <ShadSheetTitle>Filtros de Servicios</ShadSheetTitle>
               </ShadSheetHeader>
@@ -309,7 +328,7 @@ function LandingPageContent() {
                     onApplyFilters={handleApplyFiltersFromSheet}
                 />
               </ScrollArea>
-            </SheetContent>
+            </ShadSheetContent>
           </Sheet>
         </div>
       </section>
