@@ -8,14 +8,14 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import Image from 'next/image'; // Ensure Image is imported from next/image
+import Image from 'next/image';
 
 import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetHeader as ShadSheetHeader, // Keep alias if used elsewhere
-  SheetTitle as ShadSheetTitle,   // Keep alias if used elsewhere
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 
@@ -28,11 +28,10 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  // useSidebar, // Not directly used in AppLayout's render, but SidebarProvider is.
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Dumbbell, LogIn, ArrowRight, Building } from "lucide-react";
+import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Dumbbell, LogIn, ArrowRight, Building, Asterisk } from "lucide-react";
 import logoImage from '@/image/logoo.png';
 
 
@@ -45,7 +44,7 @@ import {
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, // Use unaliased DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
@@ -78,8 +77,8 @@ const navegacion = [
   },
   {
     title: "Espacios Deportivos",
-    href: "/find-talents", // Changed from /find-talents
-    icon: Building,         // Changed from Dumbbell
+    href: "/find-talents",
+    icon: Building,
   },
   {
     title: "Publicar",
@@ -194,8 +193,6 @@ export default function AppLayout({
   const router = useRouter();
   const { toast } = useToast();
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-  // const { isMobile } = useSidebar(); // isMobile from useSidebar is not directly used in AppLayout's render logic
-
 
   const {
     user,
@@ -341,15 +338,13 @@ export default function AppLayout({
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      // This part ensures that if the sheet is closed, the main dialog states are also reset
-      // It might be redundant if handleOpenChange also handles all dialog closing scenarios.
       handleOpenChange(false);
     }
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); // Close any open auth dialog
-      if (isMobileSheetOpen) setIsMobileSheetOpen(false); // Close mobile sheet if open
+      handleOpenChange(false);
+      if (isMobileSheetOpen) setIsMobileSheetOpen(false);
       router.push('/settings');
   };
 
@@ -363,10 +358,10 @@ export default function AppLayout({
             <div className="p-6">
               <ShadDialogHeader className="text-center mb-4">
                 <div className="flex flex-col items-center mb-3">
-                  <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar large" />
-                    <AvatarFallback className="text-2xl">{user.initials}</AvatarFallback>
-                  </Avatar>
+                   <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
+                    <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar large" />
+                    <AvatarFallback className="text-2xl">{user.initials ?? 'U'}</AvatarFallback>
+                   </Avatar>
                   <ShadDialogTitle className="text-xl">{user.name}</ShadDialogTitle>
                   <ShadDialogDescription className="text-sm">{user.email}</ShadDialogDescription>
                 </div>
@@ -390,7 +385,7 @@ export default function AppLayout({
 
     if (showLoginDialog) {
       return (
-        <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm"> {/* Adjusted max-width for mobile */}
+        <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-xs sm:max-w-sm">
            <ScrollArea className="max-h-[85vh]">
              <div className="p-6">
                 {currentView === 'login' && (
@@ -687,7 +682,7 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-2 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                   <Image src={logoImage} alt="Sportoffice Logo" className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all" priority />
+                  <Image src={logoImage} alt="Sportoffice Logo" className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all" priority />
                   <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200 leading-none">
                     Sportoffice
                  </h3>
@@ -715,24 +710,23 @@ export default function AppLayout({
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                 <Dialog open={(showProfileDialog || showLoginDialog) && !isMobileSheetOpen} onOpenChange={handleOpenChange}>
-                   {isLoggedIn && user ? (
-                     <DialogTrigger asChild>
-                       <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
+                  {isLoggedIn && user ? (
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
                          <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                           <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar placeholder" />
+                           <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder" />
                            <AvatarFallback>{user.initials}</AvatarFallback>
                          </Avatar>
                          <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                            <span className="font-semibold truncate">{user.name}</span>
                          </div>
                        </Button>
-                     </DialogTrigger>
-                   ) : (
-                     <DialogTrigger asChild>
+                    </DialogTrigger>
+                  ) : (
+                    <DialogTrigger asChild>
                        <Button
                          onClick={openLoginDialog}
-                         variant="default"
+                         variant="accent"
                          className={cn(
                            "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
                            "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
@@ -746,10 +740,8 @@ export default function AppLayout({
                            Ingresar
                          </span>
                        </Button>
-                     </DialogTrigger>
-                   )}
-                   {authDialogContent()}
-                 </Dialog>
+                    </DialogTrigger>
+                  )}
               </SidebarFooter>
             </Sidebar>
 
@@ -759,11 +751,7 @@ export default function AppLayout({
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6">
-                             <line x1="3" y1="12" x2="21" y2="12"></line>
-                             <line x1="3" y1="6" x2="21" y2="6"></line>
-                             <line x1="3" y1="18" x2="21" y2="18"></line>
-                           </svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6"><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
                           <span className="sr-only">Abrir menú</span>
                         </Button>
                       </SheetTrigger>
@@ -771,6 +759,7 @@ export default function AppLayout({
                          <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
                          <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
                       </div>
+
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground flex flex-col">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14 flex-shrink-0">
                                <div className="flex items-center gap-2">
@@ -807,11 +796,10 @@ export default function AppLayout({
                               </SidebarContent>
                           </ScrollArea>
                            <SidebarFooter className="p-2 border-t flex-shrink-0">
-                             <Dialog open={(showProfileDialog || showLoginDialog) && isMobileSheetOpen} onOpenChange={handleOpenChange}>
                               {isLoggedIn && user ? (
                                 <DialogTrigger asChild>
                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
-                                        <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
+                                        <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                         <span className="font-medium truncate">{user.name}</span>
                                    </Button>
                                 </DialogTrigger>
@@ -826,8 +814,6 @@ export default function AppLayout({
                                    </Button>
                                 </DialogTrigger>
                                )}
-                               {authDialogContent()}
-                             </Dialog>
                            </SidebarFooter>
                       </SheetContent>
                   </Sheet>
@@ -837,8 +823,15 @@ export default function AppLayout({
                   {children}
               </SidebarInset>
             </div>
-            <Toaster />
           </div>
+
+          {/* SINGLE DIALOG FOR AUTH - MOVED HERE */}
+          <Dialog open={showProfileDialog || showLoginDialog} onOpenChange={handleOpenChange}>
+            {authDialogContent()}
+          </Dialog>
+
+          <Toaster />
       </>
   );
 }
+
