@@ -76,7 +76,7 @@ import {
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, // Used directly
+  DialogTrigger,
   DialogClose as ShadDialogDialogClose
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -257,11 +257,10 @@ function LandingPageContent() {
         targetCategory = foundCategory.name;
       }
     }
-    // Only update state if it's different from URL, to avoid infinite loops
     if (selectedCategoryState !== targetCategory) {
         setSelectedCategoryState(targetCategory);
     }
-  }, [searchParams, pathname]); // Removed selectedCategoryState from dependencies
+  }, [searchParams, pathname]);
 
 
   const filteredListings = listings.filter(listing => {
@@ -297,7 +296,7 @@ function LandingPageContent() {
 
   const handleTabsScroll = (direction: 'left' | 'right') => {
     if (tabsContainerRef.current) {
-      const scrollAmount = 200; // Adjust scroll amount as needed
+      const scrollAmount = 200;
       tabsContainerRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
@@ -309,7 +308,7 @@ function LandingPageContent() {
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 py-12 md:py-16 lg:py-20">
-        <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
+         <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
          Tu plataforma para conectar con profesionales.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 w-full max-w-lg">
@@ -395,16 +394,7 @@ function LandingPageContent() {
               className="w-full"
           >
              <div className="bg-muted rounded-md shadow-sm p-1 relative">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleTabsScroll('left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background rounded-full hidden sm:flex"
-                    aria-label="Scroll left"
-                >
-                    <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <div ref={tabsContainerRef} className="overflow-x-auto whitespace-nowrap hide-scrollbar px-10"> 
+                <div ref={tabsContainerRef} className="overflow-x-auto whitespace-nowrap hide-scrollbar px-10">
                     <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
                         {categorias.map((category) => (
                             <TabsTrigger
@@ -490,9 +480,9 @@ function LandingPageContent() {
                             </p>
                             </CardContent>
                             <CardFooter className="p-4 pt-3 border-t">
-                            <DialogTrigger asChild>
-                              <Button variant="outline" className="w-full">Reservar Servicio</Button>
-                            </DialogTrigger>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" className="w-full">Reservar Servicio</Button>
+                              </DialogTrigger>
                             </CardFooter>
                         </Card>
                         <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
@@ -624,3 +614,5 @@ export default function Page() {
     </AppLayout>
   );
 }
+
+    
