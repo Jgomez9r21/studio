@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Image from 'next/image';
+import logoImage from '@/image/logoo.png';
 
 import {
   Sheet,
@@ -31,25 +32,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, LogIn, ArrowRight, Building, Dumbbell, Asterisk } from "lucide-react"; // Added Asterisk and Dumbbell
-import logoImage from '@/image/logoo.png';
+import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, LogIn, Dumbbell, ArrowRight, Asterisk, Building } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose as ShadDialogDialogClose,
+  DialogClose as ShadDialogDialogClose, // Keep Shad alias if used elsewhere consistently
   DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, // Keep direct import for DialogTrigger
+  DialogTrigger, // Import directly
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger as SelectTriggerShad, SelectValue } from "@/components/ui/select"; // Aliased SelectTrigger
-import { Popover, PopoverContent, PopoverTrigger as PopoverTriggerShad } from "@/components/ui/popover"; // Aliased PopoverTrigger
+import { Select, SelectContent, SelectItem, SelectTrigger as SelectTriggerShad, SelectValue } from "@/components/ui/select"; // Shad alias for SelectTrigger
+import { Popover, PopoverContent, PopoverTrigger as PopoverTriggerShad } from "@/components/ui/popover"; // Shad alias for PopoverTrigger
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
@@ -184,6 +184,85 @@ const forgotPasswordSchema = z.object({
 });
 
 
+// Helper component for auth buttons to ensure DialogTrigger gets a single child
+const AuthActionButton = React.forwardRef<HTMLButtonElement, { isMobileSheetTrigger?: boolean }>(
+  ({ isMobileSheetTrigger = false, ...props }, ref) => {
+    const {
+      user,
+      isLoggedIn,
+      openProfileDialog,
+      openLoginDialog,
+      setIsMobileSheetOpen, // Assuming this exists in AuthContext or is passed down
+    } = useAuth();
+
+    const handleProfileClick = () => {
+      openProfileDialog();
+      if (isMobileSheetTrigger && setIsMobileSheetOpen) {
+        setIsMobileSheetOpen(false);
+      }
+    };
+
+    const handleLoginClick = () => {
+      openLoginDialog();
+      if (isMobileSheetTrigger && setIsMobileSheetOpen) {
+        setIsMobileSheetOpen(false);
+      }
+    };
+
+    if (isLoggedIn && user) {
+      return (
+        <Button
+          ref={ref}
+          variant="ghost"
+          onClick={handleProfileClick}
+          className={cn(
+            "flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start",
+            isMobileSheetTrigger ? "" : "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md"
+          )}
+          {...props}
+        >
+          <Avatar className={cn(
+            "h-8 w-8 flex-shrink-0",
+            isMobileSheetTrigger ? "" : "group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
+            )}>
+            <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder" />
+            <AvatarFallback>{user.initials}</AvatarFallback>
+          </Avatar>
+          <div className={cn(
+            "flex flex-col text-sm text-left",
+            isMobileSheetTrigger ? "" : "transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only"
+            )}>
+            <span className="font-semibold truncate">{user.name}</span>
+          </div>
+        </Button>
+      );
+    } else {
+      return (
+        <Button
+          ref={ref}
+          onClick={handleLoginClick}
+          variant="accent"
+          className={cn(
+            "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
+            isMobileSheetTrigger ? "" : "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
+          )}
+          {...props}
+        >
+          <ArrowRight className={cn("mr-2 h-4 w-4", isMobileSheetTrigger ? "" : "group-data-[collapsible=icon]:mr-0")} />
+           <span className={cn(isMobileSheetTrigger ? "" : "overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only")}>
+            Ingresar / Crear Cuenta
+          </span>
+          <span className={cn("sr-only", isMobileSheetTrigger ? "hidden" : "group-data-[collapsible!=icon]:hidden")}>
+            Ingresar
+          </span>
+        </Button>
+      );
+    }
+  }
+);
+AuthActionButton.displayName = "AuthActionButton";
+
+
 const AuthDialogContent = () => {
   const {
     user,
@@ -206,9 +285,7 @@ const AuthDialogContent = () => {
     handleForgotPasswordSubmit: contextHandleForgotPasswordSubmit,
     setCurrentView,
     handleLogout,
-    openProfileDialog,
-    openLoginDialog,
-    handleOpenChange,
+    handleOpenChange, // Ensure this is from useAuth
    } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -229,7 +306,7 @@ const AuthDialogContent = () => {
     defaultValues: {
       firstName: "",
       lastName: "",
-      country: "CO",
+      country: "CO", // Default Colombia
       phone: "",
       profileType: "",
       dob: null,
@@ -335,9 +412,9 @@ const AuthDialogContent = () => {
 
   if (isLoggedIn && user) {
     return (
-      <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm">
-         <ScrollArea className="max-h-[85vh] p-6">
-          <div> {/* Removed extra p-6 from here, ScrollArea now handles it */}
+      <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-xs sm:max-w-sm">
+         <ScrollArea className="max-h-[85vh] p-4 sm:p-6">
+          <div>
             <ShadDialogHeader className="text-center mb-4">
               <div className="flex flex-col items-center mb-3">
                  <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
@@ -368,7 +445,7 @@ const AuthDialogContent = () => {
   return (
       <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm">
          <ScrollArea className="max-h-[85vh] p-6">
-           <div> {/* Removed extra p-6 from here, ScrollArea now handles it */}
+           <div>
               {currentView === 'login' && (
                 <>
                   <ShadDialogHeader className="mb-4 text-center">
@@ -675,9 +752,12 @@ export default function AppLayout({
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      handleOpenChange(false);
+      if (showLoginDialog || showProfileDialog) {
+        handleOpenChange(false);
+      }
     }
   };
+
 
   return (
       <>
@@ -699,7 +779,10 @@ export default function AppLayout({
                         isActive={pathname === item.href}
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                         className={cn(
-                           "h-10 p-2"
+                           "h-10 p-2",
+                           pathname === item.href
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground" // Active state uses accent colors
+                            : "hover:bg-sidebar-accent/10"
                         )}
                       >
                         <item.icon className="h-4 w-4" />
@@ -712,53 +795,52 @@ export default function AppLayout({
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                 {isLoggedIn && user ? (
-                   <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
-                     <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                       <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder"/>
-                       <AvatarFallback>{user.initials}</AvatarFallback>
-                     </Avatar>
-                     <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                       <span className="font-semibold truncate">{user.name}</span>
-                     </div>
-                   </Button>
-                 ) : (
-                   <Button
-                     onClick={openLoginDialog}
-                     variant="accent"
-                     className={cn(
-                       "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
-                       "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
-                     )}
-                   >
-                     <ArrowRight className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-                     <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                       Ingresar / Crear Cuenta
-                     </span>
-                     <span className="sr-only group-data-[collapsible!=icon]:hidden">
-                       Ingresar
-                     </span>
-                   </Button>
-                 )}
+                  {isLoggedIn && user ? (
+                      <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
+                        <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                          <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder"/>
+                          <AvatarFallback>{user.initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                          <span className="font-semibold truncate">{user.name}</span>
+                        </div>
+                      </Button>
+                  ) : (
+                       <Button
+                         onClick={openLoginDialog}
+                         variant="accent"
+                         className={cn(
+                           "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
+                           "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
+                         )}
+                       >
+                         <ArrowRight className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+                         <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                           Ingresar / Crear Cuenta
+                         </span>
+                         <span className="sr-only group-data-[collapsible!=icon]:hidden">
+                           Ingresar
+                         </span>
+                       </Button>
+                  )}
               </SidebarFooter>
             </Sidebar>
 
             {/* Mobile Header & Sheet */}
             <div className="flex flex-col flex-1 overflow-hidden">
-               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0"> {/* Changed md:hidden to lg:hidden */}
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6"><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
                           <span className="sr-only">Abrir menú</span>
                         </Button>
                       </SheetTrigger>
                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-                           <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
+                           <Image src={logoImage} alt="Sportoffice Logo" className="h-8 w-auto" priority />
                            <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
                       </div>
-                       {/* Placeholder for potential right-aligned icons like search or notifications if needed */}
-                       <div className="w-8 sm:w-10"></div>
+                       <div className="w-8 sm:w-10"></div> {/* Placeholder for balance */}
 
 
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground flex flex-col">
@@ -785,7 +867,7 @@ export default function AppLayout({
                                               onClick={() => setIsMobileSheetOpen(false)}
                                               className={cn(
                                                 "text-sm h-10 px-3",
-                                                 pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10"
+                                                 pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground" : "hover:bg-sidebar-accent/10"
                                               )}
                                           >
                                               <item.icon className="h-4 w-4" />
@@ -823,7 +905,7 @@ export default function AppLayout({
           </div>
 
           {/* SINGLE DIALOG FOR AUTH, RENDERED AT THE TOP LEVEL */}
-          <Dialog open={showLoginDialog || showProfileDialog} onOpenChange={handleOpenChange}>
+          <Dialog open={(showLoginDialog || showProfileDialog)} onOpenChange={handleOpenChange}>
             <AuthDialogContent />
           </Dialog>
 
