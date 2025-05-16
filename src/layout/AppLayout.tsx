@@ -8,16 +8,16 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog"; // Keep this
 import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
+  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
+  SheetTitle as ShadSheetTitle,   // Renamed
+  SheetTrigger,
 } from "@/components/ui/sheet";
-import logoImage from '@/image/logoo.png'; // Import the logo image
+import logoImage from '@/image/logoo.png';
 import {
   Sidebar,
   SidebarContent,
@@ -32,18 +32,18 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Dumbbell, Eye, EyeOff, ChevronLeft, ChevronRight, Menu } from "lucide-react"; // Added Menu
+import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu } from "lucide-react";
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTrigger as ShadDialogTrigger, // Renamed to avoid conflict
-  DialogContent as ShadDialogContent, // Renamed
-  DialogDescription as ShadDialogDescription, // Renamed
-  DialogFooter as ShadDialogFooter, // Renamed
-  DialogHeader as ShadDialogHeader, // Renamed
-  DialogTitle as ShadDialogTitle, // Renamed
+  DialogTrigger as ShadDialogTrigger,
+  DialogContent as ShadDialogContent,
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader, // Renamed to avoid conflict with SheetHeader
+  DialogTitle as ShadDialogTitle,   // Renamed
   DialogClose as ShadDialogDialogClose, // Renamed
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
@@ -65,7 +65,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth, type ForgotPasswordValues } from '@/context/AuthContext';
-import Image from 'next/image'; // Import Next.js Image component
+import Image from 'next/image';
 import { RecaptchaVerifier, getAuth } from 'firebase/auth';
 import { app as firebaseApp } from '@/lib/firebase';
 
@@ -271,7 +271,7 @@ export default function AppLayout({
     };
 
      const handleNextStep = async () => {
-        await contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
+ await contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
     };
 
      const handlePrevStep = () => {
@@ -516,7 +516,7 @@ export default function AppLayout({
                                         <FormControl>
                                           <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
                                             <CalendarDays className="mr-2 h-4 w-4"/>
-                                            {field.value ? format(field.value, "PPP", { locale: es }) : <span>Elige una fecha</span>}
+                                            {field.value ? format(new Date(field.value), "PPP", { locale: es }) : <span>Elige una fecha</span>}
                                           </Button>
                                         </FormControl>
                                       </PopoverTrigger>
@@ -683,20 +683,18 @@ export default function AppLayout({
       <>
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
-            <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
+            <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                  <Image
-                      src={logoImage}
-                      alt="Sportoffice Logo"
-                      className="h-7 w-auto group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-auto transition-all"
-                      priority
-                  />
-                <br></br>  
-                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
+                <Image
+                    src={logoImage}
+                    alt="Sportoffice Logo"
+                    className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all"
+                    priority
+                />
+                <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
                     Sportoffice
                  </h3>
               </SidebarHeader>
-              <br></br>  <br></br>  
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
                   {navegacion.map((item) => (
@@ -704,10 +702,11 @@ export default function AppLayout({
                       <SidebarMenuButton
                         href={item.href}
                         isActive={pathname === item.href}
-                        className={cn(
-                            "text-sm"
-                         )}
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
+                        className={cn(
+                          pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10",
+                          "px-3 py-2" // Consistent padding
+                        )}
                       >
                         <item.icon className="h-4 w-4" />
                          <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
@@ -750,7 +749,7 @@ export default function AppLayout({
 
             <div className="flex flex-col flex-1 overflow-hidden">
                {/* Mobile Header */}
-               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
@@ -774,16 +773,15 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
-                          <SheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
+                          <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center gap-2">
                                   <Image
                                     src={logoImage}
                                     alt="Sportoffice Logo"
-                                    className="h-7 w-auto"
+                                    className="h-8 w-auto"
                                     priority
                                   />
-                                
-                                 <br></br>
+                                 <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">
@@ -791,7 +789,7 @@ export default function AppLayout({
                                     <span className="sr-only">Cerrar menú</span>
                                   </Button>
                                 </SheetClose>
-                          </SheetHeader>
+                          </ShadSheetHeader>
                           <ScrollArea className="flex-grow h-[calc(100%-112px)]">
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
@@ -801,7 +799,10 @@ export default function AppLayout({
                                               href={item.href}
                                               isActive={pathname === item.href}
                                               onClick={() => setIsMobileSheetOpen(false)}
-                                              className="text-sm"
+                                              className={cn(
+                                                "text-sm",
+                                                pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10"
+                                              )}
                                           >
                                               <item.icon className="h-4 w-4" />
                                               {item.title}
@@ -838,15 +839,16 @@ export default function AppLayout({
 
 
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                     <Image
-                        src={logoImage}
-                        alt="Sportoffice Logo"
-                        className="h-8 w-auto" // Adjust size as needed
-                        priority
-                      />
+                    <Image
+                      src={logoImage}
+                      alt="Sportoffice Logo"
+                      className="h-8 w-auto"
+                      priority
+                    />
+                    <h3 className="font-semibold text-primary text-lg leading-none">Sportoffice</h3>
                   </div>
 
-                  <div className="w-8 h-8" />
+                  <div className="w-8 h-8 sm:w-9" /> {/* Placeholder for balance */}
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
@@ -858,3 +860,4 @@ export default function AppLayout({
       </>
   );
 }
+
