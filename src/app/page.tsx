@@ -20,10 +20,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
-  SheetContent,
-  SheetHeader as ShadSheetHeader,
-  SheetTitle as ShadSheetTitle,
-  SheetClose as ShadSheetClose,
+  SheetContent, // Changed from ShadSheetContent
+  SheetHeader,  // Changed from ShadSheetHeader
+  SheetTitle,   // Changed from ShadSheetTitle
+  SheetClose,   // Changed from ShadSheetClose
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
@@ -58,6 +58,8 @@ import {
   CalendarDays,
   CreditCard,
   Settings,
+  LogIn as LogInIcon, // Added LogInIcon
+  UserPlus, // Added UserPlus
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -74,12 +76,12 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import {
   Dialog,
-  DialogContent as ShadDialogContent,
+  DialogContent as ShadDialogContent, // Keep Shad prefix for Dialogs from AppLayout to avoid conflict
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger as ShadDialogTrigger,
+  DialogTrigger as ShadDialogTrigger, // Keep Shad prefix for Dialogs from AppLayout
   DialogClose as ShadDialogDialogClose
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -94,7 +96,7 @@ interface Category {
 const categorias: Category[] = [
   { name: 'Todos', icon: ArrowLeft },
   { name: 'Tecnología', icon: Code },
-  { name: 'Entrenador Personal', icon: Dumbbell }, // Changed from User to Dumbbell
+  { name: 'Entrenador Personal', icon: Dumbbell },
   { name: 'Contratista', icon: Construction },
   { name: 'Mantenimiento Hogar', icon: LucideHomeIcon },
   { name: 'Profesores', icon: School2 },
@@ -185,7 +187,7 @@ const ServiceFiltersContent = ({
                 <Slider
                     id="rate-filter-slider"
                     min={0}
-                    max={250000}
+                    max={250000} 
                     step={5000}
                     value={[maxRate]}
                     onValueChange={(value) => setMaxRate(value[0])}
@@ -197,9 +199,9 @@ const ServiceFiltersContent = ({
              </div>
           </div>
           <div className="flex-grow"></div>
-          <ShadSheetClose asChild>
+          <SheetClose asChild>
               <Button className="w-full" onClick={onApplyFilters}>Mostrar Resultados</Button>
-          </ShadSheetClose>
+          </SheetClose>
      </div>
     );
 };
@@ -315,10 +317,10 @@ function LandingPageContent() {
                 <Filter className="mr-2 h-4 w-4" /> Filtros
               </Button>
             </SheetTrigger>
-            <ShadSheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
-              <ShadSheetHeader className="p-4 border-b">
-                <ShadSheetTitle>Filtros de Servicios</ShadSheetTitle>
-              </ShadSheetHeader>
+            <SheetContent className="p-0 w-[85%] sm:w-[320px] flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>Filtros de Servicios</SheetTitle>
+              </SheetHeader>
               <ScrollArea className="flex-grow">
                 <ServiceFiltersContent
                     selectedCategory={selectedCategoryState} setSelectedCategory={setSelectedCategoryState}
@@ -328,7 +330,7 @@ function LandingPageContent() {
                     onApplyFilters={handleApplyFiltersFromSheet}
                 />
               </ScrollArea>
-            </ShadSheetContent>
+            </SheetContent>
           </Sheet>
         </div>
       </section>
@@ -386,7 +388,7 @@ function LandingPageContent() {
              <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden relative">
                 <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
                   <CarouselContent>
-                    <CarouselItem className="basis-auto"> {/* Single item for the whole TabsList */}
+                    <CarouselItem className="basis-auto">
                       <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
                         {categorias.map((category) => (
                             <TabsTrigger
@@ -601,4 +603,3 @@ export default function Page() {
     </AppLayout>
   );
 }
-
