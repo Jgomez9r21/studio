@@ -33,6 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
 import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Asterisk } from "lucide-react";
 import logoImage from '@/image/logoo.png';
+import iconoimg from '@/image/iconologo.png';
 
 
 import { Button } from '@/components/ui/button';
@@ -685,13 +686,8 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                <Image
-                    src={logoImage}
-                    alt="Sportoffice Logo"
-                    className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all"
-                    priority
-                />
-                <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
+                 <Image src={logoImage} alt="Sportoffice Logo" className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all" priority />
+                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
                     Sportoffice
                  </h3>
               </SidebarHeader>
@@ -749,39 +745,17 @@ export default function AppLayout({
             <div className="flex flex-col flex-1 overflow-hidden">
                {/* Mobile Header - Visible on sm and md, hidden on lg and up */}
                <header className="sticky top-0 z-10 flex h-14 items-center justify-start border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
-                  {/* Hamburger menu trigger */}
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                          {/* SVG for hamburger icon */}
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-5 w-5 sm:h-6 sm:w-6"
-                          >
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
-                          </svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 sm:h-6 sm:w-6"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                           <span className="sr-only">Abrir menú</span>
                         </Button>
                       </SheetTrigger>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14">
                                <div className="flex items-center gap-2">
-                                  <Image
-                                    src={logoImage}
-                                    alt="Sportoffice Logo"
-                                    className="h-8 w-auto"
-                                    priority
-                                  />
+                                  <Image src={logoImage} alt="Sportoffice Logo" className="h-8 w-auto" priority />
                                  <ShadSheetTitle className="text-lg font-semibold text-primary">Sportoffice</ShadSheetTitle>
                                </div>
                                <SheetClose asChild>
@@ -791,7 +765,7 @@ export default function AppLayout({
                                   </Button>
                                 </SheetClose>
                           </ShadSheetHeader>
-                          <ScrollArea className="flex-grow h-[calc(100%-112px)]">
+                          <ScrollArea className="flex-grow h-[calc(100%-112px)]"> {/* Adjust height based on header/footer */}
                               <SidebarContent className="p-2">
                                    <SidebarMenu>
                                       {navegacion.map((item) => (
@@ -838,18 +812,10 @@ export default function AppLayout({
                       </SheetContent>
                   </Sheet>
 
-
-                  {/* Centered Logo and Brand Name for Mobile Top Bar */}
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <Image
-                      src={logoImage}
-                      alt="Sportoffice Logo"
-                      className="h-8 w-auto"
-                      priority
-                    />
-                    <h3 className="font-semibold text-primary text-lg leading-none">Sportoffice</h3>
+                    <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
+                    <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
                   </div>
-                  {/* No right-side placeholder needed as justify-start is used and logo is centered */}
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
@@ -861,3 +827,4 @@ export default function AppLayout({
       </>
   );
 }
+
