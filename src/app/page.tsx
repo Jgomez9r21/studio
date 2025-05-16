@@ -20,10 +20,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
-  SheetContent, // Changed from ShadSheetContent
-  SheetHeader,  // Changed from ShadSheetHeader
-  SheetTitle,   // Changed from ShadSheetTitle
-  SheetClose,   // Changed from ShadSheetClose
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
@@ -58,17 +58,12 @@ import {
   CalendarDays,
   CreditCard,
   Settings,
-  LogIn as LogInIcon, // Added LogInIcon
-  UserPlus, // Added UserPlus
+  LogIn as LogInIcon,
+  UserPlus,
+  Asterisk,
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
 import Image from 'next/image';
@@ -76,12 +71,12 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import {
   Dialog,
-  DialogContent as ShadDialogContent, // Keep Shad prefix for Dialogs from AppLayout to avoid conflict
+  DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger as ShadDialogTrigger, // Keep Shad prefix for Dialogs from AppLayout
+  DialogTrigger, // Used directly
   DialogClose as ShadDialogDialogClose
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -187,7 +182,7 @@ const ServiceFiltersContent = ({
                 <Slider
                     id="rate-filter-slider"
                     min={0}
-                    max={250000} 
+                    max={250000}
                     step={5000}
                     value={[maxRate]}
                     onValueChange={(value) => setMaxRate(value[0])}
@@ -223,6 +218,13 @@ function LandingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleCategorySelectFromFilter = useCallback((newCategory: string) => {
+    setSelectedCategoryState(newCategory);
+    const newPath = newCategory === 'Todos' ? pathname : `${pathname}?category=${encodeURIComponent(newCategory)}`;
+    router.push(newPath, { scroll: false });
+  }, [pathname, router]);
 
 
   useEffect(() => {
@@ -255,11 +257,11 @@ function LandingPageContent() {
         targetCategory = foundCategory.name;
       }
     }
-
+    // Only update state if it's different from URL, to avoid infinite loops
     if (selectedCategoryState !== targetCategory) {
-      setSelectedCategoryState(targetCategory);
+        setSelectedCategoryState(targetCategory);
     }
-  }, [searchParams, selectedCategoryState]);
+  }, [searchParams, pathname]); // Removed selectedCategoryState from dependencies
 
 
   const filteredListings = listings.filter(listing => {
@@ -293,6 +295,16 @@ function LandingPageContent() {
     setIsFilterSheetOpen(false);
   };
 
+  const handleTabsScroll = (direction: 'left' | 'right') => {
+    if (tabsContainerRef.current) {
+      const scrollAmount = 200; // Adjust scroll amount as needed
+      tabsContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
+
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -323,7 +335,7 @@ function LandingPageContent() {
               </SheetHeader>
               <ScrollArea className="flex-grow">
                 <ServiceFiltersContent
-                    selectedCategory={selectedCategoryState} setSelectedCategory={setSelectedCategoryState}
+                    selectedCategory={selectedCategoryState} setSelectedCategory={handleCategorySelectFromFilter}
                     locationFilter={locationFilter} setLocationFilter={setLocationFilter}
                     minRating={minRating} setMinRating={setMinRating}
                     maxRate={maxRate} setMaxRate={setMaxRate}
@@ -377,19 +389,23 @@ function LandingPageContent() {
               onValueChange={(value) => {
               const categoryName = categorias.find(cat => cat.name.toLowerCase().replace(/[^a-z0-9]/g, '') === value)?.name || 'Todos';
               setSelectedCategoryState(categoryName);
-              if (categoryName === 'Todos') {
-                  router.push(pathname, { scroll: false });
-              } else {
-                  router.push(`${pathname}?category=${encodeURIComponent(categoryName)}`, { scroll: false });
-              }
+              const newPath = categoryName === 'Todos' ? pathname : `${pathname}?category=${encodeURIComponent(categoryName)}`;
+              router.push(newPath, { scroll: false });
               }}
               className="w-full"
           >
-             <div className="bg-muted rounded-md shadow-sm p-1 overflow-hidden relative">
-                <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
-                  <CarouselContent>
-                    <CarouselItem className="basis-auto">
-                      <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
+             <div className="bg-muted rounded-md shadow-sm p-1 relative">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleTabsScroll('left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background rounded-full hidden sm:flex"
+                    aria-label="Scroll left"
+                >
+                    <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <div ref={tabsContainerRef} className="overflow-x-auto whitespace-nowrap hide-scrollbar px-10"> 
+                    <TabsList className="inline-flex flex-nowrap h-auto p-0 bg-transparent shadow-none space-x-1">
                         {categorias.map((category) => (
                             <TabsTrigger
                                 key={category.name}
@@ -404,12 +420,17 @@ function LandingPageContent() {
                                 {category.name}
                             </TabsTrigger>
                         ))}
-                      </TabsList>
-                    </CarouselItem>
-                  </CarouselContent>
-                  <CarouselPrevious variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
-                  <CarouselNext variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-muted/50 hover:bg-muted rounded-full hidden sm:flex" />
-                </Carousel>
+                    </TabsList>
+                </div>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleTabsScroll('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/50 hover:bg-background rounded-full hidden sm:flex"
+                    aria-label="Scroll right"
+                >
+                    <ChevronRight className="h-5 w-5" />
+                </Button>
               </div>
               <TabsContent value={selectedCategoryState.toLowerCase().replace(/[^a-z0-9]/g, '') || 'todos'} className="mt-6">
                   {filteredListings.length > 0 ? (
@@ -469,9 +490,9 @@ function LandingPageContent() {
                             </p>
                             </CardContent>
                             <CardFooter className="p-4 pt-3 border-t">
-                            <ShadDialogTrigger asChild>
+                            <DialogTrigger asChild>
                               <Button variant="outline" className="w-full">Reservar Servicio</Button>
-                            </ShadDialogTrigger>
+                            </DialogTrigger>
                             </CardFooter>
                         </Card>
                         <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
@@ -519,7 +540,7 @@ function LandingPageContent() {
                                           </div>
                                       )}
                                           <div className="pt-2">
-                                          <p className="text-sm text-muted-foreground">{listing.description}</p>
+                                          <p className="text-sm text-muted-foreground">{listing.description || "Descripción no disponible."}</p>
                                           </div>
                                       <div className="grid grid-cols-[auto_1fr] items-center gap-4 pt-2">
                                           <Label htmlFor={`date-${listing.id}`} className="text-left text-sm whitespace-nowrap">Seleccionar Fecha</Label>
