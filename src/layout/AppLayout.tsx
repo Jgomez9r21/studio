@@ -691,10 +691,12 @@ export default function AppLayout({
                       className="h-7 w-auto group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-auto transition-all"
                       priority
                   />
+                <br></br>  
                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200">
                     Sportoffice
                  </h3>
               </SidebarHeader>
+              <br></br>  <br></br>  
               <SidebarContent className="flex-grow p-2 overflow-y-auto">
                 <SidebarMenu>
                   {navegacion.map((item) => (
@@ -780,7 +782,8 @@ export default function AppLayout({
                                     className="h-7 w-auto"
                                     priority
                                   />
-                                 <SheetTitle className="text-lg font-semibold text-primary">Sportoffice</SheetTitle>
+                                
+                                 <br></br>
                                </div>
                                <SheetClose asChild>
                                   <Button variant="ghost" size="icon" className="text-sidebar-foreground">

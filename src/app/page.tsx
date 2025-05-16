@@ -21,10 +21,10 @@ import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
-  SheetHeader as ShadSheetHeader,
-  SheetTitle as ShadSheetTitle,
+  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
+  SheetTitle as ShadSheetTitle,   // Renamed
   SheetTrigger,
-  SheetClose as ShadSheetClose,
+  SheetClose as ShadSheetClose,   // Renamed
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -63,11 +63,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/toaster"; // Make sure Toaster is imported
 import Image from 'next/image';
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
-import { Dialog, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger, DialogClose as ShadDialogDialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 
@@ -277,7 +277,7 @@ function LandingPageContent() {
       <section className="mb-6 flex flex-col items-center justify-center text-center px-4 py-12 md:py-16 lg:py-20">
         
         <p className="mt-2 text-md md:text-lg text-muted-foreground max-w-xl">
-          Tu plataforma para conectar con profesionales y reservar espacios deportivos y servicios de manera fácil y rápida.
+          Tu plataforma para conectar con profesionales.
         </p>
         <div className="flex flex-col sm:flex-row items-center gap-2 mt-4 w-full max-w-lg">
           <div className="relative w-full flex-grow">
@@ -549,11 +549,11 @@ function LandingPageContent() {
                                           </div>
                                       </div>
                                       <ShadDialogFooter className="pt-6 mt-4 border-t">
-                                      <DialogClose asChild>
+                                      <ShadDialogDialogClose asChild>
                                           <Button type="submit" className="w-full">
                                               Realizar solicitud de reserva
                                           </Button>
-                                      </DialogClose>
+                                      </ShadDialogDialogClose>
                                       </ShadDialogFooter>
                                   </div>
                                   </ScrollArea>
