@@ -8,14 +8,13 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetHeader as ShadSheetHeader, // Aliased to avoid conflict
-  SheetTitle as ShadSheetTitle,   // Aliased to avoid conflict
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 
@@ -32,20 +31,20 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Dumbbell, ArrowRight, Building, Asterisk } from "lucide-react"; // Added Building, LogIn, Asterisk
+import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Dumbbell, LogIn, ArrowRight } from "lucide-react"; // Added Building, LogIn, Asterisk
 import logoImage from '@/image/logoo.png';
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose as ShadDialogDialogClose,
+  DialogClose as ShadDialogDialogClose, // Keep alias if used elsewhere, or remove if not
   DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger, // Import directly
+  DialogTrigger, // Use unaliased DialogTrigger
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
@@ -80,7 +79,7 @@ const navegacion = [
   {
     title: "Espacios Deportivos",
     href: "/find-talents",
-    icon: Building, // Changed from UserIcon to Building
+    icon: Dumbbell,
   },
   {
     title: "Publicar",
@@ -347,7 +346,7 @@ export default function AppLayout({
   };
 
   const goToSettings = () => {
-      handleOpenChange(false); 
+      handleOpenChange(false);
       if (isMobileSheetOpen) setIsMobileSheetOpen(false);
       router.push('/settings');
   };
@@ -358,7 +357,7 @@ export default function AppLayout({
     if (showProfileDialog && isLoggedIn && user) {
       return (
         <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
-          <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(80vh-5rem)]">
+           <ScrollArea className="max-h-[85vh]">
             <div className="p-6">
               <ShadDialogHeader className="text-center mb-4">
                 <div className="flex flex-col items-center mb-3">
@@ -389,8 +388,8 @@ export default function AppLayout({
 
     if (showLoginDialog) {
       return (
-        <ShadDialogContent className="p-0 overflow-hidden max-w-md w-[calc(100%-2rem)] sm:w-full">
-           <ScrollArea className="max-h-[calc(100vh-4rem)] sm:max-h-[calc(90vh-5rem)] md:max-h-[calc(80vh-5rem)]">
+        <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-xs sm:max-w-sm">
+           <ScrollArea className="max-h-[85vh]">
              <div className="p-6">
                 {currentView === 'login' && (
                   <>
@@ -438,11 +437,11 @@ export default function AppLayout({
                          <Button type="button" variant="link" onClick={() => { setCurrentView('forgotPassword'); loginForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm text-primary">
                             ¿Olvidaste tu contraseña?
                           </Button>
-                        <ShadDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between pt-4 border-t mt-6">
-                          <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1 self-center sm:self-auto">
+                        <ShadDialogFooter className="flex flex-row justify-between items-center pt-4 border-t mt-6">
+                          <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm">
                             ¿No tienes cuenta? Crear una
                           </Button>
-                          <Button type="submit" className="order-1 sm:order-2 w-full sm:w-auto" disabled={loginForm.formState.isSubmitting || authIsLoading}>
+                          <Button type="submit" disabled={loginForm.formState.isSubmitting || authIsLoading}>
                             {loginForm.formState.isSubmitting || authIsLoading ? "Ingresando..." : "Ingresar"}
                           </Button>
                         </ShadDialogFooter>
@@ -686,13 +685,8 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-2 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                  <Image
-                    src={logoImage}
-                    alt="Sportoffice Logo"
-                    className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all"
-                    priority
-                  />
-                 <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200 leading-none">
+                   <Dumbbell className="h-8 w-8 text-primary group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7 transition-all" />
+                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200 leading-none">
                     Sportoffice
                  </h3>
               </SidebarHeader>
@@ -705,8 +699,8 @@ export default function AppLayout({
                         isActive={pathname === item.href}
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                         className={cn(
-                           pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground" : "hover:bg-sidebar-accent/10",
-                           "h-10" // Removed px-3 py-2 to use default p-2 from base styles
+                           pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10",
+                           "h-10"
                         )}
                       >
                         <item.icon className="h-4 w-4" />
@@ -734,15 +728,14 @@ export default function AppLayout({
                       </DialogTrigger>
                     ) : (
                       <DialogTrigger asChild>
-                        <Button
-                          onClick={openLoginDialog}
-                          variant="accent" // Changed to accent
-                          className={cn(
-                            "w-full justify-start text-sm h-10 px-3 py-2",
-                            // "bg-accent text-accent-foreground hover:bg-accent/90", // Base accent styles
-                            "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
-                          )}
-                        >
+                         <Button
+                           onClick={openLoginDialog}
+                           variant="default"
+                           className={cn(
+                             "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
+                             "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
+                           )}
+                         >
                           <ArrowRight className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
                           <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
                             Ingresar / Crear Cuenta
@@ -772,16 +765,10 @@ export default function AppLayout({
                           <span className="sr-only">Abrir menú</span>
                         </Button>
                       </SheetTrigger>
-                        {/* Centered Logo and Brand Name for Mobile Header */}
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-                           <Image
-                              src={logoImage}
-                              alt="Sportoffice Logo"
-                              className="h-7 sm:h-8 w-auto"
-                              priority
-                            />
-                            <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
-                        </div>
+                      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+                         <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
+                         <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
+                      </div>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground flex flex-col">
                           <ShadSheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14 flex-shrink-0">
                                <div className="flex items-center gap-2">
@@ -817,25 +804,25 @@ export default function AppLayout({
                                    </SidebarMenu>
                               </SidebarContent>
                           </ScrollArea>
-                           <SidebarFooter className="p-2 border-t flex-shrink-0"> {/* Removed h-14 for auto height */}
+                           <SidebarFooter className="p-2 border-t flex-shrink-0">
                              <Dialog open={(showProfileDialog || showLoginDialog) && isMobileSheetOpen} onOpenChange={handleOpenChange}>
-                               {isLoggedIn && user ? (
-                                 <DialogTrigger asChild>
+                              {isLoggedIn && user ? (
+                                <DialogTrigger asChild>
                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
                                         <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                         <span className="font-medium truncate">{user.name}</span>
                                    </Button>
-                                 </DialogTrigger>
+                                </DialogTrigger>
                                ) : (
-                                 <DialogTrigger asChild>
+                                <DialogTrigger asChild>
                                    <Button
                                       onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }}
-                                      variant="accent" // Use accent color
+                                      variant="accent"
                                       className="w-full justify-start h-10 px-3"
                                    >
                                        <ArrowRight className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
                                    </Button>
-                                 </DialogTrigger>
+                                </DialogTrigger>
                                )}
                                {authDialogContent()}
                              </Dialog>
@@ -853,3 +840,4 @@ export default function AppLayout({
       </>
   );
 }
+
