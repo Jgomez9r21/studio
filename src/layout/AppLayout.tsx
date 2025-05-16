@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Dumbbell, LogIn, ArrowRight, Building } from "lucide-react";
+import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, LogIn, ArrowRight, Building, Dumbbell, Asterisk } from "lucide-react"; // Added Asterisk and Dumbbell
 import logoImage from '@/image/logoo.png';
 
 
@@ -44,12 +44,12 @@ import {
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  DialogTrigger, // Keep direct import for DialogTrigger
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger as PopoverTriggerShad } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger as SelectTriggerShad, SelectValue } from "@/components/ui/select"; // Aliased SelectTrigger
+import { Popover, PopoverContent, PopoverTrigger as PopoverTriggerShad } from "@/components/ui/popover"; // Aliased PopoverTrigger
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
@@ -335,9 +335,9 @@ const AuthDialogContent = () => {
 
   if (isLoggedIn && user) {
     return (
-      <ShadDialogContent className="sm:max-w-md p-0 overflow-hidden">
-         <ScrollArea className="max-h-[85vh]">
-          <div className="p-6">
+      <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm">
+         <ScrollArea className="max-h-[85vh] p-6">
+          <div> {/* Removed extra p-6 from here, ScrollArea now handles it */}
             <ShadDialogHeader className="text-center mb-4">
               <div className="flex flex-col items-center mb-3">
                  <Avatar className="h-20 w-20 mb-2 border-2 border-primary">
@@ -365,11 +365,10 @@ const AuthDialogContent = () => {
     );
   }
 
-  // If not logged in, show login/signup forms
   return (
       <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm">
-         <ScrollArea className="max-h-[85vh]">
-           <div className="p-6">
+         <ScrollArea className="max-h-[85vh] p-6">
+           <div> {/* Removed extra p-6 from here, ScrollArea now handles it */}
               {currentView === 'login' && (
                 <>
                   <ShadDialogHeader className="mb-4 text-center">
@@ -458,7 +457,7 @@ const AuthDialogContent = () => {
                                   <FormLabel>País</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value} defaultValue="CO">
                                      <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tu país" /></SelectTrigger>
+                                          <SelectTriggerShad><SelectValue placeholder="Selecciona tu país" /></SelectTriggerShad>
                                      </FormControl>
                                       <SelectContent>{countries.map((country) => (<SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -474,7 +473,7 @@ const AuthDialogContent = () => {
                                     <FormLabel>Tipo de perfil</FormLabel>
                                      <Select onValueChange={field.onChange} value={field.value}>
                                          <FormControl>
-                                             <SelectTrigger><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTrigger>
+                                             <SelectTriggerShad><SelectValue placeholder="Selecciona tu tipo de perfil" /></SelectTriggerShad>
                                          </FormControl>
                                          <SelectContent>{profileTypes.map((type) => (<SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>))}</SelectContent>
                                      </Select>
@@ -511,7 +510,7 @@ const AuthDialogContent = () => {
                                   <FormLabel>Género (Opcional)</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                      <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tu género" /></SelectTrigger>
+                                          <SelectTriggerShad><SelectValue placeholder="Selecciona tu género" /></SelectTriggerShad>
                                      </FormControl>
                                       <SelectContent>{genders.map((gender) => (<SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -525,7 +524,7 @@ const AuthDialogContent = () => {
                                   <FormLabel>Tipo de documento (Opcional)</FormLabel>
                                   <Select onValueChange={field.onChange} value={field.value}>
                                      <FormControl>
-                                          <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
+                                          <SelectTriggerShad><SelectValue placeholder="Selecciona tipo" /></SelectTriggerShad>
                                      </FormControl>
                                       <SelectContent>{documentTypes.map((docType) => (<SelectItem key={docType.value} value={docType.value}>{docType.label}</SelectItem>))}</SelectContent>
                                     </Select>
@@ -676,7 +675,7 @@ export default function AppLayout({
   const handleMobileSheetOpenChange = (open: boolean) => {
     setIsMobileSheetOpen(open);
     if (!open) {
-      handleOpenChange(false); // Also manage the main dialog context if sheet closes
+      handleOpenChange(false);
     }
   };
 
@@ -713,41 +712,40 @@ export default function AppLayout({
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
-                 {/* DialogTrigger logic handled by AuthContext's openLoginDialog/openProfileDialog */}
                  {isLoggedIn && user ? (
-                     <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
-                       <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-                         <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder"/>
-                         <AvatarFallback>{user.initials}</AvatarFallback>
-                       </Avatar>
-                       <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                         <span className="font-semibold truncate">{user.name}</span>
-                       </div>
-                     </Button>
+                   <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
+                     <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
+                       <AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar placeholder"/>
+                       <AvatarFallback>{user.initials}</AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col text-sm text-left transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                       <span className="font-semibold truncate">{user.name}</span>
+                     </div>
+                   </Button>
                  ) : (
-                      <Button
-                        onClick={openLoginDialog}
-                        variant="accent"
-                        className={cn(
-                          "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
-                          "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
-                        )}
-                      >
-                        <ArrowRight className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-                        <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
-                          Ingresar / Crear Cuenta
-                        </span>
-                        <span className="sr-only group-data-[collapsible!=icon]:hidden">
-                          Ingresar
-                        </span>
-                      </Button>
+                   <Button
+                     onClick={openLoginDialog}
+                     variant="accent"
+                     className={cn(
+                       "w-full justify-start text-sm h-10 px-3 py-2 bg-accent text-accent-foreground hover:bg-accent/90",
+                       "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:justify-center"
+                     )}
+                   >
+                     <ArrowRight className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+                     <span className="overflow-hidden whitespace-nowrap transition-opacity duration-200 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only">
+                       Ingresar / Crear Cuenta
+                     </span>
+                     <span className="sr-only group-data-[collapsible!=icon]:hidden">
+                       Ingresar
+                     </span>
+                   </Button>
                  )}
               </SidebarFooter>
             </Sidebar>
 
             {/* Mobile Header & Sheet */}
             <div className="flex flex-col flex-1 overflow-hidden">
-               <header className="sticky top-0 z-10 flex h-14 items-center justify-start border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0"> {/* Changed md:hidden to lg:hidden */}
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
@@ -759,6 +757,9 @@ export default function AppLayout({
                            <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
                            <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
                       </div>
+                       {/* Placeholder for potential right-aligned icons like search or notifications if needed */}
+                       <div className="w-8 sm:w-10"></div>
+
 
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground flex flex-col">
                           <SheetHeader className="p-4 border-b flex flex-row items-center justify-between h-14 flex-shrink-0">
@@ -796,20 +797,20 @@ export default function AppLayout({
                               </SidebarContent>
                           </ScrollArea>
                            <SidebarFooter className="p-2 border-t flex-shrink-0">
-                              {isLoggedIn && user ? (
-                                   <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
+                                {isLoggedIn && user ? (
+                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
                                         <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
                                         <span className="font-medium truncate">{user.name}</span>
-                                   </Button>
-                               ) : (
-                                   <Button
+                                    </Button>
+                                ) : (
+                                    <Button
                                       onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }}
                                       variant="accent"
                                       className="w-full justify-start h-10 px-3 bg-accent text-accent-foreground hover:bg-accent/90"
-                                   >
+                                    >
                                        <ArrowRight className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
-                                   </Button>
-                               )}
+                                    </Button>
+                                )}
                            </SidebarFooter>
                       </SheetContent>
                   </Sheet>
