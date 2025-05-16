@@ -8,16 +8,16 @@ from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import * as DialogPrimitive from "@radix-ui/react-dialog"; // Keep this
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetHeader as ShadSheetHeader, // Renamed to avoid conflict
-  SheetTitle as ShadSheetTitle,   // Renamed
+  SheetHeader as ShadSheetHeader,
+  SheetTitle as ShadSheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import logoImage from '@/image/logoo.png';
+
 import {
   Sidebar,
   SidebarContent,
@@ -28,23 +28,23 @@ import {
   SidebarMenuButton,
   SidebarInset,
   useSidebar,
-
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu } from "lucide-react";
+import { Home, Settings, CreditCard, LogIn, User as UserIcon, CalendarDays, Heart, Building, UploadCloud, Lock, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, Asterisk } from "lucide-react";
+import logoImage from '@/image/logoo.png';
 
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogTrigger as ShadDialogTrigger,
+  DialogClose as ShadDialogDialogClose,
   DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
-  DialogHeader as ShadDialogHeader, // Renamed to avoid conflict with SheetHeader
-  DialogTitle as ShadDialogTitle,   // Renamed
-  DialogClose as ShadDialogDialogClose, // Renamed
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogTrigger as ShadDialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
@@ -683,7 +683,7 @@ export default function AppLayout({
       <>
           <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
-            <Sidebar className="hidden md:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
+            <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
               <SidebarHeader className="p-4 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
                 <Image
                     src={logoImage}
@@ -705,7 +705,6 @@ export default function AppLayout({
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                         className={cn(
                           pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10",
-                          "px-3 py-2" // Consistent padding
                         )}
                       >
                         <item.icon className="h-4 w-4" />
@@ -748,12 +747,14 @@ export default function AppLayout({
             </Sidebar>
 
             <div className="flex flex-col flex-1 overflow-hidden">
-               {/* Mobile Header */}
-               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:hidden flex-shrink-0">
+               {/* Mobile Header - Visible on sm and md, hidden on lg and up */}
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-start border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+                  {/* Hamburger menu trigger */}
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
-                           <svg
+                          {/* SVG for hamburger icon */}
+                          <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
                             height="24"
@@ -838,6 +839,7 @@ export default function AppLayout({
                   </Sheet>
 
 
+                  {/* Centered Logo and Brand Name for Mobile Top Bar */}
                   <div className="flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <Image
                       src={logoImage}
@@ -847,8 +849,7 @@ export default function AppLayout({
                     />
                     <h3 className="font-semibold text-primary text-lg leading-none">Sportoffice</h3>
                   </div>
-
-                  <div className="w-8 h-8 sm:w-9" /> {/* Placeholder for balance */}
+                  {/* No right-side placeholder needed as justify-start is used and logo is centered */}
                </header>
 
               <SidebarInset className="flex-1 overflow-auto">
@@ -860,4 +861,3 @@ export default function AppLayout({
       </>
   );
 }
-
