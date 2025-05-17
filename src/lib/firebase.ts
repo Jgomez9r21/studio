@@ -10,11 +10,11 @@ let db: Firestore | undefined = undefined; // Explicitly allow db to be undefine
 
 // Firebase configuration
 const firebaseConfig: FirebaseOptions = { // Make sure this matches your project settings in the Firebase Console
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBWhaZEeGXQwFKrMCRj9RhdyJHdz5H8kdI", // Replace with your actual Web API Key
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sportsoffice-conect.firebaseapp.com", // Replace with your actual Auth Domain
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsoffice-conect", // Corrected Project ID
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDkjXsZkQtQ9GSbeyMENNm-HLY-gz4Eum8", // Updated Fallback API Key
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sportsofficeapp.firebaseapp.com",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsofficeapp",
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sportsofficeapp.appspot.com",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1020460978896", // Corrected Sender ID
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1020460978896",
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1020460978896:web:b05960f102f3a1e26c45b1",
 };
 
@@ -57,9 +57,10 @@ if (app) {
         db = getFirestore(app);
         console.log("Firestore service initialized.");
     } catch (error: any) {
+        // Firestore might not be enabled, warn the user.
         if (error.code === 'unavailable' || (error.message && error.message.toLowerCase().includes("service firestore is not available"))) {
-            console.warn(
-                `Firestore might not be enabled for project '${firebaseConfig.projectId}'. Please go to the Firebase console and ensure Firestore (Cloud Firestore or Realtime Database) is enabled and correctly configured for this project. Error details: ${error.message}`
+            console.warn( 
+                `Firestore might not be enabled for project '${firebaseConfig.projectId}'. Please go to the Firebase console and ensure Firestore (Cloud Firestore) is enabled and correctly configured for this project. Error details: ${error.message}`
             );
         } else {
             console.error("Error initializing Firestore service:", error.message, error.stack);
@@ -73,3 +74,4 @@ if (app) {
 }
 
 export { app, auth, db };
+
