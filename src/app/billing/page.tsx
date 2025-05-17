@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
-import { useToast } from "@/hooks/use-toast"; // Added
+import { useToast } from "@/hooks/use-toast";
 
 interface Invoice {
   id: string;
@@ -75,7 +75,7 @@ const BillingContent = () => {
   const { user, isLoggedIn, isLoading, openLoginDialog } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isInvoiceDataLoading, setIsInvoiceDataLoading] = useState(true);
-  const { toast } = useToast(); // Added
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -91,11 +91,9 @@ const BillingContent = () => {
   }, [isLoggedIn]);
 
   const handleDownloadPdf = (invoiceNumber: string) => {
-    console.log(`Descargar PDF para factura ${invoiceNumber}`);
-    // alert(`Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`); Removed
-    toast({ // Added
-      title: "Descarga Simulada",
-      description: `Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`,
+    toast({
+      title: "Descarga de PDF (Simulación)",
+      description: `Aquí se iniciaría la generación y descarga del PDF para la factura N° ${invoiceNumber}. En una aplicación real, esto implicaría la creación del documento PDF.`,
     });
   };
 
@@ -206,3 +204,4 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
+
