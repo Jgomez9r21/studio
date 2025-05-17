@@ -16,9 +16,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react';
+import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays, CreditCard as CreditCardIcon, DollarSign, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval, getDay, getDate } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, isBefore, eachDayOfInterval, getDate } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -28,6 +28,9 @@ import { cn } from '@/lib/utils';
 import { HOURLY_RATE_CATEGORIES } from '@/lib/config';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from '@/components/ui/separator';
+
 
 export type AvailabilityStatus = 'available' | 'partial' | 'occupied' | 'unavailable';
 
@@ -42,12 +45,18 @@ const holidays: Date[] = [
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
 
+// Helper function to determine if a date is a holiday or Sunday
+const isHolidayOrSunday = (date: Date): boolean => {
+  const dateOnly = startOfDay(date);
+  if (getDay(dateOnly) === 0) return true; // Sunday
+  return holidays.some(h => isSameDay(h, dateOnly));
+};
 
 const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
     const availability: Record<string, AvailabilityStatus> = {};
     const today = startOfDay(new Date());
     const startDate = today;
-    const endDate = addMonths(today, 6); // Generate for a few months ahead
+    const endDate = addMonths(today, 6);
 
     const intervalDates = eachDayOfInterval({ start: startDate, end: endDate });
 
@@ -56,21 +65,21 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
         const dayOfMonth = getDate(date);
 
         if (isBefore(date, today) && !isSameDay(date, today)) {
-            availability[dateString] = 'unavailable'; // Past dates are unavailable
+            availability[dateString] = 'unavailable';
             return;
         }
-        if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-            availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
+        if (isHolidayOrSunday(date)) {
+            availability[dateString] = 'unavailable';
             return;
         }
-
+        
         // Default to available for Monday to Saturday (non-holiday)
         availability[dateString] = 'available';
 
         // For demonstration, make some days partial or occupied
-        if (dayOfMonth === 5 || dayOfMonth === 15 || dayOfMonth === 25) {
+        if (dayOfMonth % 7 === 0 && dayOfMonth !== 0) { // Every 7th day (excluding actual 7th, 14th, 21st for this example)
             availability[dateString] = 'partial';
-        } else if (dayOfMonth === 10 || dayOfMonth === 20) {
+        } else if (dayOfMonth % 10 === 0 && dayOfMonth !== 0) { // Every 10th day
             availability[dateString] = 'occupied';
         }
     });
@@ -97,14 +106,15 @@ const ServiceDetailPageContent = () => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [dailyAvailability, setDailyAvailability] = useState<Record<string, AvailabilityStatus>>({});
   
+  const [bookingStep, setBookingStep] = useState<'selection' | 'confirmation'>('selection');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
+
   const today = startOfDay(new Date());
   const currentYear = getYear(today);
-
 
   useEffect(() => {
     setDailyAvailability(generateDummyAvailability());
   }, []);
-
 
   useEffect(() => {
     if (serviceId) {
@@ -148,11 +158,10 @@ const ServiceDetailPageContent = () => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const dayStatus = dailyAvailability[dateString];
       
-      if (dayStatus === 'available' || dayStatus === 'partial') { // Keep partial for potential future use
+      if ((dayStatus === 'available' || dayStatus === 'partial') && !isHolidayOrSunday(selectedDate)) {
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
-            // Default slots if service-specific ones aren't defined but day is available/partial
             setAvailableTimeSlots(['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM']); 
          }
       } else {
@@ -161,7 +170,7 @@ const ServiceDetailPageContent = () => {
     }
   }, [service, selectedDate, dailyAvailability]);
 
-  const handleBooking = () => {
+  const handleProceedToConfirmation = () => {
     if (!isLoggedIn) {
       toast({
         title: 'Inicio de Sesión Requerido',
@@ -188,19 +197,40 @@ const ServiceDetailPageContent = () => {
       });
       return;
     }
+    setBookingStep('confirmation');
+  };
 
-    console.log('Booking details:', {
+  const handlePayment = () => {
+    if (!selectedPaymentMethod) {
+      toast({
+        title: 'Método de Pago Requerido',
+        description: 'Por favor, selecciona un método de pago.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    console.log('Payment details:', {
       serviceId: service?.id,
       serviceTitle: service?.title,
       date: selectedDate ? format(selectedDate, "PPP", { locale: es }) : 'N/A',
       time: selectedTimeSlot,
       user: user?.email,
+      paymentMethod: selectedPaymentMethod,
+      amount: service?.rate,
     });
     toast({
-      title: 'Reserva Solicitada',
-      description: `Tu solicitud para "${service?.title}" el ${selectedDate ? format(selectedDate, "PPP", { locale: es }) : ''} a las ${selectedTimeSlot} ha sido enviada.`,
+      title: 'Pago Simulado Exitoso',
+      description: `Tu reserva para "${service?.title}" el ${selectedDate ? format(selectedDate, "PPP", { locale: es }) : ''} a las ${selectedTimeSlot} ha sido confirmada y pagada (simulación).`,
     });
+    // Optionally, redirect or clear state
+    // router.push('/book-service');
+    setBookingStep('selection');
+    setSelectedDate(undefined);
+    setSelectedTimeSlot(undefined);
+    setSelectedPaymentMethod(undefined);
+    setPolicyAccepted(false);
   };
+
 
   if (isLoading) { 
     return (
@@ -242,34 +272,29 @@ const ServiceDetailPageContent = () => {
     if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true;
     
     const status = dailyAvailability[format(dateOnly, 'yyyy-MM-dd')];
-    // A day is disabled if its status is 'unavailable' or 'occupied'.
-    // Sundays and holidays are marked 'unavailable' by generateDummyAvailability.
-    return status === 'unavailable' || status === 'occupied';
+    return status === 'unavailable' || status === 'occupied' || isHolidayOrSunday(dateOnly);
   };
 
   const modifiers = {
-    available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
-    partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
-    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied' && !isDayDisabled(date),
-    // 'unavailable' days are handled by the default disabled styling from react-day-picker if `isDayDisabled` returns true for them.
+    available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isHolidayOrSunday(date) && !isDayDisabled(date),
+    partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isHolidayOrSunday(date) && !isDayDisabled(date),
+    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied' && !isHolidayOrSunday(date) && !isDayDisabled(date),
   };
 
   const modifiersClassNames = {
     available: 'rdp-day_available',
     partial: 'rdp-day_partial',
     occupied: 'rdp-day_occupied',
-    // For 'unavailable' days (Sundays, holidays, past dates), the default disabled styling of react-day-picker
-    // combined with our global.css for .rdp-button[disabled] should give them a greyed-out appearance.
   };
-
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-6 md:py-8 max-w-5xl">
-      <Button variant="ghost" onClick={() => router.back()} className="mb-4 text-primary hover:text-primary/80 px-2">
+      <Button variant="ghost" onClick={ bookingStep === 'confirmation' ? () => setBookingStep('selection') : () => router.back() } className="mb-4 text-primary hover:text-primary/80 px-2">
         <ArrowLeft className="mr-2 h-5 w-5" />
-        Volver a la búsqueda
+        {bookingStep === 'confirmation' ? 'Volver a Selección' : 'Volver a la búsqueda'}
       </Button>
 
+      {bookingStep === 'selection' && (
       <Card className="overflow-hidden shadow-xl rounded-xl">
         <CardHeader className="p-0">
           {imagesToShow.length > 0 ? (
@@ -381,7 +406,6 @@ const ServiceDetailPageContent = () => {
               {selectedDate && <p className="text-sm text-muted-foreground pt-2 text-center">Fecha seleccionada: {format(selectedDate, "PPP", { locale: es })}</p>}
             </div>
 
-
             <div className="grid grid-cols-[auto_1fr] items-center gap-x-4">
               <Label htmlFor={`time-slot-${service.id}`} className="text-md font-semibold text-foreground flex items-center whitespace-nowrap">
                 <Clock className="mr-2 h-5 w-5 text-primary flex-shrink-0" />
@@ -419,7 +443,6 @@ const ServiceDetailPageContent = () => {
             </div>
           </div>
 
-
           {service.policyText && (
             <Alert className="mt-6">
               <Info className="h-4 w-4" />
@@ -445,7 +468,7 @@ const ServiceDetailPageContent = () => {
 
         <CardFooter className="bg-muted/30 p-4 md:p-6 border-t flex justify-end">
             <Button
-              onClick={handleBooking}
+              onClick={handleProceedToConfirmation}
               size="lg"
               className="w-full sm:w-auto"
               disabled={isLoading || !selectedDate || !selectedTimeSlot || (!!service.policyText && !policyAccepted)}
@@ -454,6 +477,76 @@ const ServiceDetailPageContent = () => {
             </Button>
         </CardFooter>
       </Card>
+      )}
+
+      {bookingStep === 'confirmation' && service && selectedDate && selectedTimeSlot && (
+        <Card className="overflow-hidden shadow-xl rounded-xl">
+          <CardHeader className="bg-muted/50 p-4 md:p-6 border-b">
+            <CardTitle className="text-xl md:text-2xl font-semibold text-foreground flex items-center">
+                <ShieldCheck className="mr-3 h-6 w-6 text-primary" />
+                Confirmar Reserva y Pago
+            </CardTitle>
+            <CardDescription>Revisa los detalles de tu reserva y elige un método de pago.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-foreground">Detalles del Servicio</h3>
+              <div className="space-y-2 text-sm text-foreground/80">
+                <p><span className="font-medium text-foreground">Servicio:</span> {service.title}</p>
+                {service.professionalName && <p><span className="font-medium text-foreground">Profesional:</span> {service.professionalName}</p>}
+                <p><span className="font-medium text-foreground">Fecha:</span> {format(selectedDate, "PPP", { locale: es })}</p>
+                <p><span className="font-medium text-foreground">Hora:</span> {selectedTimeSlot}</p>
+              </div>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-foreground flex items-center">
+                <DollarSign className="mr-2 h-5 w-5 text-primary" />
+                Total a Pagar
+              </h3>
+              <p className="text-2xl font-bold text-primary">
+                ${service.rate.toLocaleString('es-CO')}
+                <span className="text-sm font-normal text-muted-foreground ml-1">{HOURLY_RATE_CATEGORIES.includes(service.category) ? '/hr' : '(tarifa única)'}</span>
+              </p>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-foreground flex items-center">
+                <CreditCardIcon className="mr-2 h-5 w-5 text-primary" />
+                Método de Pago
+              </h3>
+              <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod} className="space-y-2">
+                <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="pse" id="pse" />
+                  <Label htmlFor="pse" className="flex-grow cursor-pointer">PSE (Pagos Seguros en Línea)</Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="debit" id="debit" />
+                  <Label htmlFor="debit" className="flex-grow cursor-pointer">Tarjeta de Débito</Label>
+                </div>
+                <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors">
+                  <RadioGroupItem value="credit" id="credit" />
+                  <Label htmlFor="credit" className="flex-grow cursor-pointer">Tarjeta de Crédito</Label>
+                </div>
+              </RadioGroup>
+              {selectedPaymentMethod && <p className="text-xs text-muted-foreground mt-2">Método seleccionado: {selectedPaymentMethod === 'pse' ? 'PSE' : selectedPaymentMethod === 'debit' ? 'Tarjeta de Débito' : 'Tarjeta de Crédito'}</p>}
+            </div>
+          </CardContent>
+          <CardFooter className="bg-muted/30 p-4 md:p-6 border-t flex flex-col sm:flex-row gap-2 justify-end">
+            <Button variant="outline" onClick={() => setBookingStep('selection')} className="w-full sm:w-auto">
+              Volver
+            </Button>
+            <Button
+              onClick={handlePayment}
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={isLoading || !selectedPaymentMethod}
+            >
+              {isLoading ? "Procesando..." : "Pagar Ahora"}
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 };
