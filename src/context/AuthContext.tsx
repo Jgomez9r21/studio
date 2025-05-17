@@ -63,7 +63,7 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 const phoneValidation = z.string()
-  .regex(/^\+?[1-9]\d{1,14}$/, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
+  .regex(/^\+[1-9]\d{1,14}$/, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
   .optional()
   .or(z.literal(""));
 
@@ -89,7 +89,7 @@ const signupSchema = signupStep1Schema.merge(baseSignupStep2Schema)
   .refine(data => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden.",
     path: ["confirmPassword"],
-  });
+});
 
 type SignupValues = z.infer<typeof signupSchema>;
 
@@ -132,7 +132,6 @@ interface AuthContextType {
   handleLoginSubmit: (data: LoginValues, resetForm: UseFormReset<LoginValues>) => void;
   handleSignupSubmit: (data: SignupValues, resetForm: UseFormReset<SignupValues>) => void;
   handleNextStep: (
-    trigger: UseFormTrigger<SignupValues>, 
     getValues: UseFormGetValues<SignupValues>,
     setError: UseFormSetError<SignupValues>,
     errors: FieldErrors<SignupValues>, 
@@ -169,7 +168,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkAuth = async () => {
       setIsLoading(true); 
       await new Promise(resolve => setTimeout(resolve, 500)); 
-      // For demo: Assume logged in initially for testing settings page
       setUser(dummyUser); 
       setIsLoggedIn(true); 
       setIsLoading(false);
@@ -277,9 +275,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "El correo electrónico no es válido.";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Error de red. Verifica tu conexión e inténtalo de nuevo.";
+         toast({ title: "Error de Red", description: "No se pudo conectar con los servicios de autenticación. Verifica tu conexión a internet.", variant: "destructive" });
       }
       setLoginError(errorMessage);
-      toast({ title: "Error al Crear Cuenta", description: errorMessage, variant: "destructive" });
+      if(error.code !== 'auth/network-request-failed') { // Avoid double toast for network error
+        toast({ title: "Error al Crear Cuenta", description: errorMessage, variant: "destructive" });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -332,9 +333,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedLastName = data.lastName !== undefined ? data.lastName : user.lastName;
       const updatedName = `${updatedFirstName} ${updatedLastName}`;
       const updatedInitials = `${updatedFirstName?.[0] ?? ''}${updatedLastName?.[0] ?? ''}`.toUpperCase();
-      const newPhone = data.phone !== undefined ? data.phone : user.phone;
+      
+      const newPhone = data.phone !== undefined ? (data.phone === "" ? "" : data.phone) : user.phone;
       const isPhoneUpdated = newPhone !== user.phone;
-      const needsVerification = isPhoneUpdated && !!newPhone && !(user.isPhoneVerified && newPhone === user.phone);
+      let newPhoneVerifiedStatus = user.isPhoneVerified ?? false;
+
+      if (isPhoneUpdated) {
+        newPhoneVerifiedStatus = false; // Always set to false if phone number changes
+        if (newPhone === "") { // If phone is cleared, it's not verified
+           newPhoneVerifiedStatus = false;
+        }
+      }
+
 
       const updatedUser: User = {
           ...user,
@@ -342,17 +352,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           firstName: updatedFirstName,
           lastName: updatedLastName,
           initials: updatedInitials,
-          phone: newPhone || '',
+          phone: newPhone || '', // Ensure phone is string or empty string
           country: data.country !== undefined ? data.country : user.country,
           dob: data.dob !== undefined ? (data.dob instanceof Date ? data.dob.toISOString() : data.dob) : user.dob,
           avatarUrl: newAvatarUrl,
-          isPhoneVerified: needsVerification ? false : (user.isPhoneVerified ?? false),
+          isPhoneVerified: newPhoneVerifiedStatus,
       };
 
       if (db && user.id !== 'usr123') { 
         try {
             const userDocRef = doc(db, "users", user.id);
-            const firestoreUpdateData: Partial<User> = { 
+            const firestoreUpdateData: Partial<Omit<User, 'id' | 'email' | 'createdAt'>> = { // Omit fields not typically updated here
                 firstName: updatedUser.firstName,
                 lastName: updatedUser.lastName,
                 name: updatedUser.name,
@@ -368,6 +378,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error) {
             console.error("Error updating user in Firestore:", error);
             toast({ title: "Error de Base de Datos", description: "No se pudieron guardar los cambios en el servidor.", variant: "destructive" });
+             // Optionally, revert optimistic UI update or handle error more gracefully
         }
       } else if (user.id !== 'usr123') {
         console.warn("Firestore (db) not available, profile update not saved to backend for user:", user.id);
@@ -380,16 +391,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (objectUrlToRevoke && objectUrlToRevoke !== user.avatarUrl && user.avatarUrl.startsWith('blob:')) {
          console.log("Consider revoking previous blob URL if no longer needed:", user.avatarUrl);
       }
+      
+      // If phone was updated and now requires verification
+      const needsVerificationAfterUpdate = isPhoneUpdated && !!newPhone && !newPhoneVerifiedStatus;
 
-      if (!needsVerification) {
+      if (!needsVerificationAfterUpdate) {
         toast({
             title: "Perfil Actualizado",
             description: "Tus datos han sido guardados correctamente.",
         });
       } else {
          toast({
-              title: "Verificación Requerida",
-              description: "Tu número de teléfono ha cambiado. Por favor verifica tu nuevo número.",
+              title: "Verificación de Teléfono Requerida",
+              description: "Tu número de teléfono ha cambiado. Por favor, verifica tu nuevo número desde la página de configuración.",
               variant: "default",
          });
          resetPhoneVerification();
@@ -427,9 +441,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                errorMessage = "Falló la verificación reCAPTCHA. Por favor, recarga la página e inténtalo de nuevo.";
            } else if (error.code === 'auth/network-request-failed') {
                errorMessage = "Error de red. Verifica tu conexión e inténtalo de nuevo.";
+               toast({ title: "Error de Red", description: "No se pudo conectar con los servicios de autenticación. Verifica tu conexión a internet.", variant: "destructive" });
            }
            setPhoneVerificationError(errorMessage);
-           toast({ title: "Error", description: errorMessage, variant: "destructive" });
+           if(error.code !== 'auth/network-request-failed') {
+             toast({ title: "Error al Enviar Código", description: errorMessage, variant: "destructive" });
+           }
            setIsVerificationSent(false);
        } finally {
            setIsLoading(false);
@@ -454,13 +471,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                  isPhoneVerified: true,
                  phone: verifiedFirebaseUser.phoneNumber && verifiedFirebaseUser.phoneNumber !== user.phone ? verifiedFirebaseUser.phoneNumber : user.phone
                };
-               setUser(updatedUser);
-               if (db && user.id !== 'usr123') { 
+               setUser(updatedUser); // Optimistically update user state
+                if (db && user.id !== 'usr123') { 
                    try {
                       await updateDoc(doc(db, "users", user.id), { phone: updatedUser.phone, isPhoneVerified: true });
+                      console.log("Phone verification status updated in Firestore for user:", user.id);
                    } catch (dbError) {
                        console.error("Error updating phone verification status in Firestore:", dbError);
                        toast({ title: "Error de Base de Datos", description: "No se pudo actualizar el estado de verificación del teléfono.", variant: "destructive"});
+                       // Optionally revert optimistic UI update for isPhoneVerified if backend update fails
+                       setUser(user); // Revert to previous user state
                    }
                } else if (user.id !== 'usr123') {
                    console.warn("Firestore (db) not available, phone verification status not saved to backend for user:", user.id);
@@ -481,9 +501,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                errorMessage = "Este número de teléfono ya está asociado a otra cuenta.";
            } else if (error.code === 'auth/network-request-failed') {
                errorMessage = "Error de red. Verifica tu conexión e inténtalo de nuevo.";
+               toast({ title: "Error de Red", description: "No se pudo conectar con los servicios de autenticación. Verifica tu conexión a internet.", variant: "destructive" });
            }
            setPhoneVerificationError(errorMessage);
-           toast({ title: "Error de Verificación", description: errorMessage, variant: "destructive" });
+           if(error.code !== 'auth/network-request-failed') {
+             toast({ title: "Error de Verificación", description: errorMessage, variant: "destructive" });
+           }
        } finally {
            setIsVerifyingCode(false);
            setIsLoading(false);
@@ -561,38 +584,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "El formato del correo electrónico no es válido.";
       } else if (error.code === 'auth/network-request-failed') {
         errorMessage = "Error de red. Verifica tu conexión e inténtalo de nuevo.";
+         toast({ title: "Error de Red", description: "No se pudo conectar con los servicios de autenticación. Verifica tu conexión a internet.", variant: "destructive" });
       }
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      if(error.code !== 'auth/network-request-failed') {
+        toast({ title: "Error al Enviar Correo", description: errorMessage, variant: "destructive" });
+      }
     } finally {
       setIsLoading(false);
     }
   }, [toast]);
 
   const handleNextStep = useCallback(async (
-    trigger: UseFormTrigger<SignupValues>, // Keep trigger for potential future use or different validation strategies
     getValues: UseFormGetValues<SignupValues>,
     setError: UseFormSetError<SignupValues>,
-    errors: FieldErrors<SignupValues>, // This comes from formState.errors
+    errors: FieldErrors<SignupValues>, 
     toastFn: ReturnType<typeof useToast>['toast']
   ) => {
     const currentStep1Values = {
       firstName: getValues("firstName"),
       lastName: getValues("lastName"),
       country: getValues("country"),
-      phone: getValues("phone") || undefined, // Ensure optional fields are handled if empty
+      phone: getValues("phone") || undefined, 
       profileType: getValues("profileType"),
     };
 
-    // Validate step 1 values against signupStep1Schema
     const validationResult = signupStep1Schema.safeParse(currentStep1Values);
 
     if (validationResult.success) {
       setSignupStep(2);
     } else {
-      // Manually set errors on the form for react-hook-form to display them
       validationResult.error.errors.forEach((err) => {
         if (err.path.length > 0) {
-          const fieldName = err.path[0] as FieldPath<SignupValues>; // Cast to FieldPath
+          const fieldName = err.path[0] as FieldPath<SignupValues>; 
           setError(fieldName, {
             type: "manual",
             message: err.message,
@@ -609,7 +632,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toastFn({ title: "Error de Validación", description: "Por favor, completa los campos requeridos.", variant: "destructive" });
       }
     }
-  }, [toast, setSignupStep]); // Dependencies for useCallback
+  }, [toast]); 
 
    const handlePrevStep = useCallback(() => {
        setSignupStep(1);
@@ -648,7 +671,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     handleForgotPasswordSubmit,
   };
 
-  if (isLoading && typeof window !== 'undefined') { 
+  if (isLoading && typeof window !== 'undefined' && !user) { 
      return (
         <div className="flex justify-center items-center h-screen">
            <p>Cargando autenticación...</p> 

@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-import { CalendarIcon, Camera, CheckCircle, ShieldAlert,UploadCloud } from "lucide-react";
+import { CalendarIcon, Camera, CheckCircle, ShieldAlert,UploadCloud, Dumbbell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
 import { es } from 'date-fns/locale';
@@ -41,8 +41,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, UpdateProfileData } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { RecaptchaVerifier, getAuth } from 'firebase/auth'; // Import RecaptchaVerifier from firebase/auth
-import { app as firebaseApp } from '@/lib/firebase'; // Import the initialized Firebase app
+import { RecaptchaVerifier, getAuth } from 'firebase/auth'; 
+import { app as firebaseApp } from '@/lib/firebase'; 
 
 // Zod schema for single file validation
 const fileSchema = z.instanceof(File)
@@ -54,27 +54,24 @@ const fileSchema = z.instanceof(File)
   .optional()
   .nullable();
 
-// Phone validation regex (E.164 format starting with +) - Aligned with AuthContext
 const phoneRegex = new RegExp(/^\+[1-9]\d{1,14}$/);
 const phoneValidation = z.string()
   .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
   .optional()
-  .or(z.literal("")); // Allow empty string
+  .or(z.literal("")); 
 
-// Define the form schema using Zod
 const profileFormSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres.").max(50, "El nombre no puede tener más de 50 caracteres."),
   lastName: z.string().min(2, "El apellido debe tener al menos 2 caracteres.").max(50, "El apellido no puede tener más de 50 caracteres."),
   phone: phoneValidation,
   country: z.string().min(1, "Selecciona un país."),
-  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), // Allow null
+  dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(), 
   email: z.string().email("Correo electrónico inválido."),
   avatarFile: fileSchema,
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// Start with empty default values for the form
 const defaultValues: Partial<ProfileFormValues> = {
   firstName: "",
   lastName: "",
@@ -85,7 +82,6 @@ const defaultValues: Partial<ProfileFormValues> = {
   avatarFile: null,
 };
 
-// Lista de países ficticia (mantenga coherente con el formulario de registro)
 const countries = [
   { code: "AR", name: "Argentina" },
   { code: "BO", name: "Bolivia" },
@@ -96,7 +92,7 @@ const countries = [
   { code: "PY", name: "Paraguay" },
   { code: "PE", name: "Perú" },
   { code: "UY", name: "Uruguay" },
-  
+  { code: "VE", name: "Venezuela"},
 ];
 
 
@@ -105,7 +101,7 @@ function ProfileForm() {
    const {
       user,
       updateUser,
-      isLoading: authLoading, // Utilice isLoading desde AuthContext
+      isLoading: authLoading, 
       sendVerificationCode,
       verifyCode,
       phoneVerificationError,
@@ -115,8 +111,8 @@ function ProfileForm() {
     } = useAuth();
    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
    const fileInputRef = useRef<HTMLInputElement>(null);
-   const recaptchaContainerRef = useRef<HTMLDivElement>(null); // Ref for reCAPTCHA container
-   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null); // Ref to store reCAPTCHA instance
+   const recaptchaContainerRef = useRef<HTMLDivElement>(null); 
+   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null); 
 
    const [verificationCode, setVerificationCode] = useState("");
    const [originalPhoneNumber, setOriginalPhoneNumber] = useState<string | undefined>(undefined);
@@ -124,20 +120,24 @@ function ProfileForm() {
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: "onChange", //validar cambios
+    mode: "onChange", 
   });
 
   const currentPhoneNumber = form.watch("phone");
   const isPhoneValid = phoneValidation.safeParse(currentPhoneNumber).success;
-  const isPhoneDifferent = currentPhoneNumber !== originalPhoneNumber;
+  const isPhoneDifferent = currentPhoneNumber !== originalPhoneNumber && !!currentPhoneNumber; // True if different and not empty
   const isPhoneVerified = user?.isPhoneVerified ?? false; 
-  const canSendVerification = isPhoneValid && currentPhoneNumber && currentPhoneNumber.length > 0 && isPhoneDifferent && !isPhoneVerified;
+  
+  // Can send verification if phone is valid, different from original, current user phone is not verified OR if the current user phone is different from the new one
+  const canSendVerification = isPhoneValid && 
+                              currentPhoneNumber && 
+                              currentPhoneNumber.length > 0 &&
+                              (isPhoneDifferent || !isPhoneVerified);
 
 
-   // Initialize reCAPTCHA Verifier
    useEffect(() => {
        let verifier: RecaptchaVerifier | null = null;
-       const authInstance = getAuth(firebaseApp); // Get auth instance from firebaseApp
+       const authInstance = getAuth(firebaseApp);
 
        if (recaptchaContainerRef.current && !recaptchaVerifierRef.current && !authLoading && authInstance) {
            try {
@@ -147,10 +147,14 @@ function ProfileForm() {
                      console.log("reCAPTCHA solved:", response);
                  },
                  'expired-callback': () => {
-                     console.log("reCAPTCHA expired");
+                     console.log("reCAPTCHA expired, attempting to re-render.");
                      toast({ title: "reCAPTCHA Expirado", description: "Por favor, intenta verificar de nuevo.", variant: "destructive" });
-                     resetPhoneVerification();
-                     recaptchaVerifierRef.current?.render().catch(err => console.error("reCAPTCHA re-render error:", err));
+                     resetPhoneVerification(); // Reset phone verification state
+                     recaptchaVerifierRef.current?.render().catch(err => {
+                        console.error("reCAPTCHA re-render error after expiry:", err);
+                        // If re-render fails, clear the ref so it can be re-initialized next time
+                        recaptchaVerifierRef.current = null;
+                     });
                  }
              });
              verifier.render().then(widgetId => {
@@ -158,21 +162,22 @@ function ProfileForm() {
                  recaptchaVerifierRef.current = verifier;
              }).catch(err => {
                  console.error("reCAPTCHA render error:", err);
-                 toast({ title: "Error de reCAPTCHA", description: "No se pudo inicializar la verificación reCAPTCHA.", variant: "destructive" });
+                 toast({ title: "Error de reCAPTCHA", description: "No se pudo inicializar la verificación reCAPTCHA. Intenta recargar la página.", variant: "destructive" });
+                 recaptchaVerifierRef.current = null; // Clear ref on error to allow re-initialization
              });
            } catch (error) {
                console.error("Error creating RecaptchaVerifier:", error);
                toast({ title: "Error de reCAPTCHA", description: "Error al crear el verificador reCAPTCHA.", variant: "destructive" });
+               recaptchaVerifierRef.current = null;
            }
        }
 
        return () => {
            verifier?.clear(); 
-           recaptchaVerifierRef.current = null; 
+           // Do not nullify recaptchaVerifierRef.current here to allow re-use if component re-renders without this effect re-running
        };
    }, [authLoading, toast, resetPhoneVerification]); 
 
- // Completar formulario con datos de usuario o valores predeterminados, administrar el estado del teléfono
   useEffect(() => {
     if (user) {
       const initialPhone = user.phone || '';
@@ -188,7 +193,8 @@ function ProfileForm() {
       setAvatarPreview(user.avatarUrl || null);
       setOriginalPhoneNumber(initialPhone);
 
-      if (initialPhone === currentPhoneNumber || (isPhoneVerified && initialPhone === currentPhoneNumber)) {
+      // If the current form phone number is the same as user's verified phone, reset verification UI
+      if (initialPhone === currentPhoneNumber && isPhoneVerified) {
          resetPhoneVerification();
          setVerificationCode("");
       }
@@ -199,19 +205,32 @@ function ProfileForm() {
       resetPhoneVerification();
       setVerificationCode("");
     }
-  }, [user, form, resetPhoneVerification, currentPhoneNumber, isPhoneVerified]); // form is now a dependency
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, form.reset, isPhoneVerified]); // Removed form from dependencies as per react-hook-form guidance
 
 
   const handleSendVerification = useCallback(async () => {
      if (!canSendVerification || !currentPhoneNumber || !recaptchaVerifierRef.current) {
-        if (!isPhoneValid) {
-             toast({ title: "Error", description: "Número de teléfono inválido.", variant: "destructive" });
+        if (!recaptchaVerifierRef.current) {
+             toast({ title: "Error de reCAPTCHA", description: "reCAPTCHA no está listo. Intenta de nuevo o recarga la página.", variant: "destructive" });
+             // Attempt to re-render reCAPTCHA if it's missing
+             const authInstance = getAuth(firebaseApp);
+             if (recaptchaContainerRef.current && authInstance) {
+                 try {
+                     const newVerifier = new RecaptchaVerifier(authInstance, recaptchaContainerRef.current, { 'size': 'invisible' });
+                     await newVerifier.render();
+                     recaptchaVerifierRef.current = newVerifier;
+                     toast({ title: "reCAPTCHA Listo", description: "Intenta verificar tu número de nuevo.", variant: "default" });
+                 } catch (renderError) {
+                     console.error("Failed to re-render reCAPTCHA:", renderError);
+                 }
+             }
+        } else if (!isPhoneValid) {
+            toast({ title: "Error", description: "Número de teléfono inválido.", variant: "destructive" });
         } else if (!currentPhoneNumber) {
-            toast({ title: "Error", description: "Ingresa un número de teléfono.", variant: "destructive" });
-        } else if (!recaptchaVerifierRef.current) {
-             toast({ title: "Error de reCAPTCHA", description: "reCAPTCHA no está listo. Por favor, espera un momento e intenta de nuevo.", variant: "destructive" });
+           toast({ title: "Error", description: "Ingresa un número de teléfono.", variant: "destructive" });
         }
-         return;
+        return;
      };
      console.log("Sending verification for:", currentPhoneNumber);
      await sendVerificationCode(currentPhoneNumber, recaptchaVerifierRef.current);
@@ -224,34 +243,33 @@ function ProfileForm() {
         return;
     }
     await verifyCode(verificationCode);
-    setVerificationCode(""); 
-  }, [verificationCode, verifyCode, toast]);
+    if(!phoneVerificationError) { // Only reset if verification was successful
+        setVerificationCode(""); 
+        setOriginalPhoneNumber(currentPhoneNumber); // Update original phone number upon successful verification
+        form.setValue('phone', currentPhoneNumber || ''); // Ensure form reflects the verified number
+    }
+  }, [verificationCode, verifyCode, toast, phoneVerificationError, currentPhoneNumber, form]);
 
 
   async function onSubmit(data: ProfileFormValues) {
      const authInstance = getAuth(firebaseApp);
-     const latestUser = authInstance.currentUser; 
+     const latestFirebaseUser = authInstance.currentUser; 
      
-     // Verificar si el teléfono está verificado *en el propio objeto de autenticación de Firebase* si ha cambiado
-     let isPhoneAuthVerified = isPhoneVerified; // Start with context's state
-     if (data.phone && data.phone !== originalPhoneNumber && latestUser && latestUser.phoneNumber === data.phone) {
-        // If phone number matches what's on Firebase Auth User, consider it verified by Firebase
-        isPhoneAuthVerified = true;
-     } else if (data.phone && data.phone !== originalPhoneNumber) {
-        isPhoneAuthVerified = false; // If changed and not matching Firebase, it's not verified
+     let isNewPhoneVerifiedByFirebase = false;
+     if (data.phone && data.phone !== originalPhoneNumber && latestFirebaseUser && latestFirebaseUser.phoneNumber === data.phone) {
+        isNewPhoneVerifiedByFirebase = true;
      }
 
-
-     if (data.phone && data.phone !== originalPhoneNumber && !isPhoneAuthVerified) {
+     if (data.phone && data.phone !== originalPhoneNumber && !isNewPhoneVerifiedByFirebase && !user?.isPhoneVerified) {
          toast({
              title: "Verificación Requerida",
-             description: "Debes verificar tu nuevo número de teléfono antes de guardar.",
+             description: "Debes verificar tu nuevo número de teléfono antes de guardar los cambios.",
              variant: "destructive",
          });
          return; 
      }
 
-    const updateData: UpdateProfileData = {
+    const updatePayload: UpdateProfileData = {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone, 
@@ -261,26 +279,26 @@ function ProfileForm() {
     };
 
      try {
-       await updateUser(updateData);
-       form.reset({ 
+       await updateUser(updatePayload);
+       form.reset({ // Reset form with new values, but clear avatarFile
          ...form.getValues(), 
+         phone: data.phone || '', // Ensure phone updates in form after successful save
+         isPhoneVerified: user?.isPhoneVerified, // Reflect new verification status
          avatarFile: null,
        });
-        if (fileInputRef.current) {
+        if (fileInputRef.current) { // Clear the actual file input element
            fileInputRef.current.value = ''; 
         }
-       setOriginalPhoneNumber(data.phone || '');
-        // Avatar preview updates via useEffect reacting to user state change in AuthContext
+       setOriginalPhoneNumber(data.phone || ''); // Update original phone number after successful save
      } catch (error) {
        console.error("Failed to update profile:", error);
-        toast({ title: "Error", description: "No se pudo actualizar el perfil.", variant: "destructive" });
      }
   }
 
  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    form.setValue("avatarFile", null, { shouldValidate: true });
-    setAvatarPreview(user?.avatarUrl || null); 
+    form.setValue("avatarFile", null, { shouldValidate: true }); // Clear previous file selection
+    setAvatarPreview(user?.avatarUrl || null); // Reset preview to current or default
 
     if (file) {
        const validationResult = fileSchema.safeParse(file);
@@ -288,7 +306,7 @@ function ProfileForm() {
          form.setValue("avatarFile", validationResult.data, { shouldValidate: true }); 
          const reader = new FileReader();
          reader.onloadend = () => {
-           setAvatarPreview(reader.result as string); 
+           setAvatarPreview(reader.result as string); // Show preview of the new file
          };
          reader.readAsDataURL(validationResult.data);
        } else {
@@ -300,10 +318,11 @@ function ProfileForm() {
                 });
             });
             if (fileInputRef.current) {
-                fileInputRef.current.value = '';
+                fileInputRef.current.value = ''; // Clear the file input if invalid
             }
        }
     }
+     // Ensure file input is cleared if no file is selected or if it's invalid
      if (!file || !fileSchema.safeParse(file).success) {
          if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -313,6 +332,8 @@ function ProfileForm() {
 
   const currentYear = getYear(new Date());
 
+  // Determine if the submit button should be disabled
+  // Disabled if: form is submitting, auth is loading, OR if the phone number has been changed but is not yet verified.
   const isSubmitDisabled = !form.formState.isDirty || 
                            form.formState.isSubmitting || 
                            authLoading || 
@@ -327,7 +348,7 @@ function ProfileForm() {
 
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24 border-2 border-primary relative group">
-              <AvatarImage src={avatarPreview || undefined} alt={user?.name ?? 'Usuario'} data-ai-hint="user profile picture placeholder" />
+              <AvatarImage src={avatarPreview || undefined} alt={user?.name ?? 'Usuario'} data-ai-hint="user profile picture" />
               <AvatarFallback>{user?.initials ?? 'U'}</AvatarFallback>
                 <div
                  className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-full"
@@ -405,7 +426,7 @@ function ProfileForm() {
                      <FormControl className="flex-1 min-w-[150px]">
                         <Input type="tel" placeholder="+573001234567" {...field} />
                      </FormControl>
-                     {canSendVerification && !isVerificationSent && (
+                     {canSendVerification && !isVerificationSent && !isPhoneVerified && (
                          <Button
                              type="button"
                              variant="outline"
@@ -495,7 +516,7 @@ function ProfileForm() {
                        <Button
                         variant={"outline"}
                         className={cn(
-                          "w-full pl-3 text-left font-normal",
+                          "w-full justify-start text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
                       >
@@ -562,16 +583,12 @@ function ProfileForm() {
 const SettingsContent = () => {
  const { user, isLoggedIn, openLoginDialog, isLoading } = useAuth(); 
 
- if (isLoading) {
+ if (isLoading && !user) { // Show loading only if user is not yet available
      return (
       <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center border rounded-lg bg-card">
-      <UploadCloud className="h-16 w-16 text-muted-foreground/50 mb-6" />
-      <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        Debes iniciar sesión o crear una cuenta para poder publicar tus servicios o espacios.
-      </p>
-      <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
-    </div>
+        <Dumbbell className="h-16 w-16 text-muted-foreground/50 mb-6 animate-pulse" />
+        <p className="text-muted-foreground">Cargando configuración...</p>
+      </div>
      );
  }
 
@@ -583,6 +600,8 @@ const SettingsContent = () => {
          <ProfileForm />
        ) : (
          <div className="flex flex-col items-center justify-center h-64 border rounded-lg bg-card p-6 text-center">
+            <ShieldAlert className="h-16 w-16 text-primary/70 mb-4" />
+           <p className="mb-4 text-lg font-medium text-foreground">Acceso Restringido</p>
            <p className="mb-4 text-muted-foreground">Debes iniciar sesión para ver y editar tu perfil.</p>
            <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
          </div>
@@ -601,5 +620,3 @@ const Settings = () => {
 };
 
 export default Settings;
-
-    
