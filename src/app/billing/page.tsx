@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
+import { useToast } from "@/hooks/use-toast"; // Added
 
 interface Invoice {
   id: string;
@@ -39,7 +40,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv2',
     invoiceNumber: 'FACT-00124',
-    date: '2025-05-17', // Updated date
+    date: '2025-05-17',
     serviceTitle: 'Clases Particulares de Matemáticas - Agosto',
     amount: 120000,
     status: 'Pendiente',
@@ -74,6 +75,7 @@ const BillingContent = () => {
   const { user, isLoggedIn, isLoading, openLoginDialog } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isInvoiceDataLoading, setIsInvoiceDataLoading] = useState(true);
+  const { toast } = useToast(); // Added
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -90,14 +92,18 @@ const BillingContent = () => {
 
   const handleDownloadPdf = (invoiceNumber: string) => {
     console.log(`Descargar PDF para factura ${invoiceNumber}`);
-    alert(`Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`);
+    // alert(`Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`); Removed
+    toast({ // Added
+      title: "Descarga Simulada",
+      description: `Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`,
+    });
   };
 
   const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'): 'default' | 'secondary' | 'outline' | 'destructive' => {
-    if (status === 'Pagada') return 'default'; // Primary color for accepted
-    if (status === 'Pendiente') return 'secondary'; // Secondary color for pending
-    if (status === 'Pago Rechazado') return 'destructive'; // Destructive color for rejected
-    return 'outline'; // Default outline for other statuses
+    if (status === 'Pagada') return 'default';
+    if (status === 'Pendiente') return 'secondary';
+    if (status === 'Pago Rechazado') return 'destructive';
+    return 'outline';
   };
 
 
