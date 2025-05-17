@@ -4,6 +4,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  
 }
 
 @layer base {
@@ -37,6 +38,10 @@ body {
     --sidebar-border: 214.3 31.8% 91.4%;
     --sidebar-ring: 222.2 47.4% 11.2%;
   }
+  .relative.overflow-hidden.max-h-\[85vh\].p-6 {
+    width: 400px;
+    
+}
 
   .dark {
     --background: 230 30% 12%;  /* Dark gray */
@@ -138,7 +143,7 @@ body {
   .rdp-button[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied),
   .rdp-day_outside[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied) {
     background-color: #e5e7eb !important; /* Tailwind gray-200 */
-    color: #9ca3af !important; /* Tailwind gray-400 for better visibility */
+    color: #9ca9af !important; /* Tailwind gray-400 for better visibility */
     opacity: 0.6 !important; /* Slightly more opaque */
     border-radius: var(--radius);
     cursor: not-allowed !important;

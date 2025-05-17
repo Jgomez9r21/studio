@@ -9,10 +9,10 @@ let auth: Auth | undefined = undefined;
 let db: Firestore | undefined = undefined; // Explicitly allow db to be undefined
 
 // Firebase configuration
-const firebaseConfig: FirebaseOptions = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDkjXsZkQtQ9GSbeyMENNm-HLY-gz4Eum8",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sportsofficeapp.firebaseapp.com",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsofficeapp", // Corrected Project ID
+const firebaseConfig: FirebaseOptions = { // Make sure this matches your project settings in the Firebase Console
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBWhaZEeGXQwFKrMCRj9RhdyJHdz5H8kdI", // Replace with your actual Web API Key
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "sportsoffice-conect.firebaseapp.com", // Replace with your actual Auth Domain
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "sportsoffice-conect", // Corrected Project ID
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "sportsofficeapp.appspot.com",
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1020460978896", // Corrected Sender ID
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1020460978896:web:b05960f102f3a1e26c45b1",

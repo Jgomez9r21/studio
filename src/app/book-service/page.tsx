@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, Download, Briefcase, AlertTriangle } from 'lucide-react';
 import Link from 'next/link'; // Import Link
+import { Badge } from '@/components/ui/badge'; // Import Badge
 
 interface Booking {
   id: string;
@@ -26,6 +27,7 @@ interface Booking {
   serviceDate: string;
   serviceTime: string;
   orderNumber: string;
+  status?: 'pendiente' | 'aceptado'; // Added status field
 }
 
 interface UserBooking extends Booking {
@@ -35,7 +37,7 @@ interface UserBooking extends Booking {
 }
 
 interface ProfessionalBooking extends Booking {
-  clientName: string; // Changed from clientEmail to clientName for clarity
+  clientName: string;
   clientEmail: string;
   clientPhone: string;
 }
@@ -51,6 +53,7 @@ const mockUserBookingsData: UserBooking[] = [
     serviceDate: '2024-09-15',
     serviceTime: '09:00',
     orderNumber: 'ORD-U001',
+    status: 'aceptado',
   },
   {
     id: 'ub2',
@@ -62,6 +65,7 @@ const mockUserBookingsData: UserBooking[] = [
     serviceDate: '2024-09-20',
     serviceTime: '16:00',
     orderNumber: 'ORD-U002',
+    status: 'pendiente',
   },
 ];
 
@@ -76,6 +80,7 @@ const mockProfessionalBookingsData: ProfessionalBooking[] = [
     serviceDate: '2024-09-18',
     serviceTime: '14:00',
     orderNumber: 'ORD-P001',
+    status: 'aceptado',
   },
   {
     id: 'pb2',
@@ -87,6 +92,7 @@ const mockProfessionalBookingsData: ProfessionalBooking[] = [
     serviceDate: '2024-09-22',
     serviceTime: '10:00',
     orderNumber: 'ORD-P002',
+    status: 'pendiente',
   },
 ];
 
@@ -125,9 +131,11 @@ const BookServiceContent = () => {
 
   if (isLoading) {
     return (
+      <center>
       <div className="p-4 md:p-6 lg:p-8 flex justify-center items-center h-64">
         <p>Cargando...</p>
       </div>
+      </center>
     );
   }
 
@@ -146,6 +154,12 @@ const BookServiceContent = () => {
   
   const noUserBookings = !isBookingDataLoading && userBookings.length === 0;
   const noProfessionalBookings = !isBookingDataLoading && professionalBookings.length === 0;
+
+  const getStatusBadgeVariant = (status?: 'pendiente' | 'aceptado'): 'default' | 'secondary' | 'outline' | 'destructive' => {
+    if (status === 'aceptado') return 'default'; // Primary color for accepted
+    if (status === 'pendiente') return 'secondary'; // Secondary color (often yellow/orange in themes) for pending
+    return 'outline'; // Default outline for undefined or other statuses
+  };
 
 
   return (
@@ -197,6 +211,7 @@ const BookServiceContent = () => {
                         <TableHead>Fecha Servicio</TableHead>
                         <TableHead>Hora</TableHead>
                         <TableHead>N° Orden</TableHead>
+                        <TableHead>Estado</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -211,6 +226,15 @@ const BookServiceContent = () => {
                           <TableCell>{new Date(booking.serviceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                           <TableCell>{booking.serviceTime}</TableCell>
                           <TableCell>{booking.orderNumber}</TableCell>
+                          <TableCell>
+                            {booking.status ? (
+                              <Badge variant={getStatusBadgeVariant(booking.status)} className="capitalize">
+                                {booking.status}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">N/A</Badge>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => handleViewServiceInfo(booking.orderNumber, 'user')} title="Ver Información">
                               <Eye className="h-4 w-4" />
@@ -257,6 +281,7 @@ const BookServiceContent = () => {
                         <TableHead>Fecha Servicio</TableHead>
                         <TableHead>Hora</TableHead>
                         <TableHead>N° Orden</TableHead>
+                        <TableHead>Estado</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -271,6 +296,15 @@ const BookServiceContent = () => {
                           <TableCell>{new Date(booking.serviceDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
                           <TableCell>{booking.serviceTime}</TableCell>
                           <TableCell>{booking.orderNumber}</TableCell>
+                           <TableCell>
+                            {booking.status ? (
+                              <Badge variant={getStatusBadgeVariant(booking.status)} className="capitalize">
+                                {booking.status}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">N/A</Badge>
+                            )}
+                          </TableCell>
                           <TableCell className="flex gap-1">
                             <Button variant="ghost" size="icon" onClick={() => handleViewServiceInfo(booking.orderNumber, 'professional')} title="Ver Información">
                               <Eye className="h-4 w-4" />

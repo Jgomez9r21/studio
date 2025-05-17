@@ -62,7 +62,7 @@ export interface SportsFacility {
   reservationTime?: string;
 }
 
-// Dummy sports facility data reflecting new categories and Bogotá locations
+// Datos ficticios de instalaciones deportivas que reflejan nuevas categorías y ubicaciones en Bogotá
 export const dummySportsFacilities: SportsFacility[] = [
   {
     id: 'sf1',

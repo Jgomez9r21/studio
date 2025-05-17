@@ -14,7 +14,7 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "buttons", // Default caption layout
+  captionLayout = "dropdown-buttons", // Default caption layout
   fromYear,
   toYear,
   ...props

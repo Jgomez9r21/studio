@@ -26,7 +26,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Camera, CheckCircle, ShieldAlert } from "lucide-react";
+
+import { CalendarIcon, Camera, CheckCircle, ShieldAlert,UploadCloud } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, getYear } from "date-fns";
 import { es } from 'date-fns/locale';
@@ -84,7 +85,7 @@ const defaultValues: Partial<ProfileFormValues> = {
   avatarFile: null,
 };
 
-// Dummy country list (keep consistent with signup form)
+// Lista de países ficticia (mantenga coherente con el formulario de registro)
 const countries = [
   { code: "AR", name: "Argentina" },
   { code: "BO", name: "Bolivia" },
@@ -95,7 +96,7 @@ const countries = [
   { code: "PY", name: "Paraguay" },
   { code: "PE", name: "Perú" },
   { code: "UY", name: "Uruguay" },
-  { code: "VE", name: "Venezuela" },
+  
 ];
 
 
@@ -104,7 +105,7 @@ function ProfileForm() {
    const {
       user,
       updateUser,
-      isLoading: authLoading, // Use isLoading from AuthContext
+      isLoading: authLoading, // Utilice isLoading desde AuthContext
       sendVerificationCode,
       verifyCode,
       phoneVerificationError,
@@ -123,7 +124,7 @@ function ProfileForm() {
    const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
-    mode: "onChange", // Validate on change
+    mode: "onChange", //validar cambios
   });
 
   const currentPhoneNumber = form.watch("phone");
@@ -171,7 +172,7 @@ function ProfileForm() {
        };
    }, [authLoading, toast, resetPhoneVerification]); 
 
-  // Populate form with user data or defaults, manage phone state
+ // Completar formulario con datos de usuario o valores predeterminados, administrar el estado del teléfono
   useEffect(() => {
     if (user) {
       const initialPhone = user.phone || '';
@@ -231,7 +232,7 @@ function ProfileForm() {
      const authInstance = getAuth(firebaseApp);
      const latestUser = authInstance.currentUser; 
      
-     // Check if phone is verified *on the Firebase auth object itself* if it has changed
+     // Verificar si el teléfono está verificado *en el propio objeto de autenticación de Firebase* si ha cambiado
      let isPhoneAuthVerified = isPhoneVerified; // Start with context's state
      if (data.phone && data.phone !== originalPhoneNumber && latestUser && latestUser.phoneNumber === data.phone) {
         // If phone number matches what's on Firebase Auth User, consider it verified by Firebase
@@ -563,9 +564,14 @@ const SettingsContent = () => {
 
  if (isLoading) {
      return (
-        <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto flex justify-center items-center h-64">
-           <p>Cargando configuración...</p> 
-        </div>
+      <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center border rounded-lg bg-card">
+      <UploadCloud className="h-16 w-16 text-muted-foreground/50 mb-6" />
+      <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
+      <p className="text-muted-foreground mb-6 max-w-md">
+        Debes iniciar sesión o crear una cuenta para poder publicar tus servicios o espacios.
+      </p>
+      <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
+    </div>
      );
  }
 

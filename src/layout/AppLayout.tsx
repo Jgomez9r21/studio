@@ -620,7 +620,7 @@ const AuthDialogContent = () => {
                   <ShadDialogHeader className="mb-4 text-center">
                     <ShadDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogTitle>
                     <ShadDialogDescription>
-                      Ingresa tu correo electrónico para enviarte un enlace de recuperación.
+                      Ingresa su correo electrónico para enviarte un enlace de recuperación.
                     </ShadDialogDescription>
                   </ShadDialogHeader>
                    <Form {...forgotPasswordForm}>
