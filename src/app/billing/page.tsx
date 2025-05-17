@@ -1,47 +1,178 @@
+
 "use client";
 
 import type React from 'react';
-import AppLayout from '@/layout/AppLayout'; // Importar el diseño reutilizable
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
-import { Button } from '@/components/ui/button'; // Import Button
-import {  Briefcase } from 'lucide-react';
+import { useState, useEffect } from 'react'; // Added useEffect and useState
+import AppLayout from '@/layout/AppLayout';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Briefcase, Download, FileText } from 'lucide-react'; // Added Download and FileText icons
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from '@/components/ui/badge';
+
+interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  date: string;
+  serviceTitle: string;
+  amount: number;
+  status: 'Pagada' | 'Pendiente';
+}
+
+const mockInvoicesData: Invoice[] = [
+  {
+    id: 'inv1',
+    invoiceNumber: 'FACT-00123',
+    date: '2024-08-15',
+    serviceTitle: 'Entrenamiento Fitness Personalizado - Julio',
+    amount: 180000,
+    status: 'Pagada',
+  },
+  {
+    id: 'inv2',
+    invoiceNumber: 'FACT-00124',
+    date: '2024-08-20',
+    serviceTitle: 'Clases Particulares de Matemáticas - Agosto',
+    amount: 120000,
+    status: 'Pendiente',
+  },
+  {
+    id: 'inv3',
+    invoiceNumber: 'FACT-00125',
+    date: '2024-09-01',
+    serviceTitle: 'Desarrollo Web Frontend - Proyecto X',
+    amount: 1500000,
+    status: 'Pagada',
+  },
+];
 
 const BillingContent = () => {
-  const { user, isLoggedIn, isLoading, openLoginDialog } = useAuth(); // Get user state from context
+  const { user, isLoggedIn, isLoading, openLoginDialog } = useAuth();
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [isInvoiceDataLoading, setIsInvoiceDataLoading] = useState(true);
 
- if (isLoading) {
-     return (
-        <div className="p-4 md:p-6 lg:p-8 flex justify-center items-center h-64">
-           <p>Cargando facturación...</p> {/* Or a spinner component */}
-        </div>
-     );
- }
+  useEffect(() => {
+    if (isLoggedIn) {
+      setIsInvoiceDataLoading(true);
+      // Simulate fetching invoice data
+      setTimeout(() => {
+        setInvoices(mockInvoicesData);
+        setIsInvoiceDataLoading(false);
+      }, 1000);
+    } else {
+      setIsInvoiceDataLoading(false);
+    }
+  }, [isLoggedIn]);
 
- if (!isLoggedIn) {
-     return (
+  const handleDownloadPdf = (invoiceNumber: string) => {
+    console.log(`Descargar PDF para factura ${invoiceNumber}`);
+    // Placeholder for PDF generation/download logic
+    alert(`Simulación: Descargando PDF para factura N° ${invoiceNumber}`);
+  };
+
+  const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente'): 'default' | 'secondary' | 'outline' | 'destructive' => {
+    if (status === 'Pagada') return 'default'; // Primary color for paid
+    if (status === 'Pendiente') return 'secondary'; // Secondary color for pending
+    return 'outline';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 flex justify-center items-center h-64">
+        <p>Cargando facturación...</p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
       <div className="p-4 md:p-6 lg:p-8 flex flex-col items-center justify-center h-[calc(100vh-10rem)] text-center border rounded-lg bg-card">
-      <Briefcase className="h-16 w-16 text-muted-foreground/50 mb-6" />
-      <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido</h2>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        Debes iniciar sesión o crear una cuenta para ver tus reservas.
-      </p>
-      <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
-    </div>
-       );
- }
-
+        <FileText className="h-16 w-16 text-muted-foreground/50 mb-6" />
+        <h2 className="text-xl font-medium mb-2 text-foreground">Acceso Restringido a Facturación</h2>
+        <p className="text-muted-foreground mb-6 max-w-md">
+          Debes iniciar sesión o crear una cuenta para ver tu historial de facturación.
+        </p>
+        <Button onClick={openLoginDialog}>Iniciar Sesión / Crear Cuenta</Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8"> {/* Adjusted padding */}
-      <h1 className="text-2xl font-semibold mb-4">Facturación</h1>
-      {/* Add billing specific content here */}
-      <p>Detalles de facturación y historial de pagos.</p>
-       {/* Example: Show user's email if logged in */}
-       {user && <p className="mt-4 text-sm">Email de facturación: {user.email}</p>}
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl md:text-3xl font-semibold flex items-center">
+          <FileText className="mr-3 h-7 w-7 text-primary" />
+          Facturación
+        </h1>
+      </div>
+      <p className="text-muted-foreground mb-6">
+        Aquí puedes ver y gestionar todas tus facturas y pagos.
+        {user && <span className="block text-sm mt-1">Email de facturación: {user.email}</span>}
+      </p>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Historial de Facturas</CardTitle>
+          <CardDescription>Listado de todas tus facturas generadas.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isInvoiceDataLoading ? (
+            <div className="flex justify-center items-center h-40"><p>Cargando facturas...</p></div>
+          ) : invoices.length === 0 ? (
+            <div className="text-center text-muted-foreground py-10 border rounded-md bg-muted/30">
+              <FileText className="mx-auto h-10 w-10 mb-3 text-muted-foreground/70" />
+              <p className="font-medium">No tienes facturas disponibles todavía.</p>
+              <p className="text-sm mt-1">Cuando se generen facturas, aparecerán aquí.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>N° Factura</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Servicio</TableHead>
+                    <TableHead className="text-right">Monto (COP)</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+                      <TableCell>{new Date(invoice.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' })}</TableCell>
+                      <TableCell>{invoice.serviceTitle}</TableCell>
+                      <TableCell className="text-right">{invoice.amount.toLocaleString('es-CO')}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(invoice.status)} className="capitalize">
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="icon" onClick={() => handleDownloadPdf(invoice.invoiceNumber)} title="Descargar PDF">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
 
 const Billing = () => {
   return (
