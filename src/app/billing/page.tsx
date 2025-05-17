@@ -47,7 +47,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv3',
     invoiceNumber: 'FACT-00125',
-    date: '2024-09-01',
+    date: '2025-02-01', // Updated date
     serviceTitle: 'Desarrollo Web Frontend - Proyecto X',
     amount: 1500000,
     status: 'Pagada',
@@ -200,3 +200,4 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
+
