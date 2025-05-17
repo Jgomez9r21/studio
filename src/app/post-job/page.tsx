@@ -45,9 +45,11 @@ const facilityCategory: SportsFacilityCategory = { name: 'Instalación Deportiva
 
 const sportsFacilityFormSchema = z.object({
   title: z.string().min(5, "El título debe tener al menos 5 caracteres.").max(100, "El título no puede tener más de 100 caracteres."),
+  facilityType: z.string().min(3, "El tipo de espacio debe tener al menos 3 caracteres.").max(100, "El tipo de espacio no puede exceder los 100 caracteres."),
   description: z.string().min(20, "La descripción debe tener al menos 20 caracteres.").max(500, "La descripción no puede tener más de 500 caracteres."),
   category: z.literal(facilityCategory.name).default(facilityCategory.name),
   rate: z.coerce.number({ invalid_type_error: "La tarifa debe ser un número.", required_error: "La tarifa es requerida." }).positive("La tarifa debe ser un número positivo.").min(1, "La tarifa debe ser al menos 1."),
+  amenities: z.string().min(5, "Describe las comodidades (ej: Baños, Duchas, Iluminación).").max(300, "Las comodidades no pueden exceder los 300 caracteres.").optional(),
   availability: z.string().min(5, "Describe tu disponibilidad (ej: Lunes a Viernes 9am-5pm).").max(200, "La disponibilidad no puede exceder los 200 caracteres."),
   location: z.string().min(2, "Ingresa la ubicación o área de servicio.").max(100, "La ubicación no puede tener más de 100 caracteres."),
   images: z.array(fileSchema)
@@ -59,9 +61,11 @@ type SportsFacilityFormValues = z.infer<typeof sportsFacilityFormSchema>;
 
 const sportsFacilityDefaultValues: Partial<SportsFacilityFormValues> = {
   title: "",
+  facilityType: "",
   description: "",
   category: facilityCategory.name,
   availability: "",
+  amenities: "",
   location: "",
   images: [],
 };
@@ -138,6 +142,16 @@ function SportsFacilityPublicationForm() {
             <FormMessage />
           </FormItem>
         )} />
+
+        <FormField control={form.control} name="facilityType" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Tipo de Espacio Deportivo</FormLabel>
+            <FormControl><Input placeholder="Ej: Cancha sintética de fútbol 5, Gimnasio con piscina" {...field} /></FormControl>
+            <FormDescription>Describe brevemente el tipo de instalación (ej: cancha de tenis, piscina olímpica, gimnasio).</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+
         <FormField control={form.control} name="description" render={({ field }) => (
           <FormItem>
             <FormLabel>Descripción Detallada</FormLabel>
@@ -160,7 +174,7 @@ function SportsFacilityPublicationForm() {
               <FormLabel>Tarifa (por hora)</FormLabel>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <FormControl><Input type="number" placeholder="50" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
+                <FormControl><Input type="number" placeholder="50000" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
               </div>
               <FormDescription>Ingresa tu tarifa base por hora para el alquiler del espacio.</FormDescription>
               <FormMessage />
@@ -175,6 +189,16 @@ function SportsFacilityPublicationForm() {
             </FormItem>
           )} />
         </div>
+
+        <FormField control={form.control} name="amenities" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Comodidades (Opcional)</FormLabel>
+            <FormControl><Textarea placeholder="Ej: Baños, Duchas, Iluminación LED, Parqueadero, Tienda deportiva. Separa con comas." className="resize-y min-h-[60px]" {...field} /></FormControl>
+            <FormDescription>Lista las comodidades principales que ofrece tu espacio, separadas por comas.</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )} />
+
         <FormField control={form.control} name="images" render={({ field: { onChange, value, ...rest } }) => (
           <FormItem>
             <FormLabel>Imágenes del Espacio (Opcional, hasta {MAX_IMAGES})</FormLabel>
@@ -189,7 +213,7 @@ function SportsFacilityPublicationForm() {
                             <p className="mb-1 text-sm text-muted-foreground">
                                 <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
                             </p>
-                            <p className="text-xs text-muted-foreground">SVG, PNG, JPG o WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
                         </div>
                         <Input id="facility-image-upload" type="file" className="hidden" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} />
                     </label>
@@ -377,7 +401,7 @@ function IndependentServicePublicationForm() {
               <FormLabel>Tarifa</FormLabel>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <FormControl><Input type="number" placeholder="75" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
+                <FormControl><Input type="number" placeholder="75000" {...field} className="pl-8" onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))} /></FormControl>
               </div>
               <FormDescription>
                 Ingresa tu tarifa. {selectedCategory && HOURLY_RATE_CATEGORIES.includes(selectedCategory) ? "Esta categoría usualmente es por hora." : "Esta categoría puede ser por proyecto."}
@@ -416,7 +440,7 @@ function IndependentServicePublicationForm() {
                             <p className="mb-1 text-sm text-muted-foreground">
                                 <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
                             </p>
-                            <p className="text-xs text-muted-foreground">SVG, PNG, JPG o WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (MAX. {MAX_FILE_SIZE / (1024*1024)}MB por imagen)</p>
                         </div>
                         <Input id="service-image-upload" type="file" className="hidden" accept={ACCEPTED_IMAGE_TYPES.join(",")} multiple onChange={handleFileChange} {...rest} onClick={(event) => { (event.target as HTMLInputElement).value = '' }} />
                     </label>
@@ -511,3 +535,5 @@ const PostJobPage = () => {
 };
 
 export default PostJobPage;
+
+    
