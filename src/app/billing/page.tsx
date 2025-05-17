@@ -39,7 +39,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv2',
     invoiceNumber: 'FACT-00124',
-    date: '2024-05-19', // Updated date
+    date: '2024-05-18', // Updated date
     serviceTitle: 'Clases Particulares de Matemáticas - Agosto',
     amount: 120000,
     status: 'Pendiente',
@@ -63,7 +63,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv5',
     invoiceNumber: 'FACT-00127',
-    date: '2024-09-10',
+    date: '2025-05-17', // Updated date
     serviceTitle: 'Diseño de Logo y Branding',
     amount: 700000,
     status: 'Pendiente',
