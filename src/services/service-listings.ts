@@ -73,10 +73,10 @@ export async function getServiceListings(category?: string, location?: string): 
       title: 'Desarrollo Web Frontend',
       description: 'Creación de interfaces de usuario interactivas y responsivas para tu sitio web. Utilizamos las últimas tecnologías para asegurar una experiencia de usuario óptima en todos los dispositivos.',
       rate: 75000, // Adjusted rate to COP
-      availability: ['Martes 14:00-16:00', 'Jueves 10:00-12:00'],
+      availability: ['Lunes a Viernes 09:00-12:00', 'Lunes a Viernes 14:00-18:00', 'Sábado 10:00-14:00'],
       category: 'Tecnología',
       location: 'Remoto',
-      imageUrl: 'https://placehold.co/800x600.png', 
+      imageUrl: 'https://placehold.co/800x600.png',
       imageUrls: [
         'https://placehold.co/800x600.png',
         'https://placehold.co/800x600.png',
