@@ -4,7 +4,7 @@ import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import { Body } from '@/layout/app';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
+import { AuthProvider } from '@/context/AuthContext';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'sportoffice', // Changed from SkillHub Connect
-  description: 'Conéctate con proveedores de servicios locales y reserva servicios con facilidad.', // Translated description
+  title: 'sportoffice',
+  description: 'Conéctate con proveedores de servicios locales y reserva servicios con facilidad.',
 };
 
 export default function RootLayout({
@@ -27,17 +27,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">{/* Changed language to Spanish */}
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-       <AuthProvider> {/* Wrap with AuthProvider */}
-          <SidebarProvider> {/* Wrap with SidebarProvider */}
-            <Body>
-                {children}
-            </Body>
-          </SidebarProvider>
-       </AuthProvider>
-      </body>
-    </html>
+    <html lang="es"><body className={`${geistSans.variable} ${geistMono.variable} antialiased`}><AuthProvider><SidebarProvider><Body>{children}</Body></SidebarProvider></AuthProvider></body></html>
   );
 }
-
