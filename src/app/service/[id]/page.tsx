@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from 'react';
@@ -17,7 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval, getDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -34,6 +35,9 @@ export type AvailabilityStatus = 'available' | 'partial' | 'occupied' | 'unavail
 const holidays: Date[] = [
   new Date(new Date().getFullYear(), 0, 1), // New Year's Day
   new Date(new Date().getFullYear(), 4, 1), // Labor Day
+  new Date(new Date().getFullYear(), 6, 20), // Colombia Independence Day
+  new Date(new Date().getFullYear(), 7, 7),  // Battle of Boyacá Day
+  new Date(new Date().getFullYear(), 11, 8), // Immaculate Conception
   new Date(new Date().getFullYear(), 11, 25), // Christmas Day current year
   new Date(new Date().getFullYear() + 1, 0, 1),  // New Year's Day next year
 ];
@@ -55,18 +59,18 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
             return;
         }
         if (isSunday(date) || holidays.some(h => isSameDay(h, date))) {
-            availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable by default
+            availability[dateString] = 'unavailable'; // Sundays and holidays are unavailable
             return;
         }
 
-        // Simulate varied availability for other days
-        const rand = Math.random();
-        if (rand < 0.5) { // 50% available
-            availability[dateString] = 'available';
-        } else if (rand < 0.75) { // 25% partial
-            availability[dateString] = 'partial';
-        } else { // 25% occupied
-            availability[dateString] = 'occupied';
+        // Default to available for Monday to Saturday (non-holiday)
+        // You can add more complex logic here for 'partial' or 'occupied' if needed for specific services.
+        // For this request, we'll make Mon-Sat (non-holiday) green.
+        const dayOfWeek = getDay(date); // Sunday is 0, Saturday is 6
+        if (dayOfWeek >= 1 && dayOfWeek <= 6) { // Monday to Saturday
+             availability[dateString] = 'available';
+        } else {
+             availability[dateString] = 'unavailable'; // Should be caught by isSunday, but as a fallback
         }
     });
     return availability;
@@ -112,10 +116,10 @@ const ServiceDetailPageContent = () => {
             const serviceWithProfessional = {
                 ...fetchedService,
                 professionalName: fetchedService.professionalName || `Profesional de ${fetchedService.category}`,
-                professionalAvatar: fetchedService.professionalAvatar || `https://picsum.photos/50/50?random=prof-${fetchedService.id}`,
+                professionalAvatar: fetchedService.professionalAvatar || `https://placehold.co/50x50.png`,
                 imageUrls: fetchedService.imageUrls && fetchedService.imageUrls.length > 0
                            ? fetchedService.imageUrls
-                           : (fetchedService.imageUrl ? [fetchedService.imageUrl] : [`https://picsum.photos/800/600?random=service-${fetchedService.id}`]),
+                           : (fetchedService.imageUrl ? [fetchedService.imageUrl] : [`https://placehold.co/800x600.png`]),
                 description: fetchedService.description || "No hay descripción disponible para este servicio."
             };
             setService(serviceWithProfessional);
@@ -143,10 +147,11 @@ const ServiceDetailPageContent = () => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       const dayStatus = dailyAvailability[dateString];
       
-      if (dayStatus === 'available' || dayStatus === 'partial') {
+      if (dayStatus === 'available' || dayStatus === 'partial') { // Keep partial for potential future use
          if (service.availability && service.availability.length > 0) {
             setAvailableTimeSlots(service.availability);
          } else {
+            // Default slots if service-specific ones aren't defined but day is available/partial
             setAvailableTimeSlots(['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM']); 
          }
       } else {
@@ -236,28 +241,24 @@ const ServiceDetailPageContent = () => {
     if (isBefore(dateOnly, today) && !isSameDay(dateOnly, today)) return true;
     
     const status = dailyAvailability[format(dateOnly, 'yyyy-MM-dd')];
-    if (status === 'occupied' || status === 'unavailable') return true;
-    
-    // Sundays and holidays are disabled unless explicitly 'available' or 'partial'
-    if ((isSunday(dateOnly) || holidays.some(h => isSameDay(h, dateOnly)))) {
-        return !(status === 'available' || status === 'partial');
-    }
-    return false;
+    // A day is disabled if its status is 'unavailable' or 'occupied'.
+    // Sundays and holidays are marked 'unavailable' by generateDummyAvailability.
+    return status === 'unavailable' || status === 'occupied';
   };
 
   const modifiers = {
     available: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'available' && !isDayDisabled(date),
     partial: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'partial' && !isDayDisabled(date),
-    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied',
-    // 'unavailable' days will be handled by the default disabled styling if isDayDisabled returns true
-    // and no other color modifier applies.
+    occupied: (date: Date) => dailyAvailability[format(startOfDay(date), 'yyyy-MM-dd')] === 'occupied' && !isDayDisabled(date),
+    // 'unavailable' days are handled by the default disabled styling from react-day-picker if `isDayDisabled` returns true for them.
   };
 
   const modifiersClassNames = {
     available: 'rdp-day_available',
     partial: 'rdp-day_partial',
     occupied: 'rdp-day_occupied',
-    // No specific class for 'unavailable' as it's covered by the general disabled style in globals.css
+    // For 'unavailable' days (Sundays, holidays, past dates), the default disabled styling of react-day-picker
+    // combined with our global.css for .rdp-button[disabled] should give them a greyed-out appearance.
   };
 
 
@@ -327,18 +328,22 @@ const ServiceDetailPageContent = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-muted-foreground border-t pt-4">
             <div className="flex items-center text-sm">
               <MapPin className="mr-2 h-4 w-4 text-primary" />
-              {service.location}
+              {service.location || 'Ubicación no especificada'}
             </div>
             <div className="text-lg font-semibold text-primary">
-              ${service.rate}{HOURLY_RATE_CATEGORIES.includes(service.category) ? '/hr' : ''}
+              ${service.rate.toLocaleString('es-CO')}{HOURLY_RATE_CATEGORIES.includes(service.category) ? '/hr' : ''}
             </div>
           </div>
           
           <div className="border-t pt-4 mt-4">
             <h3 className="text-lg font-semibold mb-2 text-foreground">Descripción del Servicio</h3>
-            <p className={cn("text-base leading-relaxed text-foreground/80", !isDescriptionExpanded && service.description.length > 200 && "line-clamp-3")}>
-              {service.description}
-            </p>
+            <div
+              className={cn(
+                "text-base leading-relaxed text-foreground/80 prose max-w-none",
+                !isDescriptionExpanded && service.description.length > 200 && "line-clamp-3"
+              )}
+              dangerouslySetInnerHTML={{ __html: service.description.replace(/\n/g, '<br />') }}
+            />
             {service.description.length > 200 && (
               <Button
                 variant="link"
@@ -365,8 +370,8 @@ const ServiceDetailPageContent = () => {
                     modifiers={modifiers}
                     modifiersClassNames={modifiersClassNames}
                     locale={es}
-                    defaultMonth={startOfDay(new Date())} // Start with current month view
-                    fromMonth={startOfDay(new Date())} // Prevent navigating to past months
+                    defaultMonth={startOfDay(new Date())} 
+                    fromMonth={startOfDay(new Date())} 
                     toYear={currentYear + 2} 
                     captionLayout="dropdown-buttons"
                     className="rounded-md border shadow-md p-2 bg-card"
