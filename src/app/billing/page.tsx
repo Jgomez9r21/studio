@@ -24,7 +24,7 @@ interface Invoice {
   date: string;
   serviceTitle: string;
   amount: number;
-  status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'; // Added 'Pago Rechazado'
+  status: 'Pagada' | 'Pendiente' | 'Pago Rechazado';
 }
 
 const mockInvoicesData: Invoice[] = [
@@ -47,7 +47,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv3',
     invoiceNumber: 'FACT-00125',
-    date: '2025-02-01', // Updated date
+    date: '2025-02-01',
     serviceTitle: 'Desarrollo Web Frontend - Proyecto X',
     amount: 1500000,
     status: 'Pagada',
@@ -90,14 +90,13 @@ const BillingContent = () => {
 
   const handleDownloadPdf = (invoiceNumber: string) => {
     console.log(`Descargar PDF para factura ${invoiceNumber}`);
-    // Placeholder for PDF generation/download logic
-    alert(`Simulación: Descargando PDF para factura N° ${invoiceNumber}`);
+    alert(`Simulando descarga de PDF para la factura N° ${invoiceNumber}. En una aplicación real, aquí se generaría el PDF.`);
   };
 
   const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'): 'default' | 'secondary' | 'outline' | 'destructive' => {
-    if (status === 'Pagada') return 'default'; // Primary color (blue) for paid - matching image
-    if (status === 'Pendiente') return 'secondary'; // Secondary color (light grey/white) for pending - matching image
-    if (status === 'Pago Rechazado') return 'destructive'; // Destructive color (red) for rejected
+    if (status === 'Pagada') return 'default';
+    if (status === 'Pendiente') return 'secondary';
+    if (status === 'Pago Rechazado') return 'destructive';
     return 'outline';
   };
 
@@ -200,4 +199,3 @@ const BillingPage = () => {
 };
 
 export default BillingPage;
-
