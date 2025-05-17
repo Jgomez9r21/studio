@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, ArrowLeft, MapPin, Clock, Info, User, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval, getDay } from 'date-fns';
+import { format, isSameDay, startOfDay, addMonths, getYear, getMonth, isBefore, isSunday, eachDayOfInterval, getDay, getDate } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuth } from '@/context/AuthContext';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -53,6 +53,7 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
 
     intervalDates.forEach(date => {
         const dateString = format(date, 'yyyy-MM-dd');
+        const dayOfMonth = getDate(date);
 
         if (isBefore(date, today) && !isSameDay(date, today)) {
             availability[dateString] = 'unavailable'; // Past dates are unavailable
@@ -64,13 +65,13 @@ const generateDummyAvailability = (): Record<string, AvailabilityStatus> => {
         }
 
         // Default to available for Monday to Saturday (non-holiday)
-        // You can add more complex logic here for 'partial' or 'occupied' if needed for specific services.
-        // For this request, we'll make Mon-Sat (non-holiday) green.
-        const dayOfWeek = getDay(date); // Sunday is 0, Saturday is 6
-        if (dayOfWeek >= 1 && dayOfWeek <= 6) { // Monday to Saturday
-             availability[dateString] = 'available';
-        } else {
-             availability[dateString] = 'unavailable'; // Should be caught by isSunday, but as a fallback
+        availability[dateString] = 'available';
+
+        // For demonstration, make some days partial or occupied
+        if (dayOfMonth === 5 || dayOfMonth === 15 || dayOfMonth === 25) {
+            availability[dateString] = 'partial';
+        } else if (dayOfMonth === 10 || dayOfMonth === 20) {
+            availability[dateString] = 'occupied';
         }
     });
     return availability;
