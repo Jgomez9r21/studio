@@ -1,12 +1,10 @@
 
 "use client";
 
-import React from 'react';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { usePathname, useRouter }
-from 'next/navigation';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors, type UseFormReset, type UseFormTrigger, type UseFormGetValues, type UseFormSetError } from "react-hook-form";
 import { z } from "zod";
 import Image from 'next/image';
 import logoImage from '@/image/logoo.png';
@@ -32,19 +30,18 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Toaster } from "@/components/ui/toaster";
-import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, Menu, LogIn, Dumbbell, ArrowRight } from "lucide-react";
-
+import { Home, Settings, CreditCard, User as UserIcon, CalendarDays, Heart, UploadCloud, Search as SearchIcon, UserCircle, X as XIcon, Eye, EyeOff, ChevronLeft, ChevronRight, LogIn, Dumbbell, Menu, ArrowRight, Building, Waves, LayoutGrid, Asterisk } from "lucide-react";
 
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose as ShadDialogDialogClose,
-  DialogContent as ShadDialogContent, // Use direct import
+  DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger,
+  DialogClose as ShadDialogDialogClose,
+  // Removed DialogTrigger from here if it was causing issues, will rely on state for main dialog
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
@@ -78,7 +75,7 @@ const navegacion = [
   {
     title: "Espacios Deportivos",
     href: "/find-talents",
-    icon: Dumbbell, // Changed from Building to Dumbbell
+    icon: Building,
   },
   {
     title: "Publicar",
@@ -142,9 +139,8 @@ const profileTypes = [
 ]
 
 
-const phoneRegex = new RegExp(/^\+[1-9]\d{1,14}$/);
 const phoneValidation = z.string()
-  .regex(phoneRegex, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
+  .regex(/^\+?[1-9]\d{1,14}$/, 'Número inválido. Debe estar en formato E.164 (ej: +573001234567).')
   .optional()
   .or(z.literal(""));
 
@@ -163,7 +159,7 @@ const signupStep1Schema = z.object({
   profileType: z.string().min(1, "Debes seleccionar un tipo de perfil."),
 });
 
-const signupStep2Schema = z.object({
+const baseSignupStep2Schema = z.object({
   dob: z.date({ required_error: "La fecha de nacimiento es requerida." }).optional().nullable(),
   gender: z.string().optional(),
   documentType: z.string().optional(),
@@ -171,18 +167,19 @@ const signupStep2Schema = z.object({
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
   password: z.string().min(6, "Contraseña debe tener al menos 6 caracteres."),
   confirmPassword: z.string().min(6, "Confirmar contraseña debe tener al menos 6 caracteres."),
-}).refine(data => data.password === data.confirmPassword, {
+});
+
+const signupSchema = signupStep1Schema.merge(baseSignupStep2Schema)
+  .refine(data => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden.",
     path: ["confirmPassword"],
 });
 
-const signupSchema = signupStep1Schema.merge(signupStep2Schema);
 type SignupValues = z.infer<typeof signupSchema>;
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Correo electrónico inválido.").min(1, "El correo es requerido."),
 });
-
 
 
 const AuthDialogContent = () => {
@@ -194,7 +191,6 @@ const AuthDialogContent = () => {
     loginError,
     handleLoginSubmit: contextHandleLoginSubmit,
     signupStep,
-    setSignupStep,
     handleSignupSubmit: contextHandleSignupSubmit,
     handleNextStep: contextHandleNextStep,
     handlePrevStep: contextHandlePrevStep,
@@ -207,9 +203,9 @@ const AuthDialogContent = () => {
     handleForgotPasswordSubmit: contextHandleForgotPasswordSubmit,
     setCurrentView,
     handleLogout,
-    handleOpenChange, // From AuthContext
-    openLoginDialog, // From AuthContext
-    openProfileDialog, // From AuthContext
+    handleOpenChange, // Import from useAuth
+    openLoginDialog, // Import from useAuth
+    openProfileDialog, // Import from useAuth
    } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -258,8 +254,13 @@ const AuthDialogContent = () => {
       contextHandleSignupSubmit(data, signupForm.reset);
     };
 
-     const handleNextStep = async () => {
-        await contextHandleNextStep(signupForm.trigger, signupForm.formState.errors, toast);
+    const handleNextStepClick = async () => {
+      await contextHandleNextStep(
+        signupForm.getValues,
+        signupForm.setError,
+        signupForm.formState.errors,
+        toast
+      );
     };
 
      const handlePrevStep = () => {
@@ -327,6 +328,7 @@ const AuthDialogContent = () => {
 
 
   const router = useRouter();
+
   const goToSettings = () => {
       handleOpenChange(false);
       router.push('/settings');
@@ -368,7 +370,7 @@ const AuthDialogContent = () => {
 
   return (
       <ShadDialogContent className="p-0 overflow-hidden w-[calc(100%-2rem)] max-w-sm">
-         <ScrollArea className="max-h-[85vh] p-6">
+         <ScrollArea className="max-h-[85vh] p-4 sm:p-6"> {/* Responsive padding */}
            <div>
               {currentView === 'login' && (
                 <>
@@ -417,7 +419,7 @@ const AuthDialogContent = () => {
                           ¿Olvidaste tu contraseña?
                         </Button>
                       <ShadDialogFooter className="flex flex-row justify-between items-center pt-4 border-t mt-6">
-                        <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); setSignupStep(1); loginForm.reset(); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm">
+                        <Button type="button" variant="link" onClick={() => { setCurrentView('signup'); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm">
                           ¿No tienes cuenta? Crear una
                         </Button>
                         <Button type="submit" disabled={loginForm.formState.isSubmitting || authIsLoading}>
@@ -590,7 +592,7 @@ const AuthDialogContent = () => {
                           {loginError && <p className="text-sm font-medium text-destructive pt-1">{loginError}</p>}
 
                           <ShadDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between items-center pt-4 border-t mt-6">
-                             <Button type="button" variant="link" onClick={() => { setCurrentView('login'); setSignupStep(1); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1">
+                             <Button type="button" variant="link" onClick={() => { setCurrentView('login'); signupForm.reset(); resetPhoneVerification(); }} className="p-0 h-auto text-sm order-2 sm:order-1">
                                 ¿Ya tienes cuenta? Ingresar
                              </Button>
                              <div className="flex gap-2 order-1 sm:order-2 w-full sm:w-auto">
@@ -600,7 +602,7 @@ const AuthDialogContent = () => {
                                      </Button>
                                  )}
                                  {signupStep === 1 ? (
-                                     <Button type="button" onClick={handleNextStep} className="w-full sm:w-auto">
+                                     <Button type="button" onClick={handleNextStepClick} className="w-full sm:w-auto">
                                          Siguiente
                                      </Button>
                                  ) : (
@@ -620,7 +622,7 @@ const AuthDialogContent = () => {
                   <ShadDialogHeader className="mb-4 text-center">
                     <ShadDialogTitle className="text-2xl">Recuperar Contraseña</ShadDialogTitle>
                     <ShadDialogDescription>
-                      Ingresa su correo electrónico para enviarte un enlace de recuperación.
+                      Ingresa tu correo electrónico para enviarte un enlace de recuperación.
                     </ShadDialogDescription>
                   </ShadDialogHeader>
                    <Form {...forgotPasswordForm}>
@@ -685,12 +687,12 @@ export default function AppLayout({
             {/* Desktop Sidebar */}
             <Sidebar className="hidden lg:flex flex-col flex-shrink-0 border-r bg-sidebar text-sidebar-foreground" side="left" variant="sidebar" collapsible="icon">
                <DesktopSidebarHeader className="p-2 border-b flex items-center gap-2 justify-start group-data-[collapsible=icon]:justify-center flex-shrink-0 h-14">
-                <Image
-                  src={logoImage}
-                  alt="Sportoffice Logo"
-                  className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all"
-                  priority
-                />
+                  <Image
+                      src={logoImage}
+                      alt="Sportoffice Logo"
+                      className="h-8 w-auto group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-auto transition-all"
+                      priority
+                  />
                  <h3 className="text-lg font-semibold text-primary group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:sr-only transition-opacity duration-200 leading-none">
                     Sportoffice
                  </h3>
@@ -704,10 +706,10 @@ export default function AppLayout({
                         isActive={pathname === item.href}
                         tooltip={{ children: item.title, side: 'right', align: 'center' }}
                         className={cn(
-                           "h-10 p-2", 
+                           "h-10 p-2 text-sidebar-foreground",
                            pathname === item.href
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" 
-                            : "hover:bg-sidebar-accent/10" 
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                            : "hover:bg-sidebar-accent/10"
                         )}
                       >
                         <item.icon className="h-4 w-4" />
@@ -720,6 +722,7 @@ export default function AppLayout({
                 </SidebarMenu>
               </SidebarContent>
               <SidebarFooter className="p-2 border-t flex flex-col gap-2 flex-shrink-0">
+                {/* Desktop Auth/Profile Button */}
                 {isLoggedIn && user ? (
                   <Button variant="ghost" onClick={openProfileDialog} className="flex items-center gap-2 cursor-pointer hover:bg-sidebar-accent/10 p-1 rounded-md overflow-hidden w-full justify-start group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:rounded-md">
                     <Avatar className="h-8 w-8 flex-shrink-0 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
@@ -750,7 +753,7 @@ export default function AppLayout({
 
             {/* Mobile Header & Sheet */}
             <div className="flex flex-col flex-1 overflow-hidden">
-               <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
+               <header className="sticky top-0 z-10 flex h-14 items-center justify-start border-b bg-background px-3 sm:px-4 lg:hidden flex-shrink-0">
                   <Sheet open={isMobileSheetOpen} onOpenChange={handleMobileSheetOpenChange}>
                       <SheetTrigger asChild>
                         <Button variant="ghost" size="icon" className="-ml-2 sm:ml-0">
@@ -759,7 +762,12 @@ export default function AppLayout({
                         </Button>
                       </SheetTrigger>
                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-                          <Image src={logoImage} alt="Sportoffice Logo" className="h-7 sm:h-8 w-auto" priority />
+                          <Image
+                            src={logoImage}
+                            alt="Sportoffice Logo"
+                            className="h-7 sm:h-8 w-auto"
+                            priority
+                          />
                            <h3 className="font-semibold text-primary text-base sm:text-lg leading-none">Sportoffice</h3>
                       </div>
                       <SheetContent side="left" className="w-60 p-0 bg-sidebar text-sidebar-foreground flex flex-col">
@@ -785,7 +793,7 @@ export default function AppLayout({
                                               isActive={pathname === item.href}
                                               onClick={() => setIsMobileSheetOpen(false)}
                                               className={cn(
-                                                "text-sm h-10 px-3",
+                                                "text-sm h-10 px-3 text-sidebar-foreground",
                                                  pathname === item.href ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium" : "hover:bg-sidebar-accent/10"
                                               )}
                                           >
@@ -798,19 +806,20 @@ export default function AppLayout({
                               </SidebarContent>
                           </ScrollArea>
                            <SidebarFooter className="p-2 border-t flex-shrink-0">
+                               {/* Mobile Auth/Profile Button - No DialogTrigger wrapper */}
                                {isLoggedIn && user ? (
-                                <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
-                                    <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
-                                    <span className="font-medium truncate">{user.name}</span>
-                                </Button>
+                                    <Button variant="ghost" onClick={() => { openProfileDialog(); setIsMobileSheetOpen(false); }} className="flex items-center gap-2 p-1 rounded-md w-full justify-start">
+                                        <Avatar className="h-8 w-8"><AvatarImage src={user.avatarUrl || undefined} alt={user.name} data-ai-hint="user avatar small" /><AvatarFallback>{user.initials}</AvatarFallback></Avatar>
+                                        <span className="font-medium truncate">{user.name}</span>
+                                    </Button>
                                 ) : (
-                                <Button
-                                  onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }}
-                                  variant="accent"
-                                  className="w-full justify-start h-10 px-3 bg-accent text-accent-foreground hover:bg-accent/90"
-                                >
-                                   <ArrowRight className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
-                                </Button>
+                                    <Button
+                                      onClick={() => { openLoginDialog(); setIsMobileSheetOpen(false); }}
+                                      variant="accent"
+                                      className="w-full justify-start h-10 px-3 bg-accent text-accent-foreground hover:bg-accent/90"
+                                    >
+                                       <ArrowRight className="mr-2 h-4 w-4" /> Ingresar / Crear Cuenta
+                                    </Button>
                                 )}
                            </SidebarFooter>
                       </SheetContent>
