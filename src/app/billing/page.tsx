@@ -39,7 +39,7 @@ const mockInvoicesData: Invoice[] = [
   {
     id: 'inv2',
     invoiceNumber: 'FACT-00124',
-    date: '2024-08-20',
+    date: '2024-05-19', // Updated date
     serviceTitle: 'Clases Particulares de Matemáticas - Agosto',
     amount: 120000,
     status: 'Pendiente',
@@ -94,11 +94,12 @@ const BillingContent = () => {
   };
 
   const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'): 'default' | 'secondary' | 'outline' | 'destructive' => {
-    if (status === 'Pagada') return 'default';
-    if (status === 'Pendiente') return 'secondary';
-    if (status === 'Pago Rechazado') return 'destructive';
-    return 'outline';
+    if (status === 'Pagada') return 'default'; // Primary color for accepted
+    if (status === 'Pendiente') return 'secondary'; // Secondary color for pending
+    if (status === 'Pago Rechazado') return 'destructive'; // Destructive color for rejected
+    return 'outline'; // Default outline for other statuses
   };
+
 
   if (isLoading) {
     return (
