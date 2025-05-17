@@ -2,11 +2,11 @@
 "use client";
 
 import type React from 'react';
-import { useState, useEffect } from 'react'; // Added useEffect and useState
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layout/AppLayout';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Download, FileText } from 'lucide-react'; // Added Download and FileText icons
+import { FileText, Download } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -24,7 +24,7 @@ interface Invoice {
   date: string;
   serviceTitle: string;
   amount: number;
-  status: 'Pagada' | 'Pendiente';
+  status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'; // Added 'Pago Rechazado'
 }
 
 const mockInvoicesData: Invoice[] = [
@@ -52,6 +52,22 @@ const mockInvoicesData: Invoice[] = [
     amount: 1500000,
     status: 'Pagada',
   },
+  {
+    id: 'inv4',
+    invoiceNumber: 'FACT-00126',
+    date: '2024-09-05',
+    serviceTitle: 'Consultoría SEO - Paquete Básico',
+    amount: 350000,
+    status: 'Pago Rechazado',
+  },
+  {
+    id: 'inv5',
+    invoiceNumber: 'FACT-00127',
+    date: '2024-09-10',
+    serviceTitle: 'Diseño de Logo y Branding',
+    amount: 700000,
+    status: 'Pendiente',
+  },
 ];
 
 const BillingContent = () => {
@@ -78,9 +94,10 @@ const BillingContent = () => {
     alert(`Simulación: Descargando PDF para factura N° ${invoiceNumber}`);
   };
 
-  const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente'): 'default' | 'secondary' | 'outline' | 'destructive' => {
-    if (status === 'Pagada') return 'default'; // Primary color for paid
-    if (status === 'Pendiente') return 'secondary'; // Secondary color for pending
+  const getStatusBadgeVariant = (status: 'Pagada' | 'Pendiente' | 'Pago Rechazado'): 'default' | 'secondary' | 'outline' | 'destructive' => {
+    if (status === 'Pagada') return 'default'; // Primary color (blue) for paid - matching image
+    if (status === 'Pendiente') return 'secondary'; // Secondary color (light grey/white) for pending - matching image
+    if (status === 'Pago Rechazado') return 'destructive'; // Destructive color (red) for rejected
     return 'outline';
   };
 
@@ -174,7 +191,7 @@ const BillingContent = () => {
   );
 };
 
-const Billing = () => {
+const BillingPage = () => {
   return (
     <AppLayout>
       <BillingContent />
@@ -182,4 +199,4 @@ const Billing = () => {
   );
 };
 
-export default Billing;
+export default BillingPage;
