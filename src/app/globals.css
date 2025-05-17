@@ -104,6 +104,13 @@ body {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 }
 
 /* Custom Calendar Day Modifier Styles */
@@ -130,16 +137,15 @@ body {
 
   /* Rojo : Días ocupados ("occupied") */
   .rdp-day_occupied {
-    background-color: #fc5e5e !important; /* Tailwind red-400 */
+    background-color: #f87171 !important; /* Tailwind red-400 */
     color: white !important;
     border-radius: var(--radius);
   }
    .rdp-day_occupied:hover:not([disabled]):not(.rdp-day_selected) {
-    background-color: #ef4444 !important; /* Darker red for hover, if it's ever not disabled */
+    background-color: #ef4444 !important; /* Tailwind red-500 for hover */
   }
 
   /* Gris : Días no disponibles, descansos, o estado 'unavailable' */
-  /* Targets generally disabled days that don't have a specific availability status color like available, partial, or occupied when selected */
   .rdp-button[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied),
   .rdp-day_outside[disabled]:not(.rdp-day_selected):not(.rdp-day_available):not(.rdp-day_partial):not(.rdp-day_occupied) {
     background-color: #e5e7eb !important; /* Tailwind gray-200 */
@@ -174,5 +180,9 @@ body {
     font-weight: normal; /* Reset font weight if disabled */
     /* It will inherit the gray background/text from the general disabled rule */
   }
+}
 
+/* Hide reCAPTCHA badge */
+.grecaptcha-badge {
+  visibility: hidden !important;
 }
